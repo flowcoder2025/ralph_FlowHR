@@ -6,6 +6,11 @@ import {
   EmployeeStatus,
   EmploymentType,
   EmployeeChangeType,
+  ShiftType,
+  AttendanceStatus,
+  ExceptionType,
+  ExceptionStatus,
+  ClosingStatus,
 } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -503,8 +508,204 @@ async function main(): Promise<void> {
     });
   }
 
+  // ─── Shifts (Acme) ───────────────────────────────────────
+
+  const shiftDefs = [
+    { name: "주간", type: ShiftType.REGULAR, startTime: "09:00", endTime: "18:00", breakMinutes: 60, color: "#3B82F6" },
+    { name: "오전", type: ShiftType.MORNING, startTime: "06:00", endTime: "14:00", breakMinutes: 60, color: "#10B981" },
+    { name: "오후", type: ShiftType.AFTERNOON, startTime: "14:00", endTime: "22:00", breakMinutes: 60, color: "#F59E0B" },
+    { name: "야간", type: ShiftType.NIGHT, startTime: "22:00", endTime: "06:00", breakMinutes: 60, color: "#6366F1" },
+    { name: "유연근무", type: ShiftType.FLEXIBLE, startTime: "07:00", endTime: "19:00", breakMinutes: 60, color: "#8B5CF6" },
+  ];
+
+  const shiftIds: Record<string, string> = {};
+  for (const def of shiftDefs) {
+    const shift = await prisma.shift.upsert({
+      where: { tenantId_name: { tenantId: acme.id, name: def.name } },
+      update: {},
+      create: {
+        tenantId: acme.id,
+        name: def.name,
+        type: def.type,
+        startTime: def.startTime,
+        endTime: def.endTime,
+        breakMinutes: def.breakMinutes,
+        color: def.color,
+      },
+    });
+    shiftIds[def.name] = shift.id;
+  }
+
+  // ─── Shift Assignments (Acme) ──────────────────────────
+
+  const assignmentDefs = [
+    { employeeNumber: "EMP-20200101", shiftName: "주간" },
+    { employeeNumber: "EMP-20210301", shiftName: "주간" },
+    { employeeNumber: "EMP-20210601", shiftName: "주간" },
+    { employeeNumber: "EMP-20220415", shiftName: "주간" },
+    { employeeNumber: "EMP-20220901", shiftName: "유연근무" },
+    { employeeNumber: "EMP-20230201", shiftName: "주간" },
+    { employeeNumber: "EMP-20230601", shiftName: "주간" },
+    { employeeNumber: "EMP-20240101", shiftName: "주간" },
+  ];
+
+  for (const def of assignmentDefs) {
+    const empId = employeeIds[def.employeeNumber];
+    const shiftId = shiftIds[def.shiftName];
+    await prisma.shiftAssignment.create({
+      data: {
+        tenantId: acme.id,
+        employeeId: empId,
+        shiftId,
+        startDate: new Date("2026-01-01"),
+      },
+    });
+  }
+
+  // ─── Attendance Records (Acme, this week sample) ───────
+
+  const activeEmployeeNumbers = [
+    "EMP-20200101", "EMP-20210301", "EMP-20210601", "EMP-20220415",
+    "EMP-20220901", "EMP-20230201", "EMP-20230601", "EMP-20240101",
+  ];
+
+  const attendanceSamples: {
+    dayOffset: number;
+    status: AttendanceStatus;
+    checkInOffset: string;
+    checkOutOffset: string;
+    workMinutes: number;
+    overtime: number;
+  }[] = [
+    { dayOffset: -4, status: AttendanceStatus.PRESENT, checkInOffset: "08:55", checkOutOffset: "18:05", workMinutes: 480, overtime: 0 },
+    { dayOffset: -3, status: AttendanceStatus.PRESENT, checkInOffset: "08:58", checkOutOffset: "19:00", workMinutes: 540, overtime: 60 },
+    { dayOffset: -2, status: AttendanceStatus.LATE, checkInOffset: "09:32", checkOutOffset: "18:30", workMinutes: 450, overtime: 0 },
+    { dayOffset: -1, status: AttendanceStatus.PRESENT, checkInOffset: "08:50", checkOutOffset: "18:00", workMinutes: 480, overtime: 0 },
+    { dayOffset: 0, status: AttendanceStatus.PRESENT, checkInOffset: "09:00", checkOutOffset: "18:00", workMinutes: 480, overtime: 0 },
+  ];
+
+  for (const empNum of activeEmployeeNumbers) {
+    const empId = employeeIds[empNum];
+    for (const sample of attendanceSamples) {
+      const date = new Date();
+      date.setDate(date.getDate() + sample.dayOffset);
+      date.setHours(0, 0, 0, 0);
+
+      const checkIn = new Date(date);
+      const [ciH, ciM] = sample.checkInOffset.split(":");
+      checkIn.setHours(parseInt(ciH, 10), parseInt(ciM, 10), 0, 0);
+
+      const checkOut = new Date(date);
+      const [coH, coM] = sample.checkOutOffset.split(":");
+      checkOut.setHours(parseInt(coH, 10), parseInt(coM, 10), 0, 0);
+
+      await prisma.attendanceRecord.upsert({
+        where: {
+          tenantId_employeeId_date: { tenantId: acme.id, employeeId: empId, date },
+        },
+        update: {},
+        create: {
+          tenantId: acme.id,
+          employeeId: empId,
+          date,
+          status: sample.status,
+          checkIn,
+          checkOut,
+          workMinutes: sample.workMinutes,
+          overtime: sample.overtime,
+        },
+      });
+    }
+  }
+
+  // ─── Attendance Exceptions (Acme) ──────────────────────
+
+  const exceptionDefs = [
+    {
+      employeeNumber: "EMP-20220415",
+      type: ExceptionType.CORRECTION,
+      status: ExceptionStatus.APPROVED,
+      dayOffset: -3,
+      reason: "출근 기록 누락 정정 요청",
+      approvedBy: employeeIds["EMP-20210601"],
+    },
+    {
+      employeeNumber: "EMP-20230201",
+      type: ExceptionType.OVERTIME,
+      status: ExceptionStatus.PENDING,
+      dayOffset: -2,
+      reason: "프로젝트 마감으로 인한 초과근무 (2시간)",
+    },
+    {
+      employeeNumber: "EMP-20240101",
+      type: ExceptionType.REMOTE_WORK,
+      status: ExceptionStatus.APPROVED,
+      dayOffset: -1,
+      reason: "재택근무 신청",
+      approvedBy: employeeIds["EMP-20210301"],
+    },
+    {
+      employeeNumber: "EMP-20220901",
+      type: ExceptionType.BUSINESS_TRIP,
+      status: ExceptionStatus.APPROVED,
+      dayOffset: 0,
+      reason: "고객사 미팅 출장",
+      approvedBy: employeeIds["EMP-20200101"],
+    },
+  ];
+
+  for (const def of exceptionDefs) {
+    const empId = employeeIds[def.employeeNumber];
+    const date = new Date();
+    date.setDate(date.getDate() + def.dayOffset);
+    date.setHours(0, 0, 0, 0);
+
+    await prisma.attendanceException.create({
+      data: {
+        tenantId: acme.id,
+        employeeId: empId,
+        type: def.type,
+        status: def.status,
+        date,
+        reason: def.reason,
+        approvedBy: def.approvedBy,
+        approvedAt: def.status === ExceptionStatus.APPROVED ? new Date() : undefined,
+      },
+    });
+  }
+
+  // ─── Attendance Closing (Acme) ─────────────────────────
+
+  await prisma.attendanceClosing.upsert({
+    where: { tenantId_year_month: { tenantId: acme.id, year: 2026, month: 2 } },
+    update: {},
+    create: {
+      tenantId: acme.id,
+      year: 2026,
+      month: 2,
+      status: ClosingStatus.CLOSED,
+      closedBy: employeeIds["EMP-20210301"],
+      closedAt: new Date("2026-03-05"),
+      totalDays: 20,
+      totalHours: 1280,
+    },
+  });
+
+  await prisma.attendanceClosing.upsert({
+    where: { tenantId_year_month: { tenantId: acme.id, year: 2026, month: 3 } },
+    update: {},
+    create: {
+      tenantId: acme.id,
+      year: 2026,
+      month: 3,
+      status: ClosingStatus.OPEN,
+      totalDays: 0,
+      totalHours: 0,
+    },
+  });
+
   console.log(
-    "Seed completed: 2 tenants, 9 roles, 7 users, 9 departments, 9 positions, 10 employees, 11 changes",
+    "Seed completed: 2 tenants, 9 roles, 7 users, 9 departments, 9 positions, 10 employees, 11 changes, 5 shifts, 8 assignments, 40 attendance records, 4 exceptions, 2 closings",
   );
 }
 
