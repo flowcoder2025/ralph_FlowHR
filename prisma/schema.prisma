@@ -52,6 +52,41 @@ enum EmployeeChangeType {
   TERMINATION
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EARLY_LEAVE
+  HALF_DAY
+}
+
+enum ShiftType {
+  REGULAR
+  MORNING
+  AFTERNOON
+  NIGHT
+  FLEXIBLE
+}
+
+enum ExceptionType {
+  CORRECTION
+  OVERTIME
+  BUSINESS_TRIP
+  REMOTE_WORK
+}
+
+enum ExceptionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ClosingStatus {
+  OPEN
+  IN_REVIEW
+  CLOSED
+}
+
 // ─── Tenant ───────────────────────────────────────────────
 
 model Tenant {
@@ -70,6 +105,11 @@ model Tenant {
   positions       Position[]
   employees       Employee[]
   employeeChanges EmployeeChange[]
+  shifts               Shift[]
+  shiftAssignments     ShiftAssignment[]
+  attendanceRecords    AttendanceRecord[]
+  attendanceExceptions AttendanceException[]
+  attendanceClosings   AttendanceClosing[]
 }
 
 // ─── Role ─────────────────────────────────────────────────
@@ -231,6 +271,9 @@ model Employee {
 
   changes            EmployeeChange[]
   managedDepartments Department[]     @relation("DepartmentManager")
+  shiftAssignments     ShiftAssignment[]
+  attendanceRecords    AttendanceRecord[]
+  attendanceExceptions AttendanceException[]
 
   @@unique([tenantId, employeeNumber])
 }
@@ -257,4 +300,107 @@ model EmployeeChange {
   toDepartment   Department? @relation("ChangeToDept", fields: [toDepartmentId], references: [id])
   fromPosition   Position?   @relation("ChangeFromPos", fields: [fromPositionId], references: [id])
   toPosition     Position?   @relation("ChangeToPos", fields: [toPositionId], references: [id])
+}
+
+// ─── Shift ─────────────────────────────────────────────────
+
+model Shift {
+  id          String    @id @default(cuid())
+  tenantId    String
+  name        String
+  type        ShiftType @default(REGULAR)
+  startTime   String    // "HH:mm" format
+  endTime     String    // "HH:mm" format
+  breakMinutes Int      @default(60)
+  color       String    @default("#3B82F6")
+  isActive    Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignments ShiftAssignment[]
+
+  @@unique([tenantId, name])
+}
+
+// ─── ShiftAssignment ───────────────────────────────────────
+
+model ShiftAssignment {
+  id         String   @id @default(cuid())
+  tenantId   String
+  employeeId String
+  shiftId    String
+  startDate  DateTime
+  endDate    DateTime?
+
+  createdAt DateTime @default(now())
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shift    Shift    @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+}
+
+// ─── AttendanceRecord ──────────────────────────────────────
+
+model AttendanceRecord {
+  id          String           @id @default(cuid())
+  tenantId    String
+  employeeId  String
+  date        DateTime
+  status      AttendanceStatus @default(PRESENT)
+  checkIn     DateTime?
+  checkOut    DateTime?
+  workMinutes Int?
+  overtime    Int              @default(0)
+  note        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, employeeId, date])
+}
+
+// ─── AttendanceException ───────────────────────────────────
+
+model AttendanceException {
+  id          String          @id @default(cuid())
+  tenantId    String
+  employeeId  String
+  type        ExceptionType
+  status      ExceptionStatus @default(PENDING)
+  date        DateTime
+  reason      String
+  approvedBy  String?
+  approvedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+// ─── AttendanceClosing ─────────────────────────────────────
+
+model AttendanceClosing {
+  id         String        @id @default(cuid())
+  tenantId   String
+  year       Int
+  month      Int
+  status     ClosingStatus @default(OPEN)
+  closedBy   String?
+  closedAt   DateTime?
+  totalDays  Int           @default(0)
+  totalHours Float         @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, year, month])
 }
