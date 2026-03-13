@@ -131,7 +131,7 @@
 ## Phase 13: Admin Dashboard (관리자 홈)
 
 ### L1: Admin Home > L2: 대시보드
-- [ ] WI-059-feat Admin 대시보드 (5 KPI, 오늘큐, 조직스냅샷, 결재퍼널, 예외모니터, 문서상태, 급여상태) | L1:AdminHome > L2:대시보드 > L3:홈 | batch:19
+- [x] WI-059-feat Admin 대시보드 (5 KPI, 오늘큐, 조직스냅샷, 결재퍼널, 예외모니터, 문서상태, 급여상태) | L1:AdminHome > L2:대시보드 > L3:홈 | batch:19
 
 ## Phase 14: Employee Portal (직원 포탈)
 
