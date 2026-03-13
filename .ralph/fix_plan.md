@@ -116,13 +116,13 @@
 ### L1: Reports > L2: 센터 + 인사이트 + 예약
 - [x] WI-050-feat 리포트 센터 (7카드 그리드) | L1:Reports > L2:센터 > L3:그리드 | batch:15
 - [x] WI-051-feat 인사 인사이트 (부서분포 차트, 근속분포) | L1:Reports > L2:인사이트 > L3:인사 | batch:16
-- [ ] WI-052-feat 근태 인사이트 (주간추이 차트, 예외요약) | L1:Reports > L2:인사이트 > L3:근태 | batch:17
+- [x] WI-052-feat 근태 인사이트 (주간추이 차트, 예외요약) | L1:Reports > L2:인사이트 > L3:근태 | batch:17
 - [ ] WI-053-feat 예약 리포트 (5개 스케줄 CRUD) | L1:Reports > L2:예약 > L3:스케줄 | batch:18
 
 ## Phase 12: Settings (설정)
 
 ### L1: Settings > L2: 회사 + 역할 + 권한 + 알림 + 감사
-- [ ] WI-054-feat 회사 정보 설정 (2컬럼 폼) | L1:Settings > L2:회사 > L3:기본설정 | batch:17
+- [x] WI-054-feat 회사 정보 설정 (2컬럼 폼) | L1:Settings > L2:회사 > L3:기본설정 | batch:17
 - [ ] WI-055-feat 역할 관리 (6역할 테이블, CRUD) | L1:Settings > L2:역할 > L3:관리 | batch:18
 - [ ] WI-056-feat 권한 매트릭스 (6기능×6역할, 셀 클릭 변경) | L1:Settings > L2:권한 > L3:매트릭스 | batch:19
 - [ ] WI-057-feat 알림 규칙 + 외부 연동 (6이벤트 토글, Slack/Google/Jira 카드) | L1:Settings > L2:알림연동 > L3:규칙 | batch:20
