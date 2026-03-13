@@ -407,12 +407,15 @@ setup_worktree() {
 
 mark_wi_done() {
   # fix_plan.md에서 특정 WI 이름을 포함하는 첫 번째 미완료 항목을 완료 처리
-  # 정규식 이스케이프 문제를 우회하기 위해 grep -nF (고정 문자열) + sed 라인번호 방식 사용
+  # 주의: 패턴이 "- [ ]"로 시작 → grep에 반드시 -- 필요 (대시를 옵션으로 오인 방지)
   local wi_name="$1"
   local line_num
-  line_num=$(grep -nF "- [ ] ${wi_name}" "$FIX_PLAN" 2>/dev/null | head -1 | cut -d: -f1)
+  line_num=$(grep -nF -- "- [ ] ${wi_name}" "$FIX_PLAN" 2>/dev/null | head -1 | cut -d: -f1)
   if [[ -n "$line_num" ]]; then
-    sed -i "${line_num}s/^\- \[ \]/- [x]/" "$FIX_PLAN" 2>/dev/null
+    sed -i "${line_num}s/^\- \[ \]/- [x]/" "$FIX_PLAN"
+    log "  mark_wi_done: ✅ ${wi_name} (line $line_num)"
+  else
+    log "  mark_wi_done: ⚠️ 매칭 실패 — ${wi_name}"
   fi
 }
 
@@ -549,10 +552,10 @@ CTXEOF
   log "🔀 병렬 결과: ${merged} 머지, ${failed} 충돌, ${skipped} 스킵"
   call_count=$((call_count + wi_count))
 
-  # fix_plan.md 변경사항 커밋 (머지 성공한 WI가 있을 때만)
-  if [[ $merged -gt 0 ]] && ! git diff --quiet "$FIX_PLAN" 2>/dev/null; then
+  # fix_plan.md 변경사항 커밋 (머지 또는 자동 체크로 변경된 경우)
+  if ! git diff --quiet "$FIX_PLAN" 2>/dev/null; then
     git add "$FIX_PLAN"
-    git commit -m "WI-chore fix_plan 업데이트 (병렬 ${merged}건 완료)" --no-verify 2>/dev/null || true
+    git commit -m "WI-chore fix_plan 업데이트 (병렬 ${merged}건 머지, ${skipped}건 스킵)" --no-verify 2>/dev/null || true
   fi
 
   # 전부 실패면 에러
