@@ -519,18 +519,15 @@ CTXEOF
       skipped=$((skipped + 1))
     else
       log "  [Worker $idx] 머지: $branch"
-      local merge_output merge_rc=0
-      merge_output=$(git merge "$branch" --no-edit 2>&1) || merge_rc=$?
-      if [[ $merge_rc -eq 0 ]]; then
+      if git merge "$branch" --no-edit 2>"$LOG_DIR/merge_${idx}.log"; then
         merged=$((merged + 1))
-        # 머지 성공 → 메인 루프가 fix_plan.md 체크 처리
-        mark_wi_done "${worktree_wi[$i]}"
+        mark_wi_done "${worktree_wi[$i]}" || true
         log "  [Worker $idx] ✅ 머지 성공"
       else
         git merge --abort 2>/dev/null || true
         failed=$((failed + 1))
         log "  [Worker $idx] ❌ 머지 충돌 — 롤백"
-        log "  [Worker $idx] 원인: $(echo "$merge_output" | head -3)"
+        log "  [Worker $idx] 원인: $(head -3 "$LOG_DIR/merge_${idx}.log" 2>/dev/null)"
       fi
     fi
 
