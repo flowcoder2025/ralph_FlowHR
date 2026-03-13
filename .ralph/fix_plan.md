@@ -73,7 +73,7 @@
 
 ### L1: Documents > L2: 대시보드 + 템플릿 + 발송 + 보관함
 - [x] WI-030-feat 문서 대시보드 (4 KPI) | L1:Documents > L2:대시보드 > L3:KPI | batch:06
-- [ ] WI-031-feat 템플릿 매니저 (4카드, CRUD) | L1:Documents > L2:템플릿 > L3:매니저 | batch:07
+- [x] WI-031-feat 템플릿 매니저 (4카드, CRUD) | L1:Documents > L2:템플릿 > L3:매니저 | batch:07
 - [ ] WI-032-feat 문서 발송 폼 (2컬럼, 미리보기, 알림 토글) | L1:Documents > L2:발송 > L3:폼 | batch:08
 - [ ] WI-033-feat 문서 보관함 (테이블, 다운로드, 재발송) | L1:Documents > L2:보관함 > L3:테이블 | batch:09
 
@@ -83,7 +83,7 @@
 - [x] WI-034-feat Payroll DB 스키마 (PayrollRule, PayrollRun, Payslip + 6규칙 시드) | L1:Payroll > L2:DB > L3:급여모델 | batch:06
 
 ### L1: Payroll > L2: 대시보드 + 규칙 + 마감 + 명세서
-- [ ] WI-035-feat 급여 대시보드 (4 KPI) | L1:Payroll > L2:대시보드 > L3:KPI | batch:07
+- [x] WI-035-feat 급여 대시보드 (4 KPI) | L1:Payroll > L2:대시보드 > L3:KPI | batch:07
 - [ ] WI-036-feat 급여 규칙 관리 (6규칙 테이블, 수정) | L1:Payroll > L2:규칙 > L3:테이블 | batch:08
 - [ ] WI-037-feat 급여 마감 플로우 (5단계 프로세스, 체크리스트) | L1:Payroll > L2:마감 > L3:플로우 | batch:09
 - [ ] WI-038-feat 급여 명세서 센터 (월선택, 테이블) | L1:Payroll > L2:명세서 > L3:센터 | batch:10
