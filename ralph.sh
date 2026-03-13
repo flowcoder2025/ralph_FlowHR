@@ -515,7 +515,14 @@ CTXEOF
     base_sha=$(git merge-base HEAD "$branch" 2>/dev/null || echo "none")
 
     if [[ "$wt_sha" == "$base_sha" ]]; then
-      log "  [Worker $idx] 변경 없음 — 스킵"
+      # 워커가 "이미 구현됨"으로 완료 보고했으면 fix_plan 체크
+      local worker_log="${SCRIPT_DIR}/${LOG_DIR}/claude_parallel_${loop_count}_${idx}.log"
+      if grep -q 'TASKS_COMPLETED_THIS_LOOP: 1' "$worker_log" 2>/dev/null; then
+        mark_wi_done "${worktree_wi[$i]}" || true
+        log "  [Worker $idx] 이미 구현됨 — fix_plan 자동 체크"
+      else
+        log "  [Worker $idx] 변경 없음 — 스킵"
+      fi
       skipped=$((skipped + 1))
     else
       log "  [Worker $idx] 머지: $branch"
