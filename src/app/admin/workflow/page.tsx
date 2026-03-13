@@ -13,8 +13,9 @@ import {
   Button,
   QueueList,
   QueueItem,
+  DataTable,
 } from "@/components/ui";
-import type { QueuePriority } from "@/components/ui";
+import type { QueuePriority, Column, SortState, BadgeVariant } from "@/components/ui";
 import { ApprovalDetailDrawer } from "./ApprovalDetailDrawer";
 import { WorkflowBuilder } from "./WorkflowBuilder";
 
@@ -159,9 +160,7 @@ function WorkflowContent() {
         <DetailTab onSelectRequest={setSelectedRequestId} />
       )}
       {activeTab === "builder" && <WorkflowBuilder />}
-      {activeTab === "history" && (
-        <PlaceholderTab message="결재 이력 (WI-028)" />
-      )}
+      {activeTab === "history" && <HistoryTab />}
 
       {/* Approval Detail Drawer */}
       <ApprovalDetailDrawer
@@ -429,12 +428,270 @@ function DetailTab({ onSelectRequest }: { onSelectRequest: (_id: string) => void
   );
 }
 
-// ─── Placeholder Tab ────────────────────────────────────────
+// ─── History Tab (WI-028) ──────────────────────────────────
 
-function PlaceholderTab({ message }: { message: string }) {
+interface HistoryRow {
+  id: string;
+  title: string;
+  requesterName: string;
+  department: string;
+  requestType: string;
+  createdAt: string;
+  completedAt: string;
+  status: string;
+  processingDays: number;
+}
+
+interface PaginationInfo {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+const REQUEST_TYPE_LABEL: Record<string, string> = {
+  LEAVE: "휴가",
+  OVERTIME: "초과근무",
+  EXPENSE: "경비",
+  SALARY_CHANGE: "급여변경",
+};
+
+const HISTORY_STATUS_BADGE: Record<string, { label: string; variant: BadgeVariant }> = {
+  APPROVED: { label: "승인", variant: "success" },
+  REJECTED: { label: "반려", variant: "danger" },
+  CANCELLED: { label: "취소", variant: "neutral" },
+};
+
+const HISTORY_STATUS_FILTERS: { key: string; label: string }[] = [
+  { key: "ALL", label: "전체" },
+  { key: "APPROVED", label: "승인" },
+  { key: "REJECTED", label: "반려" },
+  { key: "CANCELLED", label: "취소" },
+];
+
+function HistoryTab() {
+  const [records, setRecords] = useState<HistoryRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [sort, setSort] = useState<SortState>({ key: "completedAt", direction: "desc" });
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    page: 1,
+    pageSize: 10,
+    total: 0,
+    totalPages: 0,
+  });
+
+  const fetchHistory = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (search) params.set("search", search);
+      if (statusFilter !== "ALL") params.set("status", statusFilter);
+      if (sort.key) params.set("sortKey", sort.key);
+      if (sort.direction) params.set("sortDir", sort.direction);
+      params.set("page", String(page));
+      params.set("pageSize", "10");
+
+      const res = await fetch(`/api/workflow/history?${params.toString()}`);
+      if (res.ok) {
+        const json = await res.json();
+        setRecords(json.data);
+        setPagination(json.pagination);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [search, statusFilter, sort, page]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  function handleSearch(value: string) {
+    setSearch(value);
+    setPage(1);
+  }
+
+  function handleStatusFilter(key: string) {
+    setStatusFilter(key);
+    setPage(1);
+  }
+
+  function handleSort(key: string) {
+    setSort((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "desc" ? "asc" : "desc",
+    }));
+    setPage(1);
+  }
+
+  const columns: Column<HistoryRow>[] = [
+    {
+      key: "title",
+      header: "요청",
+      sortable: true,
+      render: (row) => (
+        <span className="font-medium text-text-primary">{row.title}</span>
+      ),
+    },
+    {
+      key: "requester",
+      header: "요청자",
+      sortable: true,
+      render: (row) => (
+        <div>
+          <div className="text-text-primary">{row.requesterName}</div>
+          <div className="text-xs text-text-tertiary">{row.department}</div>
+        </div>
+      ),
+    },
+    {
+      key: "requestType",
+      header: "유형",
+      sortable: true,
+      render: (row) => (
+        <Badge variant="info">
+          {REQUEST_TYPE_LABEL[row.requestType] ?? row.requestType}
+        </Badge>
+      ),
+    },
+    {
+      key: "createdAt",
+      header: "신청일",
+      sortable: true,
+    },
+    {
+      key: "completedAt",
+      header: "완료일",
+      sortable: true,
+    },
+    {
+      key: "status",
+      header: "결과",
+      sortable: true,
+      align: "center",
+      render: (row) => {
+        const meta = HISTORY_STATUS_BADGE[row.status] ?? {
+          label: row.status,
+          variant: "neutral" as BadgeVariant,
+        };
+        return <Badge variant={meta.variant}>{meta.label}</Badge>;
+      },
+    },
+    {
+      key: "processingDays",
+      header: "처리 시간",
+      align: "right",
+      render: (row) => (
+        <span className="tabular-nums text-text-secondary">{row.processingDays}일</span>
+      ),
+    },
+  ];
+
+  function getPageNumbers(): number[] {
+    const { totalPages } = pagination;
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const start = Math.max(1, page - 2);
+    const end = Math.min(totalPages, start + 4);
+    const adjusted = Math.max(1, end - 4);
+    return Array.from({ length: end - adjusted + 1 }, (_, i) => adjusted + i);
+  }
+
+  const rangeStart = (pagination.page - 1) * pagination.pageSize + 1;
+  const rangeEnd = Math.min(pagination.page * pagination.pageSize, pagination.total);
+
   return (
-    <div className="flex items-center justify-center py-sp-12">
-      <span className="text-sm text-text-tertiary">{message}</span>
-    </div>
+    <>
+      {/* Filter bar */}
+      <div className="mb-sp-4 flex flex-wrap items-center gap-sp-3">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => handleSearch(e.target.value)}
+          placeholder="요청명 또는 요청자 검색..."
+          className="h-9 w-56 rounded-md border border-border bg-surface-primary px-sp-3 text-sm text-text-primary transition-colors duration-fast placeholder:text-text-tertiary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-brand/10"
+        />
+        {HISTORY_STATUS_FILTERS.map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            onClick={() => handleStatusFilter(f.key)}
+            className={[
+              "rounded-full border px-sp-3 py-sp-1 text-xs font-medium transition-colors duration-fast",
+              statusFilter === f.key
+                ? "border-brand bg-brand-soft text-brand-text"
+                : "border-border bg-surface-primary text-text-secondary hover:bg-surface-secondary",
+            ].join(" ")}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Table */}
+      <div className="rounded-lg border border-border bg-surface-primary shadow-xs">
+        {loading ? (
+          <div className="flex items-center justify-center py-sp-12">
+            <span className="text-sm text-text-tertiary">불러오는 중...</span>
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={records}
+            keyExtractor={(row) => row.id}
+            sort={sort}
+            onSort={handleSort}
+            emptyMessage="결재 이력이 없습니다"
+          />
+        )}
+
+        {/* Pagination */}
+        {!loading && pagination.total > 0 && (
+          <div className="flex items-center justify-between border-t border-border px-sp-4 py-sp-3">
+            <span className="text-xs text-text-tertiary">
+              총 {pagination.total.toLocaleString()}건 중 {rangeStart} –{" "}
+              {rangeEnd} 표시
+            </span>
+            <div className="flex items-center gap-sp-1">
+              <button
+                type="button"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+                className="flex h-7 w-7 items-center justify-center rounded-md text-xs text-text-secondary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                &laquo;
+              </button>
+              {getPageNumbers().map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPage(p)}
+                  className={[
+                    "flex h-7 w-7 items-center justify-center rounded-md text-xs font-medium transition-colors",
+                    p === page
+                      ? "bg-brand text-white"
+                      : "text-text-secondary hover:bg-surface-secondary",
+                  ].join(" ")}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={page >= pagination.totalPages}
+                onClick={() => setPage(page + 1)}
+                className="flex h-7 w-7 items-center justify-center rounded-md text-xs text-text-secondary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                &raquo;
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
