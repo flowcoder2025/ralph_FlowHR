@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
   CardBody,
+  CardFooter,
   Badge,
   BarChart,
   Button,
@@ -15,8 +16,10 @@ import {
   Select,
   DataTable,
   ProgressBar,
+  QueueList,
+  QueueItem,
 } from "@/components/ui";
-import type { BadgeVariant, BarChartDatum, Column } from "@/components/ui";
+import type { BadgeVariant, BarChartDatum, Column, QueuePriority } from "@/components/ui";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -187,7 +190,7 @@ function PerformanceContent() {
       )}
       {activeTab === "evaluation" && <EvaluationSettings />}
       {activeTab === "progress" && <EvalProgressTab />}
-      {activeTab === "one-on-one" && <PlaceholderTab label="1:1 미팅 허브" />}
+      {activeTab === "one-on-one" && <OneOnOneHub />}
     </div>
   );
 }
@@ -842,16 +845,208 @@ function StatRow({
   );
 }
 
-function PlaceholderTab({ label }: { label: string }) {
+// ─── 1:1 Meeting Hub Tab ────────────────────────────────────
+
+interface OneOnOneMeeting {
+  id: string;
+  managerName: string;
+  employeeName: string;
+  scheduledAt: string;
+  duration: number;
+  agenda: string | null;
+  notes: string | null;
+  status: string;
+}
+
+interface OneOnOneData {
+  meetings: OneOnOneMeeting[];
+  stats: {
+    completedThisMonth: number;
+    cancelledThisMonth: number;
+  };
+}
+
+const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
+
+function formatMeetingDate(iso: string): string {
+  const d = new Date(iso);
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  const dayName = DAY_NAMES[d.getDay()];
+  const hours = String(d.getHours()).padStart(2, "0");
+  const mins = String(d.getMinutes()).padStart(2, "0");
+  return `${month}/${day} (${dayName}) ${hours}:${mins}`;
+}
+
+function getMeetingPriority(meeting: OneOnOneMeeting): QueuePriority {
+  const now = new Date();
+  const scheduled = new Date(meeting.scheduledAt);
+  const hoursUntil =
+    (scheduled.getTime() - now.getTime()) / (1000 * 60 * 60);
+  if (hoursUntil < 0) return "critical";
+  if (hoursUntil < 4) return "high";
+  if (hoursUntil < 24) return "medium";
+  return "low";
+}
+
+function OneOnOneHub() {
+  const [data, setData] = useState<OneOnOneData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(
+    null
+  );
+
+  const fetchOneOnOnes = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/performance/one-on-one");
+      if (res.ok) {
+        const json: OneOnOneData = await res.json();
+        setData(json);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOneOnOnes();
+  }, [fetchOneOnOnes]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-sp-12">
+        <span className="text-sm text-text-tertiary">불러오는 중...</span>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <Card>
+        <CardBody>
+          <div className="flex items-center justify-center py-sp-12">
+            <span className="text-sm text-text-tertiary">
+              데이터를 불러올 수 없습니다.
+            </span>
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  const { meetings, stats } = data;
+  const selectedMeeting = meetings.find((m) => m.id === selectedMeetingId);
+
   return (
-    <Card>
-      <CardBody>
-        <div className="flex items-center justify-center py-sp-12">
+    <div className="space-y-sp-6">
+      <Card>
+        <CardHeader>
+          <div>
+            <CardTitle>이번 주 1:1 예정</CardTitle>
+            <p className="text-xs text-text-tertiary mt-sp-1">
+              예정된 1:1 미팅 및 의제 관리
+            </p>
+          </div>
+          <Button variant="primary" size="sm">
+            + 1:1 예약
+          </Button>
+        </CardHeader>
+        <CardBody>
+          {meetings.length > 0 ? (
+            <QueueList>
+              {meetings.map((m) => (
+                <QueueItem
+                  key={m.id}
+                  priority={getMeetingPriority(m)}
+                  title={`${m.managerName} ↔ ${m.employeeName}`}
+                  meta={`${formatMeetingDate(m.scheduledAt)} · ${m.duration}분${m.agenda ? ` · 의제: ${m.agenda}` : ""}`}
+                  action={
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() =>
+                        setSelectedMeetingId(
+                          selectedMeetingId === m.id ? null : m.id
+                        )
+                      }
+                    >
+                      의제 보기
+                    </Button>
+                  }
+                />
+              ))}
+            </QueueList>
+          ) : (
+            <div className="flex items-center justify-center py-sp-8">
+              <span className="text-sm text-text-tertiary">
+                이번 주 예정된 1:1 미팅이 없습니다.
+              </span>
+            </div>
+          )}
+        </CardBody>
+        <CardFooter>
           <span className="text-sm text-text-tertiary">
-            {label} 탭 (다음 WI에서 구현 예정)
+            이번 달 완료된 1:1: {stats.completedThisMonth}건 · 미참석:{" "}
+            {stats.cancelledThisMonth}건
           </span>
-        </div>
-      </CardBody>
-    </Card>
+        </CardFooter>
+      </Card>
+
+      {/* 안건 미리보기 */}
+      {selectedMeeting && (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {selectedMeeting.managerName} ↔{" "}
+              {selectedMeeting.employeeName} 안건
+            </CardTitle>
+            <Badge variant="info">
+              {formatMeetingDate(selectedMeeting.scheduledAt)}
+            </Badge>
+          </CardHeader>
+          <CardBody>
+            <div className="space-y-sp-4">
+              <div>
+                <h4 className="text-sm font-medium text-text-secondary mb-sp-2">
+                  의제
+                </h4>
+                {selectedMeeting.agenda ? (
+                  <ul className="space-y-sp-1">
+                    {selectedMeeting.agenda.split(",").map((item, i) => (
+                      <li
+                        key={i}
+                        className="flex items-start gap-sp-2 text-sm text-text-primary"
+                      >
+                        <span className="text-text-tertiary mt-0.5">•</span>
+                        <span>{item.trim()}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-text-tertiary">
+                    등록된 의제가 없습니다.
+                  </p>
+                )}
+              </div>
+              {selectedMeeting.notes && (
+                <div>
+                  <h4 className="text-sm font-medium text-text-secondary mb-sp-2">
+                    메모
+                  </h4>
+                  <p className="text-sm text-text-primary whitespace-pre-wrap">
+                    {selectedMeeting.notes}
+                  </p>
+                </div>
+              )}
+              <div className="flex items-center gap-sp-3 pt-sp-2">
+                <StatRow label="시간" value={formatMeetingDate(selectedMeeting.scheduledAt)} />
+                <StatRow label="소요" value={`${selectedMeeting.duration}분`} />
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+    </div>
   );
 }
