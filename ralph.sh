@@ -340,11 +340,158 @@ build_context() {
   local remaining="${counts##* }"
   local target_wi
   target_wi=$(get_current_wi)
+  local rag
+  rag=$(build_rag_context)
   cat <<EOF
 [Ralph Loop #$loop_count] Completed: $completed | Remaining: $remaining
 [TARGET] ${target_wi}
 [RULE] 위 TARGET 작업 1개만 처리하고 RALPH_STATUS 출력 후 즉시 종료. 다른 WI 절대 금지.
+${rag}
 EOF
+}
+
+#--- RAG (Retrieval-Augmented Generation) ---
+
+RAG_DIR=".ralph/rag"
+
+generate_codebase_map() {
+  # 프로젝트 파일 구조 + 핵심 정보를 경량 맵으로 생성
+  # 워커가 코드베이스를 즉시 파악하도록 지원
+  mkdir -p "$RAG_DIR"
+  local map_file="$RAG_DIR/codebase-map.md"
+  {
+    echo "# Codebase Map (auto-generated: $(date '+%Y-%m-%d %H:%M'))"
+    echo ""
+    echo "## Structure"
+    tree -I 'node_modules|.git|.next|dist|.worktrees|.ralph' --dirsfirst -L 3 -F 2>/dev/null \
+      || find . -maxdepth 3 -type f ! -path '*/node_modules/*' ! -path '*/.git/*' ! -path '*/.next/*' 2>/dev/null | sort | head -80
+    echo ""
+    # DB Models
+    if [[ -f prisma/schema.prisma ]]; then
+      echo "## DB Models"
+      grep '^model ' prisma/schema.prisma 2>/dev/null | sed 's/model /- /'
+      echo ""
+    fi
+    # Pages
+    local pages
+    pages=$(find src -name 'page.tsx' 2>/dev/null | sort)
+    if [[ -n "$pages" ]]; then
+      echo "## Pages"
+      echo "$pages" | sed 's/^/- /'
+      echo ""
+    fi
+    # API Routes
+    local apis
+    apis=$(find src -name 'route.ts' -path '*/api/*' 2>/dev/null | sort)
+    if [[ -n "$apis" ]]; then
+      echo "## API Routes"
+      echo "$apis" | sed 's/^/- /'
+      echo ""
+    fi
+    # Components (directories only, compact)
+    local comps
+    comps=$(find src -type d -name 'components' 2>/dev/null)
+    if [[ -n "$comps" ]]; then
+      echo "## Component Dirs"
+      echo "$comps" | while read -r d; do
+        echo "- $d/ ($(ls "$d" 2>/dev/null | wc -l) files)"
+      done
+      echo ""
+    fi
+  } > "$map_file" 2>/dev/null
+  log "📋 codebase-map 생성 완료"
+}
+
+update_wi_history() {
+  # 완료된 WI의 변경 파일 목록을 기록 → 다음 워커가 참조
+  local wi_name="$1"
+  mkdir -p "$RAG_DIR"
+  local history_file="$RAG_DIR/wi-history.md"
+  local wi_prefix="${wi_name%% *}"
+  local files_changed=""
+  local commit_hash
+  commit_hash=$(git log --oneline --all --grep="$wi_prefix" -1 --format="%H" 2>/dev/null)
+  if [[ -n "$commit_hash" ]]; then
+    files_changed=$(git diff-tree --no-commit-id --name-only -r "$commit_hash" 2>/dev/null | head -10 | tr '\n' ', ')
+    files_changed="${files_changed%,}"
+  fi
+  # 중복 방지
+  if ! grep -qF -- "$wi_prefix" "$history_file" 2>/dev/null; then
+    echo "- [x] ${wi_name} | ${files_changed:-no-commit}" >> "$history_file"
+  fi
+}
+
+get_all_unchecked_wis() {
+  # batch 무관하게 전체 미완료 WI 추출
+  awk '/^```/{f=!f} !f && /^\- \[ \]/{sub(/^\- \[ \] /,""); sub(/ \| L1:.*$/,""); print}' "$FIX_PLAN" 2>/dev/null
+}
+
+check_wi_implemented() {
+  # 코드베이스에서 WI가 이미 구현되었는지 확인 (git log + 파일 존재)
+  local wi_name="$1"
+  local wi_prefix="${wi_name%% *}"
+
+  # Method 1: git log에 WI 커밋 존재
+  if git log --oneline --all --grep="$wi_prefix" 2>/dev/null | head -1 | grep -q .; then
+    return 0
+  fi
+
+  # Method 2: DB 스키마 WI → prisma model 존재 여부
+  if [[ "$wi_name" == *"DB 스키마"* || "$wi_name" == *"DB스키마"* ]]; then
+    # WI prefix 제거 후 설명부에서 영문 모델명 추출
+    local desc="${wi_name#*feat }"
+    desc="${desc#*fix }"
+    local model
+    model=$(echo "$desc" | grep -oE '[A-Z][a-zA-Z]+' | head -1)
+    if [[ -n "$model" ]] && grep -q "^model $model " prisma/schema.prisma 2>/dev/null; then
+      return 0
+    fi
+  fi
+
+  # Method 3: 컴포넌트/페이지 WI → 관련 파일 2개 이상 존재
+  local en_words
+  en_words=$(echo "$wi_name" | grep -oE '[A-Z][a-zA-Z]{3,}' | head -3)
+  if [[ -n "$en_words" ]]; then
+    local match_total=0
+    while IFS= read -r word; do
+      local cnt
+      cnt=$(find src -type f \( -name "*.tsx" -o -name "*.ts" \) -iname "*${word}*" 2>/dev/null | wc -l)
+      match_total=$((match_total + cnt))
+    done <<< "$en_words"
+    if [[ $match_total -ge 2 ]]; then
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
+build_rag_context() {
+  # 워커에게 주입할 RAG 컨텍스트 조립 (토큰 예산 ~2K)
+  local parts=""
+
+  # 1. Codebase map (최대 80줄)
+  if [[ -f "$RAG_DIR/codebase-map.md" ]]; then
+    parts+="[CODEBASE MAP]
+$(head -80 "$RAG_DIR/codebase-map.md")
+"
+  fi
+
+  # 2. WI history (최근 20건)
+  if [[ -f "$RAG_DIR/wi-history.md" ]]; then
+    parts+="[COMPLETED WIs — 아래 파일은 이미 구현됨, 중복 구현 금지]
+$(tail -20 "$RAG_DIR/wi-history.md")
+"
+  fi
+
+  # 3. Guardrails
+  if [[ -f ".ralph/guardrails.md" ]]; then
+    parts+="[GUARDRAILS — 반드시 준수]
+$(cat .ralph/guardrails.md)
+"
+  fi
+
+  echo "$parts"
 }
 
 #--- Parallel Execution (PARALLEL_COUNT > 1) ---
@@ -414,28 +561,29 @@ mark_wi_done() {
   if [[ -n "$line_num" ]]; then
     sed -i "${line_num}s/^\- \[ \]/- [x]/" "$FIX_PLAN"
     log "  mark_wi_done: ✅ ${wi_name} (line $line_num)"
+    update_wi_history "$wi_name" || true
   else
     log "  mark_wi_done: ⚠️ 매칭 실패 — ${wi_name}"
   fi
 }
 
 recover_stale_wis() {
-  # 워커 실행 전, git history에 이미 머지된 WI가 fix_plan에서 미체크인지 확인
-  # 이전 mark_wi_done 버그로 누락된 stale WI를 사전에 정리
+  # 워커 실행 전, 이미 구현된 WI를 사전 감지하여 fix_plan 자동 체크
+  # 감지 방법: git log(커밋 이력) + check_wi_implemented(코드 존재 분석)
   local recovered=0
   while IFS= read -r wi; do
     [[ -z "$wi" ]] && continue
-    local wi_prefix="${wi%% *}"  # "WI-022-feat" 부분만 추출
-    if git log --oneline --all --grep="$wi_prefix" 2>/dev/null | head -1 | grep -q .; then
+    if check_wi_implemented "$wi"; then
       mark_wi_done "$wi" || true
+      update_wi_history "$wi" || true
       recovered=$((recovered + 1))
     fi
-  done < <(get_next_n_wis 99)
+  done < <(get_all_unchecked_wis)
   if [[ $recovered -gt 0 ]]; then
-    log "🔄 stale WI ${recovered}건 사전 복구"
+    log "🔄 stale WI ${recovered}건 사전 복구 (RAG 코드 분석)"
     if ! git diff --quiet "$FIX_PLAN" 2>/dev/null; then
       git add "$FIX_PLAN"
-      git commit -m "WI-chore fix_plan stale WI ${recovered}건 복구" --no-verify 2>/dev/null || true
+      git commit -m "WI-chore fix_plan stale WI ${recovered}건 자동 복구" --no-verify 2>/dev/null || true
     fi
   fi
 }
@@ -460,6 +608,10 @@ execute_parallel() {
 
   log "🔀 병렬 실행: ${wi_count}개 WI 동시 처리"
 
+  # RAG 컨텍스트 조립 (워커 공통)
+  local rag_context
+  rag_context=$(build_rag_context)
+
   # Setup worktrees and launch claude in each
   for i in "${!wis[@]}"; do
     local idx=$((i + 1))
@@ -473,7 +625,7 @@ execute_parallel() {
 
     local wt_path="${info%%|*}"
 
-    # Build parallel context
+    # Build parallel context (RAG 포함)
     local counts completed unchecked total
     counts=$(count_tasks)
     completed="${counts%% *}"
@@ -486,6 +638,7 @@ execute_parallel() {
 [TARGET] ${wi}
 [RULE] 위 TARGET 작업 1개만 처리하고 RALPH_STATUS 출력 후 즉시 종료. 다른 WI 절대 금지.
 [PARALLEL MODE] 이미 작업 브랜치에 있음. 별도 브랜치 생성·PR 생성 불필요. 현재 브랜치에서 직접 커밋할 것. fix_plan.md는 절대 수정하지 말 것(외부 루프가 처리).
+${rag_context}
 CTXEOF
 )
 
@@ -705,6 +858,11 @@ main() {
       done
       log "🧹 이전 병렬 브랜치 정리 완료"
     fi
+  fi
+
+  # RAG: codebase-map 생성 (없거나 1시간 이상 지난 경우)
+  if [[ ! -f "$RAG_DIR/codebase-map.md" ]] || [[ $(find "$RAG_DIR/codebase-map.md" -mmin +60 2>/dev/null) ]]; then
+    generate_codebase_map
   fi
 
   log "=== Ralph Loop Started ==="
