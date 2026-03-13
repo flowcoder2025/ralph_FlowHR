@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
   Card,
   CardBody,
@@ -102,9 +103,11 @@ function ReportsContent() {
             </p>
           </div>
           <div className="flex gap-sp-2">
-            <Button variant="secondary" size="sm">
-              예약 보고서
-            </Button>
+            <Link href="/admin/reports/scheduled">
+              <Button variant="secondary" size="sm">
+                예약 보고서
+              </Button>
+            </Link>
             <Button variant="primary" size="sm">
               커스텀 리포트
             </Button>
