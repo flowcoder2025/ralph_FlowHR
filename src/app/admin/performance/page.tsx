@@ -13,8 +13,10 @@ import {
   Button,
   Input,
   Select,
+  DataTable,
+  ProgressBar,
 } from "@/components/ui";
-import type { BadgeVariant, BarChartDatum } from "@/components/ui";
+import type { BadgeVariant, BarChartDatum, Column } from "@/components/ui";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -184,7 +186,7 @@ function PerformanceContent() {
         <GoalsDashboard data={data} loading={loading} />
       )}
       {activeTab === "evaluation" && <EvaluationSettings />}
-      {activeTab === "progress" && <PlaceholderTab label="평가 진행 현황" />}
+      {activeTab === "progress" && <EvalProgressTab />}
       {activeTab === "one-on-one" && <PlaceholderTab label="1:1 미팅 허브" />}
     </div>
   );
@@ -605,6 +607,221 @@ function EvaluationSettings() {
         </CardBody>
       </Card>
     </div>
+  );
+}
+
+// ─── Eval Progress Tab ──────────────────────────────────────
+
+interface EvalProgressRow {
+  id: string;
+  employeeId: string;
+  name: string;
+  department: string;
+  status: string;
+  selfStage: "completed" | "in_progress" | "not_started";
+  peerStage: "completed" | "in_progress" | "not_started";
+  managerStage: "completed" | "in_progress" | "not_started";
+  completedStages: number;
+}
+
+interface EvalProgressData {
+  cycle: { id: string; name: string } | null;
+  evaluations: EvalProgressRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  completionRate: number;
+}
+
+type StageStatus = "completed" | "in_progress" | "not_started";
+
+const STAGE_BADGE: Record<StageStatus, { variant: BadgeVariant; label: string }> = {
+  completed: { variant: "success", label: "완료" },
+  in_progress: { variant: "warning", label: "진행 중" },
+  not_started: { variant: "neutral", label: "미시작" },
+};
+
+function OverallBadge({ row }: { row: EvalProgressRow }) {
+  if (row.status === "COMPLETED") {
+    return <Badge variant="success">완료</Badge>;
+  }
+  if (row.status === "NOT_STARTED") {
+    return <Badge variant="neutral">미시작</Badge>;
+  }
+  const variant: BadgeVariant = row.completedStages >= 2 ? "info" : "warning";
+  return <Badge variant={variant}>{row.completedStages}/3</Badge>;
+}
+
+function EvalProgressTab() {
+  const [data, setData] = useState<EvalProgressData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  const fetchProgress = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `/api/performance/eval-progress?page=${page}&pageSize=${pageSize}`
+      );
+      if (res.ok) {
+        const json: EvalProgressData = await res.json();
+        setData(json);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [page]);
+
+  useEffect(() => {
+    fetchProgress();
+  }, [fetchProgress]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-sp-12">
+        <span className="text-sm text-text-tertiary">불러오는 중...</span>
+      </div>
+    );
+  }
+
+  if (!data || !data.cycle) {
+    return (
+      <Card>
+        <CardBody>
+          <div className="flex items-center justify-center py-sp-12">
+            <span className="text-sm text-text-tertiary">
+              활성 평가 주기가 없습니다.
+            </span>
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  const { cycle, evaluations, total, completionRate } = data;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const columns: Column<EvalProgressRow>[] = [
+    { key: "name", header: "이름" },
+    { key: "department", header: "부서" },
+    {
+      key: "selfStage",
+      header: "자기 평가",
+      align: "center",
+      render: (row) => {
+        const s = STAGE_BADGE[row.selfStage];
+        return <Badge variant={s.variant}>{s.label}</Badge>;
+      },
+    },
+    {
+      key: "peerStage",
+      header: "동료 평가",
+      align: "center",
+      render: (row) => {
+        const s = STAGE_BADGE[row.peerStage];
+        return <Badge variant={s.variant}>{s.label}</Badge>;
+      },
+    },
+    {
+      key: "managerStage",
+      header: "상사 평가",
+      align: "center",
+      render: (row) => {
+        const s = STAGE_BADGE[row.managerStage];
+        return <Badge variant={s.variant}>{s.label}</Badge>;
+      },
+    },
+    {
+      key: "overall",
+      header: "전체 상태",
+      align: "center",
+      render: (row) => <OverallBadge row={row} />,
+    },
+    {
+      key: "actions",
+      header: "액션",
+      align: "center",
+      render: (row) => (
+        <Button variant="ghost" size="sm">
+          {row.status === "NOT_STARTED" ? "리마인더" : "상세"}
+        </Button>
+      ),
+    },
+  ];
+
+  const pageNumbers: number[] = [];
+  const maxVisible = 5;
+  let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
+  const endPage = Math.min(totalPages, startPage + maxVisible - 1);
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pageNumbers.push(i);
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{cycle.name} 진행 현황</CardTitle>
+        <div className="flex items-center gap-sp-3">
+          <ProgressBar value={completionRate} size="sm" className="w-28" />
+          <span className="text-sm font-semibold text-text-primary">
+            {completionRate}% 완료
+          </span>
+        </div>
+      </CardHeader>
+      <CardBody className="!p-0">
+        <DataTable<EvalProgressRow>
+          columns={columns}
+          data={evaluations}
+          keyExtractor={(row) => row.id}
+          emptyMessage="평가 데이터가 없습니다."
+        />
+
+        {/* Pagination */}
+        {total > 0 && (
+          <div className="flex items-center justify-between px-sp-4 py-sp-3 border-t border-border">
+            <span className="text-sm text-text-tertiary">
+              총 {total.toLocaleString()}명 중{" "}
+              {((page - 1) * pageSize + 1).toLocaleString()} &ndash;{" "}
+              {Math.min(page * pageSize, total).toLocaleString()} 표시
+            </span>
+            <div className="flex items-center gap-sp-1">
+              <button
+                onClick={() => setPage(1)}
+                disabled={page === 1}
+                className="px-sp-2 py-sp-1 text-sm rounded-sm border border-border text-text-tertiary hover:text-text-primary disabled:opacity-40"
+              >
+                &laquo;
+              </button>
+              {pageNumbers.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={[
+                    "px-sp-2 py-sp-1 text-sm rounded-sm border transition-colors",
+                    p === page
+                      ? "border-brand bg-brand/5 text-brand font-medium"
+                      : "border-border text-text-tertiary hover:text-text-primary",
+                  ].join(" ")}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                onClick={() => setPage(totalPages)}
+                disabled={page === totalPages}
+                className="px-sp-2 py-sp-1 text-sm rounded-sm border border-border text-text-tertiary hover:text-text-primary disabled:opacity-40"
+              >
+                &raquo;
+              </button>
+            </div>
+          </div>
+        )}
+      </CardBody>
+    </Card>
   );
 }
 
