@@ -569,14 +569,32 @@ mark_wi_done() {
 
 recover_stale_wis() {
   # 워커 실행 전, 이미 구현된 WI를 사전 감지하여 fix_plan 자동 체크
-  # 감지 방법: git log(커밋 이력) + check_wi_implemented(코드 존재 분석)
+  # 오탐 방지: Method 1(git log) + Method 2(prisma)만 사용 — Method 3(파일명)은 오탐 위험으로 제외
   local recovered=0
   while IFS= read -r wi; do
     [[ -z "$wi" ]] && continue
-    if check_wi_implemented "$wi"; then
+    local wi_prefix="${wi%% *}"
+
+    # Method 1: git log에 WI 커밋 존재
+    if git log --oneline --all --grep="$wi_prefix" 2>/dev/null | head -1 | grep -q .; then
       mark_wi_done "$wi" || true
       update_wi_history "$wi" || true
       recovered=$((recovered + 1))
+      continue
+    fi
+
+    # Method 2: DB 스키마 WI → prisma model 존재 여부
+    if [[ "$wi" == *"DB 스키마"* || "$wi" == *"DB스키마"* ]]; then
+      local desc="${wi#*feat }"
+      desc="${desc#*fix }"
+      local model
+      model=$(echo "$desc" | grep -oE '[A-Z][a-zA-Z]+' | head -1)
+      if [[ -n "$model" ]] && grep -q "^model $model " prisma/schema.prisma 2>/dev/null; then
+        mark_wi_done "$wi" || true
+        update_wi_history "$wi" || true
+        recovered=$((recovered + 1))
+        continue
+      fi
     fi
   done < <(get_all_unchecked_wis)
   if [[ $recovered -gt 0 ]]; then
@@ -633,14 +651,15 @@ execute_parallel() {
     total=$((completed + unchecked))
 
     local context
-    context=$(cat <<CTXEOF
-[Ralph Loop #$loop_count - Worker $idx/$wi_count] Completed: $completed | Remaining: $unchecked
+    context=$(cat <<'_RALPH_CTX_END_'
+[PARALLEL MODE] 이미 작업 브랜치에 있음. 별도 브랜치 생성·PR 생성 불필요. 현재 브랜치에서 직접 커밋할 것. fix_plan.md는 절대 수정하지 말 것(외부 루프가 처리).
+_RALPH_CTX_END_
+)
+    context="[Ralph Loop #$loop_count - Worker $idx/$wi_count] Completed: $completed | Remaining: $unchecked
 [TARGET] ${wi}
 [RULE] 위 TARGET 작업 1개만 처리하고 RALPH_STATUS 출력 후 즉시 종료. 다른 WI 절대 금지.
-[PARALLEL MODE] 이미 작업 브랜치에 있음. 별도 브랜치 생성·PR 생성 불필요. 현재 브랜치에서 직접 커밋할 것. fix_plan.md는 절대 수정하지 말 것(외부 루프가 처리).
-${rag_context}
-CTXEOF
-)
+${context}
+${rag_context}"
 
     local prompt_content
     prompt_content=$(cat "$PROMPT_FILE")
@@ -862,7 +881,7 @@ main() {
 
   # RAG: codebase-map 생성 (없거나 1시간 이상 지난 경우)
   if [[ ! -f "$RAG_DIR/codebase-map.md" ]] || [[ $(find "$RAG_DIR/codebase-map.md" -mmin +60 2>/dev/null) ]]; then
-    generate_codebase_map
+    generate_codebase_map || true
   fi
 
   log "=== Ralph Loop Started ==="
@@ -880,6 +899,11 @@ main() {
   while [[ $loop_count -lt $MAX_ITERATIONS ]]; do
     loop_count=$((loop_count + 1))
     log "--- Iteration $loop_count/$MAX_ITERATIONS ---"
+
+    # 0. RAG: codebase-map 10 iteration마다 갱신
+    if [[ $((loop_count % 10)) -eq 0 ]]; then
+      generate_codebase_map || true
+    fi
 
     # 1. Integrity check
     check_integrity || break
