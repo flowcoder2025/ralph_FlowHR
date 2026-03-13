@@ -165,5 +165,5 @@
 
 ### L1: QA > L2: 테스트
 - [ ] WI-076-test E2E 테스트 (Playwright: 로그인→대시보드→People→Attendance 핵심 플로우) | L1:QA > L2:E2E > L3:핵심플로우 | batch:28
-- [x] WI-077-test 유닛 + API 테스트 (Vitest: 모듈별 비즈니스 로직, API Route, 커버리지 70%+) | L1:QA > L2:유닛 > L3:API | batch:29
+- [ ] WI-077-test 유닛 + API 테스트 (Vitest: 모듈별 비즈니스 로직, API Route, 커버리지 70%+) | L1:QA > L2:유닛 > L3:API | batch:29
 - [ ] WI-078-chore 반응형 + 접근성 + i18n 기본 구조 | L1:QA > L2:폴리시 > L3:반응형접근성 | batch:30

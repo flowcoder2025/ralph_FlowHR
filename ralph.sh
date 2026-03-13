@@ -577,8 +577,7 @@ recover_stale_wis() {
 
     # Method 1: git log에 WI 커밋 존재
     if git log --oneline --all --grep="$wi_prefix" 2>/dev/null | head -1 | grep -q .; then
-      mark_wi_done "$wi" || true
-      update_wi_history "$wi" || true
+      mark_wi_done "$wi" || true  # update_wi_history는 mark_wi_done 내부에서 호출
       recovered=$((recovered + 1))
       continue
     fi
@@ -590,8 +589,7 @@ recover_stale_wis() {
       local model
       model=$(echo "$desc" | grep -oE '[A-Z][a-zA-Z]+' | head -1)
       if [[ -n "$model" ]] && grep -q "^model $model " prisma/schema.prisma 2>/dev/null; then
-        mark_wi_done "$wi" || true
-        update_wi_history "$wi" || true
+        mark_wi_done "$wi" || true  # update_wi_history는 mark_wi_done 내부에서 호출
         recovered=$((recovered + 1))
         continue
       fi
