@@ -41,7 +41,7 @@ LOG_DIR=".ralph/logs"
 ALLOWED_TOOLS="${ALLOWED_TOOLS:-Edit,Write,Read,Bash,Glob,Grep}"
 
 # 워커 토큰 제어
-MAX_TURNS=${MAX_TURNS:-25}  # 워커당 최대 턴 수 (0=무제한)
+MAX_TURNS=${MAX_TURNS:-40}  # 워커당 최대 턴 수 (0=무제한)
 
 # Parallel (1 = 순차, 2+ = 병렬 worktree)
 PARALLEL_COUNT=${PARALLEL_COUNT:-1}
@@ -756,8 +756,8 @@ recover_stale_wis() {
     [[ -z "$wi" ]] && continue
     local wi_prefix="${wi%% *}"
 
-    # Method 1: git log에 WI 커밋 존재
-    if git log --oneline --all --grep="$wi_prefix" 2>/dev/null | head -1 | grep -q .; then
+    # Method 1: git log에 WI 커밋 존재 (커밋 제목이 해당 WI prefix로 시작하는 경우만)
+    if git log --oneline --all 2>/dev/null | grep -q "^[a-f0-9]* ${wi_prefix}"; then
       mark_wi_done "$wi" || true  # update_wi_history는 mark_wi_done 내부에서 호출
       recovered=$((recovered + 1))
       continue
@@ -917,7 +917,19 @@ ${rag_context}"
       changed_files="${changed_files%,}"
     fi
 
-    if [[ "$wt_sha" == "$base_sha" ]]; then
+    # 리밋 감지: 워커 로그에서 rate limit / overloaded 키워드 확인
+    local is_rate_limited=false
+    if grep -qiE 'rate.limit|rate_limit|429|overloaded|too many requests|throttl' "$worker_log" 2>/dev/null; then
+      is_rate_limited=true
+    fi
+
+    if [[ "$is_rate_limited" == true ]]; then
+      log "  [Worker $idx] 🚫 API 리밋 감지 — 5분 쿨다운 후 재시도"
+      record_pattern "${worktree_wi[$i]}" "rate_limited" "" "$elapsed" || true
+      skipped=$((skipped + 1))
+      # 쿨다운: 남은 워커 결과 처리 후 루프에서 대기
+      RATE_LIMITED=true
+    elif [[ "$wt_sha" == "$base_sha" ]]; then
       # 코드 변경 없음
       if [[ "$has_status" == true ]] && grep -q 'TASKS_COMPLETED_THIS_LOOP: 1' "$worker_log" 2>/dev/null; then
         mark_wi_done "${worktree_wi[$i]}" || true
@@ -1004,6 +1016,13 @@ ${rag_context}"
 
   log "🔀 병렬 결과: ${merged} 머지, ${failed} 충돌, ${skipped} 스킵"
   call_count=$((call_count + wi_count))
+
+  # API 리밋 감지 시 쿨다운
+  if [[ "${RATE_LIMITED:-false}" == true ]]; then
+    log "🚫 API 리밋 감지 — 5분 대기 후 재개"
+    sleep 300
+    RATE_LIMITED=false
+  fi
 
   # fix_plan 변경 후 PR로 push (main 직접 push 금지)
   if [[ $merged -gt 0 ]] && ! git diff --quiet "$FIX_PLAN" 2>/dev/null; then
