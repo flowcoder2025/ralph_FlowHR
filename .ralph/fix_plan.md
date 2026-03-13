@@ -94,7 +94,7 @@
 - [x] WI-039-feat Performance DB 스키마 (Goal, EvalCycle, Evaluation, OneOnOne + 시드) | L1:Performance > L2:DB > L3:성과모델 | batch:10
 
 ### L1: Performance > L2: 목표 + 평가 + 진행 + 1:1
-- [ ] WI-040-feat 목표 대시보드 (4 KPI, 부서별 달성률 차트, 활성사이클) | L1:Performance > L2:목표 > L3:대시보드 | batch:11
+- [x] WI-040-feat 목표 대시보드 (4 KPI, 부서별 달성률 차트, 활성사이클) | L1:Performance > L2:목표 > L3:대시보드 | batch:11
 - [ ] WI-041-feat 평가 설정 (사이클 폼, 가중치 차트) | L1:Performance > L2:평가 > L3:설정 | batch:12
 - [ ] WI-042-feat 평가 진행 현황 (5명+ 테이블) | L1:Performance > L2:진행 > L3:현황 | batch:13
 - [ ] WI-043-feat 1:1 허브 (일정 목록, 안건 미리보기) | L1:Performance > L2:1:1 > L3:허브 | batch:14
@@ -102,7 +102,7 @@
 ## Phase 10: Recruiting (채용)
 
 ### L1: Recruiting > L2: DB 스키마 > L3: 채용 데이터 모델
-- [ ] WI-044-feat Recruiting DB 스키마 (JobPosting, Application, OnboardingTask, OffboardingTask + 시드) | L1:Recruiting > L2:DB > L3:채용모델 | batch:11
+- [x] WI-044-feat Recruiting DB 스키마 (JobPosting, Application, OnboardingTask, OffboardingTask + 시드) | L1:Recruiting > L2:DB > L3:채용모델 | batch:11
 
 ### L1: Recruiting > L2: 대시보드 + 공고 + 파이프라인 + 온보딩 + 오프보딩
 - [ ] WI-045-feat 채용 대시보드 (4 KPI) | L1:Recruiting > L2:대시보드 > L3:KPI | batch:12
