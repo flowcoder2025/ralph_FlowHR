@@ -86,12 +86,12 @@
 - [x] WI-035-feat 급여 대시보드 (4 KPI) | L1:Payroll > L2:대시보드 > L3:KPI | batch:07
 - [x] WI-036-feat 급여 규칙 관리 (6규칙 테이블, 수정) | L1:Payroll > L2:규칙 > L3:테이블 | batch:08
 - [x] WI-037-feat 급여 마감 플로우 (5단계 프로세스, 체크리스트) | L1:Payroll > L2:마감 > L3:플로우 | batch:09
-- [ ] WI-038-feat 급여 명세서 센터 (월선택, 테이블) | L1:Payroll > L2:명세서 > L3:센터 | batch:10
+- [x] WI-038-feat 급여 명세서 센터 (월선택, 테이블) | L1:Payroll > L2:명세서 > L3:센터 | batch:10
 
 ## Phase 9: Performance (성과)
 
 ### L1: Performance > L2: DB 스키마 > L3: 성과 데이터 모델
-- [ ] WI-039-feat Performance DB 스키마 (Goal, EvalCycle, Evaluation, OneOnOne + 시드) | L1:Performance > L2:DB > L3:성과모델 | batch:10
+- [x] WI-039-feat Performance DB 스키마 (Goal, EvalCycle, Evaluation, OneOnOne + 시드) | L1:Performance > L2:DB > L3:성과모델 | batch:10
 
 ### L1: Performance > L2: 목표 + 평가 + 진행 + 1:1
 - [ ] WI-040-feat 목표 대시보드 (4 KPI, 부서별 달성률 차트, 활성사이클) | L1:Performance > L2:목표 > L3:대시보드 | batch:11
