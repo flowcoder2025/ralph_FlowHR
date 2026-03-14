@@ -222,6 +222,56 @@ enum BoardingTaskStatus {
   SKIPPED
 }
 
+enum BillingAccountStatus {
+  ACTIVE
+  FAILED
+  GRACE_PERIOD
+  SUSPENDED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  OVERDUE
+  CANCELLED
+  GRACE
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING
+  RESOLVED
+  CLOSED
+}
+
+enum SupportTicketCategory {
+  BUG
+  FEATURE_REQUEST
+  QUESTION
+  MIGRATION
+  SECURITY
+  BILLING
+}
+
+enum PlatformAuditAction {
+  LOGIN
+  LOGOUT
+  TENANT_CREATE
+  TENANT_UPDATE
+  TENANT_SUSPEND
+  PLAN_CHANGE
+  SETTING_CHANGE
+  SECURITY_EVENT
+  SUPPORT_ACTION
+}
+
+enum PlatformAuditResult {
+  SUCCESS
+  FAILURE
+}
+
 // ─── Tenant ───────────────────────────────────────────────
 
 model Tenant {
@@ -265,6 +315,10 @@ model Tenant {
   applications         Application[]
   onboardingTasks      OnboardingTask[]
   offboardingTasks     OffboardingTask[]
+  billingAccounts      BillingAccount[]
+  invoices             Invoice[]
+  supportTickets       SupportTicket[]
+  platformAuditLogs    PlatformAuditLog[]
 }
 
 // ─── Role ─────────────────────────────────────────────────
@@ -1039,4 +1093,110 @@ model OffboardingTask {
 
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+// ─── Plan ──────────────────────────────────────────────
+
+model Plan {
+  id               String     @id @default(cuid())
+  name             String     @unique
+  description      String?
+  pricePerSeat     Int        // 월 요금 (원 단위)
+  maxSeats         Int?       // null = 무제한
+  storageGb        Int        @default(10)
+  apiCallsPerMonth Int        @default(50000)
+  supportLevel     String     @default("email") // "email", "email_chat", "dedicated"
+  features         Json       @default("[]")
+  isActive         Boolean    @default(true)
+  sortOrder        Int        @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  billingAccounts BillingAccount[]
+}
+
+// ─── BillingAccount ────────────────────────────────────
+
+model BillingAccount {
+  id             String               @id @default(cuid())
+  tenantId       String
+  planId         String
+  paymentMethod  String               // e.g. "법인카드 ****-4523", "계좌이체"
+  nextBillingDate DateTime
+  monthlyAmount  Float                @default(0)
+  status         BillingAccountStatus @default(ACTIVE)
+  billingEmail   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan     Plan      @relation(fields: [planId], references: [id])
+  invoices Invoice[]
+
+  @@unique([tenantId])
+}
+
+// ─── Invoice ───────────────────────────────────────────
+
+model Invoice {
+  id               String        @id @default(cuid())
+  tenantId         String
+  billingAccountId String
+  invoiceNumber    String        @unique
+  period           String        // e.g. "2026-03"
+  amount           Float
+  issuedDate       DateTime
+  paidAt           DateTime?
+  status           InvoiceStatus @default(ISSUED)
+  memo             String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  billingAccount BillingAccount @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
+}
+
+// ─── SupportTicket ──────────────────────────────────────
+
+model SupportTicket {
+  id              String              @id @default(cuid())
+  tenantId        String
+  ticketNumber    String              @unique
+  title           String
+  description     String?             @db.Text
+  priority        RequestPriority     @default(MEDIUM)
+  status          SupportTicketStatus @default(OPEN)
+  category        SupportTicketCategory @default(QUESTION)
+  requesterName   String
+  requesterEmail  String
+  assigneeId      String?
+  slaDeadlineAt   DateTime?
+  resolvedAt      DateTime?
+  closedAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+// ─── PlatformAuditLog ───────────────────────────────────
+
+model PlatformAuditLog {
+  id           String              @id @default(cuid())
+  tenantId     String?
+  operatorName String
+  operatorRole String?
+  action       PlatformAuditAction
+  target       String
+  ipAddress    String?
+  result       PlatformAuditResult @default(SUCCESS)
+  details      Json?
+
+  createdAt DateTime @default(now())
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 }
