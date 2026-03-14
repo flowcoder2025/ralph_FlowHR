@@ -29,6 +29,12 @@ import {
   JobPostingStatus,
   ApplicationStatus,
   BoardingTaskStatus,
+  BillingAccountStatus,
+  InvoiceStatus,
+  SupportTicketStatus,
+  SupportTicketCategory,
+  PlatformAuditAction,
+  PlatformAuditResult,
 } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -2449,8 +2455,364 @@ async function main(): Promise<void> {
     });
   }
 
+  // ─── Plans ──────────────────────────────────────────
+
+  const planDefs = [
+    {
+      name: "Starter",
+      description: "소규모 팀을 위한 기본 플랜",
+      pricePerSeat: 15000,
+      maxSeats: 30,
+      storageGb: 10,
+      apiCallsPerMonth: 50000,
+      supportLevel: "email",
+      features: ["기본 HR", "근태관리", "휴가관리"],
+      sortOrder: 1,
+    },
+    {
+      name: "Growth",
+      description: "성장 중인 중규모 조직",
+      pricePerSeat: 20000,
+      maxSeats: 100,
+      storageGb: 50,
+      apiCallsPerMonth: 200000,
+      supportLevel: "email_chat",
+      features: ["기본 HR", "근태관리", "휴가관리", "결재", "문서관리", "성과관리"],
+      sortOrder: 2,
+    },
+    {
+      name: "Enterprise",
+      description: "대규모 조직, 맞춤 설정",
+      pricePerSeat: 30000,
+      maxSeats: null,
+      storageGb: 100,
+      apiCallsPerMonth: 500000,
+      supportLevel: "dedicated",
+      features: [
+        "기본 HR",
+        "근태관리",
+        "휴가관리",
+        "결재",
+        "문서관리",
+        "성과관리",
+        "채용관리",
+        "커스텀 리포트",
+        "API 연동",
+        "전담 매니저",
+      ],
+      sortOrder: 3,
+    },
+  ];
+
+  const planIds: Record<string, string> = {};
+  for (const def of planDefs) {
+    const plan = await prisma.plan.upsert({
+      where: { name: def.name },
+      update: {},
+      create: {
+        name: def.name,
+        description: def.description,
+        pricePerSeat: def.pricePerSeat,
+        maxSeats: def.maxSeats,
+        storageGb: def.storageGb,
+        apiCallsPerMonth: def.apiCallsPerMonth,
+        supportLevel: def.supportLevel,
+        features: def.features,
+        sortOrder: def.sortOrder,
+      },
+    });
+    planIds[def.name] = plan.id;
+  }
+
+  // ─── BillingAccounts ────────────────────────────────
+
+  const acmeBilling = await prisma.billingAccount.upsert({
+    where: { tenantId: acme.id },
+    update: {},
+    create: {
+      tenantId: acme.id,
+      planId: planIds["Growth"],
+      paymentMethod: "법인카드 ****-4523",
+      nextBillingDate: new Date("2026-04-01"),
+      monthlyAmount: 2250000,
+      status: BillingAccountStatus.ACTIVE,
+      billingEmail: "billing@acme.example.com",
+    },
+  });
+
+  const techBilling = await prisma.billingAccount.upsert({
+    where: { tenantId: techstart.id },
+    update: {},
+    create: {
+      tenantId: techstart.id,
+      planId: planIds["Starter"],
+      paymentMethod: "법인카드 ****-7891",
+      nextBillingDate: new Date("2026-04-01"),
+      monthlyAmount: 225000,
+      status: BillingAccountStatus.ACTIVE,
+      billingEmail: "billing@techstart.example.com",
+    },
+  });
+
+  // ─── Invoices ───────────────────────────────────────
+
+  const invoiceDefs = [
+    {
+      tenantId: acme.id,
+      billingAccountId: acmeBilling.id,
+      invoiceNumber: "INV-2026-0312",
+      period: "2026-03",
+      amount: 2250000,
+      issuedDate: new Date("2026-03-01"),
+      paidAt: new Date("2026-03-03"),
+      status: InvoiceStatus.PAID,
+    },
+    {
+      tenantId: acme.id,
+      billingAccountId: acmeBilling.id,
+      invoiceNumber: "INV-2026-0211",
+      period: "2026-02",
+      amount: 2250000,
+      issuedDate: new Date("2026-02-01"),
+      paidAt: new Date("2026-02-03"),
+      status: InvoiceStatus.PAID,
+    },
+    {
+      tenantId: techstart.id,
+      billingAccountId: techBilling.id,
+      invoiceNumber: "INV-2026-0310",
+      period: "2026-03",
+      amount: 225000,
+      issuedDate: new Date("2026-03-01"),
+      paidAt: null,
+      status: InvoiceStatus.OVERDUE,
+    },
+    {
+      tenantId: techstart.id,
+      billingAccountId: techBilling.id,
+      invoiceNumber: "INV-2026-0209",
+      period: "2026-02",
+      amount: 225000,
+      issuedDate: new Date("2026-02-01"),
+      paidAt: new Date("2026-02-05"),
+      status: InvoiceStatus.PAID,
+    },
+  ];
+
+  for (const def of invoiceDefs) {
+    await prisma.invoice.upsert({
+      where: { invoiceNumber: def.invoiceNumber },
+      update: {},
+      create: {
+        tenantId: def.tenantId,
+        billingAccountId: def.billingAccountId,
+        invoiceNumber: def.invoiceNumber,
+        period: def.period,
+        amount: def.amount,
+        issuedDate: def.issuedDate,
+        paidAt: def.paidAt ?? undefined,
+        status: def.status,
+      },
+    });
+  }
+
+  // ─── SupportTickets ─────────────────────────────────
+
+  const ticketDefs = [
+    {
+      tenantId: acme.id,
+      ticketNumber: "T-4021",
+      title: "SSO 로그인 불가 — 전사 접속 불가 상태",
+      description: "Google SSO 인증이 실패하여 전 직원 로그인 불가 상태입니다.",
+      priority: "CRITICAL" as const,
+      status: SupportTicketStatus.OPEN,
+      category: SupportTicketCategory.BUG,
+      requesterName: "박준호",
+      requesterEmail: "junho@acme.example.com",
+      slaDeadlineAt: new Date("2026-03-14T15:00:00"),
+    },
+    {
+      tenantId: acme.id,
+      ticketNumber: "T-4020",
+      title: "급여 명세서 PDF 생성 오류",
+      description: "2026년 3월 급여 명세서 PDF 생성 시 빈 파일이 다운로드됩니다.",
+      priority: "CRITICAL" as const,
+      status: SupportTicketStatus.IN_PROGRESS,
+      category: SupportTicketCategory.BUG,
+      requesterName: "이인사",
+      requesterEmail: "hr@acme.example.com",
+      slaDeadlineAt: new Date("2026-03-14T12:00:00"),
+    },
+    {
+      tenantId: techstart.id,
+      ticketNumber: "T-4019",
+      title: "데이터 마이그레이션 지원 요청",
+      description: "기존 시스템에서 FlowHR로 직원 데이터 마이그레이션 지원이 필요합니다.",
+      priority: "HIGH" as const,
+      status: SupportTicketStatus.OPEN,
+      category: SupportTicketCategory.MIGRATION,
+      requesterName: "한개발",
+      requesterEmail: "dev@techstart.example.com",
+      slaDeadlineAt: new Date("2026-03-15T09:00:00"),
+    },
+    {
+      tenantId: acme.id,
+      ticketNumber: "T-4018",
+      title: "결재선 설정 방법 문의",
+      description: "3단계 결재선을 설정하고 싶은데 방법을 모르겠습니다.",
+      priority: "HIGH" as const,
+      status: SupportTicketStatus.WAITING,
+      category: SupportTicketCategory.QUESTION,
+      requesterName: "김관리",
+      requesterEmail: "admin@acme.example.com",
+      slaDeadlineAt: new Date("2026-03-14T10:00:00"),
+    },
+    {
+      tenantId: acme.id,
+      ticketNumber: "T-4017",
+      title: "API 사용량 한도 상향 문의",
+      description: "현재 Growth 플랜의 API 호출 한도가 부족합니다. 상향 방법 문의합니다.",
+      priority: "MEDIUM" as const,
+      status: SupportTicketStatus.OPEN,
+      category: SupportTicketCategory.BILLING,
+      requesterName: "최직원",
+      requesterEmail: "employee@acme.example.com",
+      slaDeadlineAt: new Date("2026-03-16T09:00:00"),
+    },
+    {
+      tenantId: techstart.id,
+      ticketNumber: "T-4016",
+      title: "Webhook 설정 가이드 요청",
+      description: "Slack 연동을 위한 Webhook 설정 가이드가 필요합니다.",
+      priority: "MEDIUM" as const,
+      status: SupportTicketStatus.OPEN,
+      category: SupportTicketCategory.QUESTION,
+      requesterName: "정대표",
+      requesterEmail: "admin@techstart.example.com",
+      slaDeadlineAt: new Date("2026-03-16T09:00:00"),
+    },
+    {
+      tenantId: acme.id,
+      ticketNumber: "T-4015",
+      title: "로고 변경 방법 문의",
+      description: "회사 로고를 변경하고 싶습니다.",
+      priority: "LOW" as const,
+      status: SupportTicketStatus.OPEN,
+      category: SupportTicketCategory.QUESTION,
+      requesterName: "김관리",
+      requesterEmail: "admin@acme.example.com",
+      slaDeadlineAt: new Date("2026-03-18T09:00:00"),
+    },
+    {
+      tenantId: techstart.id,
+      ticketNumber: "T-4014",
+      title: "연차 정책 템플릿 추가 요청",
+      description: "시간제 연차 정책 템플릿이 필요합니다.",
+      priority: "LOW" as const,
+      status: SupportTicketStatus.RESOLVED,
+      category: SupportTicketCategory.FEATURE_REQUEST,
+      requesterName: "정대표",
+      requesterEmail: "admin@techstart.example.com",
+      slaDeadlineAt: new Date("2026-03-17T09:00:00"),
+      resolvedAt: new Date("2026-03-14T11:00:00"),
+    },
+  ];
+
+  for (const def of ticketDefs) {
+    await prisma.supportTicket.upsert({
+      where: { ticketNumber: def.ticketNumber },
+      update: {},
+      create: {
+        tenantId: def.tenantId,
+        ticketNumber: def.ticketNumber,
+        title: def.title,
+        description: def.description,
+        priority: def.priority,
+        status: def.status,
+        category: def.category,
+        requesterName: def.requesterName,
+        requesterEmail: def.requesterEmail,
+        slaDeadlineAt: def.slaDeadlineAt,
+        resolvedAt: "resolvedAt" in def ? (def.resolvedAt as Date) : undefined,
+      },
+    });
+  }
+
+  // ─── PlatformAuditLogs ──────────────────────────────
+
+  const auditDefs = [
+    {
+      tenantId: null,
+      operatorName: "김운영",
+      operatorRole: "Super Admin",
+      action: PlatformAuditAction.SETTING_CHANGE,
+      target: "알림 규칙 — SSL 인증서 비활성화",
+      ipAddress: "10.0.1.45",
+      result: PlatformAuditResult.SUCCESS,
+    },
+    {
+      tenantId: null,
+      operatorName: "이관리",
+      operatorRole: "Tenant Ops",
+      action: PlatformAuditAction.TENANT_CREATE,
+      target: "BlueSky Corp — Growth 플랜 신규 등록",
+      ipAddress: "10.0.1.52",
+      result: PlatformAuditResult.SUCCESS,
+    },
+    {
+      tenantId: acme.id,
+      operatorName: "박지원",
+      operatorRole: "Billing Admin",
+      action: PlatformAuditAction.PLAN_CHANGE,
+      target: "Acme Corp — 좌석 50 → 75 증설",
+      ipAddress: "10.0.2.18",
+      result: PlatformAuditResult.SUCCESS,
+    },
+    {
+      tenantId: null,
+      operatorName: "이관리",
+      operatorRole: "Tenant Ops",
+      action: PlatformAuditAction.PLAN_CHANGE,
+      target: "MegaTech — 체험판 → Starter",
+      ipAddress: "10.0.1.52",
+      result: PlatformAuditResult.SUCCESS,
+    },
+    {
+      tenantId: null,
+      operatorName: "최보안",
+      operatorRole: "Security Admin",
+      action: PlatformAuditAction.SECURITY_EVENT,
+      target: "IP 차단 — 203.0.113.42 (brute force 감지)",
+      ipAddress: "10.0.3.10",
+      result: PlatformAuditResult.SUCCESS,
+    },
+    {
+      tenantId: null,
+      operatorName: "플랫폼 운영자",
+      operatorRole: "Platform Operator",
+      action: PlatformAuditAction.LOGIN,
+      target: "플랫폼 콘솔 로그인",
+      ipAddress: "10.0.1.1",
+      result: PlatformAuditResult.SUCCESS,
+    },
+  ];
+
+  for (const def of auditDefs) {
+    await prisma.platformAuditLog.create({
+      data: {
+        tenantId: def.tenantId,
+        operatorName: def.operatorName,
+        operatorRole: def.operatorRole,
+        action: def.action,
+        target: def.target,
+        ipAddress: def.ipAddress,
+        result: def.result,
+      },
+    });
+  }
+
   console.log(
-    "Seed completed: 2 tenants, 9 roles, 7 users, 9 departments, 9 positions, 10 employees, 11 changes, 5 shifts, 8 assignments, 40 attendance records, 4 exceptions, 2 closings, 5 leave policies, 10 leave balances, 6 leave requests, 3 workflows, 10 approval requests, 4 document templates, 8 documents, 3 signatures, 6 payroll rules, 2 payroll runs, 13 payslips, 2 eval cycles, 10 goals, 7 evaluations, 8 one-on-ones, 5 job postings, 8 applications, 6 onboarding tasks, 6 offboarding tasks",
+    "Seed completed: 2 tenants, 9 roles, 7 users, 9 departments, 9 positions, 10 employees, 11 changes, 5 shifts, 8 assignments, 40 attendance records, 4 exceptions, 2 closings, 5 leave policies, 10 leave balances, 6 leave requests, 3 workflows, 10 approval requests, 4 document templates, 8 documents, 3 signatures, 6 payroll rules, 2 payroll runs, 13 payslips, 2 eval cycles, 10 goals, 7 evaluations, 8 one-on-ones, 5 job postings, 8 applications, 6 onboarding tasks, 6 offboarding tasks, 3 plans, 2 billing accounts, 4 invoices, 8 support tickets, 6 audit logs",
   );
 }
 
