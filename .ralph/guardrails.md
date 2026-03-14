@@ -7,3 +7,4 @@
 - main 브랜치에 직접 push 불가 (GitHub repo rule). fix_plan 업데이트도 반드시 PR 통해서 머지해야 함.
 - squash merge 후 로컬 main이 diverge될 수 있음. `git reset --hard origin/main`으로 동기화 필요.
 - create-next-app은 기존 파일이 있으면 실패함. 수동 설정 필요.
+- fix_plan.md는 워커가 수정하지 않음. 외부 루프(ralph.sh)가 루프 종료 시 일괄 동기화.
