@@ -1015,7 +1015,7 @@ ${rag_context}"
       log "WARN: worktree 제거 실패 — $wt_path (수동 정리 필요)"
     }
     # rename 후 브랜치명이 바뀌었을 수 있으므로 둘 다 시도
-    git branch -D "$pr_branch" 2>/dev/null || true
+    [[ -n "${pr_branch:-}" ]] && git branch -D "$pr_branch" 2>/dev/null || true
     git branch -D "$branch" 2>/dev/null || true
   done
 
