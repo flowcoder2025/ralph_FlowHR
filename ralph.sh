@@ -3,7 +3,9 @@ set -euo pipefail
 
 #==============================
 # Ralph Loop - Autonomous AI Development Loop
+# Version: 1.0.0
 #==============================
+RALPH_VERSION="1.0.0"
 
 # UTF-8 강제 (Windows 한글 깨짐 방지)
 export LANG=en_US.UTF-8
@@ -63,6 +65,10 @@ total_cost_usd=0
 
 # 상태 파일 (비정상 종료 복구용)
 STATE_FILE=".ralph/loop_state.json"
+
+# 완료 WI 로컬 추적 (untracked — reset --hard에서 보존됨)
+# fix_plan PR 머지 전에도 다음 iteration에서 같은 WI 재실행 방지
+COMPLETED_FILE=".ralph/completed_wis.txt"
 
 save_state() {
   cat > "$STATE_FILE" <<EOF
@@ -271,6 +277,7 @@ preflight() {
 log() {
   local msg="[$(date '+%Y-%m-%d %H:%M:%S')] $1"
   echo "$msg"
+  [[ -d "$LOG_DIR" ]] || mkdir -p "$LOG_DIR"
   echo "$msg" >> "$LOG_DIR/ralph.log"
 }
 
@@ -318,17 +325,64 @@ validate_post_iteration() {
   return 0
 }
 
+is_wi_completed_locally() {
+  # completed_wis.txt에 해당 WI prefix가 있는지 확인
+  local wi_line="$1"
+  local wi_prefix="${wi_line%% *}"
+  [[ -f "$COMPLETED_FILE" ]] && grep -qF "$wi_prefix" "$COMPLETED_FILE" 2>/dev/null
+}
+
+sync_completed_file() {
+  # origin fix_plan에서 이미 [x]인 항목은 completed_wis.txt에서 제거
+  # origin에서 아직 [ ]인데 open PR이 없으면 제거 (PR 거부/닫힘 대응)
+  [[ -f "$COMPLETED_FILE" ]] || return 0
+  local temp_file="${COMPLETED_FILE}.tmp"
+  while IFS= read -r prefix; do
+    [[ -z "$prefix" ]] && continue
+    # origin/main의 fix_plan에서 이 WI가 아직 [ ]이면
+    if git show origin/main:"$FIX_PLAN" 2>/dev/null | grep -qF -- "- [ ] ${prefix}"; then
+      # 해당 WI의 open PR이 있는지 확인
+      local wi_num
+      wi_num=$(echo "$prefix" | grep -oE 'WI-[0-9]+' || true)
+      local has_open_pr
+      has_open_pr=$(gh pr list --search "$wi_num" --state open --json number --jq 'length' 2>/dev/null || echo "")
+      if [[ "${has_open_pr:-0}" -gt 0 ]]; then
+        # open PR 존재 → 유지
+        echo "$prefix"
+      else
+        # open PR 없음 또는 확인 실패 → 제거 (재실행 유도)
+        log "🔄 ${prefix}: open PR 없음 — completed_wis에서 제거 (재실행)"
+      fi
+    fi
+    # origin에서 이미 [x]이면 → 출력 안 함 → 자동 제거
+  done < "$COMPLETED_FILE" > "$temp_file"
+  if [[ -s "$temp_file" ]]; then
+    mv "$temp_file" "$COMPLETED_FILE"
+  else
+    rm -f "$temp_file" "$COMPLETED_FILE"
+  fi
+}
+
 get_current_wi() {
-  # fix_plan.md에서 첫 번째 미완료 WI 이름 추출
-  awk '/^```/{f=!f} !f && /^\- \[ \]/{sub(/^\- \[ \] /,""); sub(/ \| L1:.*$/,""); print; exit}' "$FIX_PLAN" 2>/dev/null
+  # fix_plan.md에서 첫 번째 미완료 WI 이름 추출 (로컬 완료 목록 필터)
+  while IFS= read -r wi; do
+    [[ -z "$wi" ]] && continue
+    is_wi_completed_locally "$wi" || { echo "$wi"; return; }
+  done < <(awk '/^```/{f=!f} !f && /^\- \[ \]/{sub(/^\- \[ \] /,""); sub(/ \| L1:.*$/,""); print}' "$FIX_PLAN" 2>/dev/null)
 }
 
 count_tasks() {
   # 코드블록 내부의 체크박스는 제외 (```로 둘러싸인 영역 밖만 카운트)
-  local unchecked completed
-  unchecked=$(awk '/^```/{f=!f} !f && /^\- \[ \]/{c++} END{print c+0}' "$FIX_PLAN" 2>/dev/null)
-  completed=$(awk '/^```/{f=!f} !f && /^\- \[x\]/{c++} END{print c+0}' "$FIX_PLAN" 2>/dev/null)
-  echo "$completed $unchecked"
+  # completed_wis.txt 반영: 로컬 완료 항목도 completed로 취급
+  local fix_completed fix_unchecked locally_completed
+  fix_completed=$(awk '/^```/{f=!f} !f && /^\- \[x\]/{c++} END{print c+0}' "$FIX_PLAN" 2>/dev/null)
+  fix_unchecked=$(get_all_unchecked_wis | wc -l)
+  locally_completed=0
+  if [[ -f "$COMPLETED_FILE" ]]; then
+    locally_completed=$(wc -l < "$COMPLETED_FILE" 2>/dev/null || echo 0)
+  fi
+  local completed=$((fix_completed + locally_completed))
+  echo "$completed $fix_unchecked"
 }
 
 check_all_done() {
@@ -471,8 +525,11 @@ update_wi_history() {
 }
 
 get_all_unchecked_wis() {
-  # batch 무관하게 전체 미완료 WI 추출
-  awk '/^```/{f=!f} !f && /^\- \[ \]/{sub(/^\- \[ \] /,""); sub(/ \| L1:.*$/,""); print}' "$FIX_PLAN" 2>/dev/null
+  # batch 무관하게 전체 미완료 WI 추출 (로컬 완료 목록 필터)
+  while IFS= read -r wi; do
+    [[ -z "$wi" ]] && continue
+    is_wi_completed_locally "$wi" || echo "$wi"
+  done < <(awk '/^```/{f=!f} !f && /^\- \[ \]/{sub(/^\- \[ \] /,""); sub(/ \| L1:.*$/,""); print}' "$FIX_PLAN" 2>/dev/null)
 }
 
 check_wi_implemented() {
@@ -679,30 +736,37 @@ $(cat .ralph/guardrails.md)
 
 get_next_n_wis() {
   local n=${1:-1}
+  local count=0
 
-  # 첫 번째 미완료 WI의 batch 태그 확인
-  local first_batch
-  first_batch=$(awk '/^```/{f=!f} !f && /^\- \[ \]/{
-    if (match($0, /batch:[A-Za-z0-9]+/)) print substr($0, RSTART+6, RLENGTH-6)
-    exit
-  }' "$FIX_PLAN" 2>/dev/null)
+  # 첫 번째 미완료 WI의 batch 태그 확인 (로컬 완료 필터 적용)
+  local first_batch=""
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    local wi_name
+    wi_name=$(echo "$line" | sed 's/^\- \[ \] //; s/ | L1:.*$//')
+    if is_wi_completed_locally "$wi_name"; then
+      continue
+    fi
+    first_batch=$(echo "$line" | grep -oE 'batch:[A-Za-z0-9]+' | sed 's/batch://' || true)
+    break
+  done < <(awk '/^```/{f=!f} !f && /^\- \[ \]/{print}' "$FIX_PLAN" 2>/dev/null)
 
-  if [[ -z "$first_batch" ]]; then
-    # batch 태그 없음 — 순서대로 N개 추출 (기존 동작)
-    awk -v n="$n" '/^```/{f=!f} !f && /^\- \[ \]/{sub(/^\- \[ \] /,""); sub(/ \| L1:.*$/,""); print; c++; if(c>=n) exit}' "$FIX_PLAN" 2>/dev/null
-  else
-    # 같은 batch 내 미완료 WI만 N개 추출
-    awk -v n="$n" -v batch="batch:$first_batch" '
-      /^```/{f=!f}
-      !f && /^\- \[ \]/ && index($0, batch) {
-        sub(/^\- \[ \] /,"")
-        sub(/ \| L1:.*$/,"")
-        print
-        c++
-        if(c>=n) exit
-      }
-    ' "$FIX_PLAN" 2>/dev/null
-  fi
+  # 미완료 WI 추출 (로컬 완료 필터 + batch 필터)
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    local wi_name
+    wi_name=$(echo "$line" | sed 's/^\- \[ \] //; s/ | L1:.*$//')
+    is_wi_completed_locally "$wi_name" && continue
+
+    # batch 필터
+    if [[ -n "$first_batch" ]]; then
+      echo "$line" | grep -q "batch:$first_batch" || continue
+    fi
+
+    echo "$wi_name"
+    count=$((count + 1))
+    [[ $count -ge $n ]] && break
+  done < <(awk '/^```/{f=!f} !f && /^\- \[ \]/{print}' "$FIX_PLAN" 2>/dev/null)
 }
 
 setup_worktree() {
@@ -713,11 +777,14 @@ setup_worktree() {
   local branch_name="parallel/worker-${idx}-${sanitized}"
   local worktree_path="${WORKTREE_DIR}/worker-${idx}"
 
-  # Clean stale worktree
+  # Clean stale worktree (git 등록 해제 + 디렉토리 삭제)
   if [[ -d "$worktree_path" ]]; then
     git worktree remove "$worktree_path" --force 2>/dev/null || {
-      log "WARN: worktree 제거 실패 — $worktree_path (수동 정리 필요)"
-      return 1
+      # git 등록은 해제됐지만 빈 디렉토리만 남은 경우
+      rmdir "$worktree_path" 2>/dev/null || {
+        log "WARN: worktree 디렉토리 제거 실패 — $worktree_path (수동 정리 필요)"
+        return 1
+      }
     }
   fi
   git branch -D "$branch_name" 2>/dev/null || true
@@ -744,6 +811,9 @@ mark_wi_done() {
   line_num=$(grep -nF -- "- [ ] ${wi_name}" "$FIX_PLAN" 2>/dev/null | head -1 | cut -d: -f1)
   if [[ -n "$line_num" ]]; then
     sed -i "${line_num}s/^\- \[ \]/- [x]/" "$FIX_PLAN"
+    # 로컬 완료 추적 (reset --hard에서 보존됨)
+    local wi_prefix="${wi_name%% *}"
+    echo "$wi_prefix" >> "$COMPLETED_FILE"
     log "  mark_wi_done: ✅ ${wi_name} (line $line_num)"
     update_wi_history "$wi_name" || true
   else
@@ -799,6 +869,9 @@ execute_parallel() {
     git reset --hard origin/main 2>/dev/null || true
     log "⚠️ main 동기화 충돌 — origin/main으로 리셋"
   }
+
+  # 로컬 완료 목록 정리 (origin fix_plan에서 이미 [x]인 항목 제거)
+  sync_completed_file
 
   # 워커 실행 전 stale WI 사전 복구
   recover_stale_wis
@@ -1035,14 +1108,27 @@ ${rag_context}"
   # fix_plan 변경 후 PR로 push (main 직접 push 금지)
   if [[ $merged -gt 0 ]] && ! git diff --quiet "$FIX_PLAN" 2>/dev/null; then
     local fp_branch="chore/WI-chore-fix-plan-update-$(date +%H%M%S)"
-    git checkout -b "$fp_branch" 2>/dev/null || true
-    git add "$FIX_PLAN"
-    git commit -m "WI-chore fix_plan 업데이트 (병렬 ${merged}건 PR, ${skipped}건 스킵)" 2>/dev/null || true
-    git push -u origin "$fp_branch" 2>/dev/null || true
-    gh pr create --base main --head "$fp_branch" --title "WI-chore fix_plan 업데이트" --body "Ralph Loop 자동 생성" 2>/dev/null || true
-    gh pr merge --auto --squash 2>/dev/null || true
-    git checkout main 2>/dev/null || true
-    git branch -D "$fp_branch" 2>/dev/null || true
+    if git checkout -b "$fp_branch" 2>/dev/null; then
+      git add "$FIX_PLAN"
+      git commit -m "WI-chore fix_plan 업데이트 (병렬 ${merged}건 PR, ${skipped}건 스킵)" 2>/dev/null || true
+      if git push -u origin "$fp_branch" 2>/dev/null; then
+        local fp_pr_url
+        fp_pr_url=$(gh pr create --base main --head "$fp_branch" --title "WI-chore fix_plan 업데이트" --body "Ralph Loop 자동 생성" 2>/dev/null) || true
+        if [[ -n "${fp_pr_url:-}" ]]; then
+          gh pr merge "$fp_pr_url" --auto --squash 2>/dev/null || true
+        fi
+      else
+        log "⚠️ fix_plan PR push 실패"
+      fi
+      # 반드시 main으로 복귀
+      git checkout main 2>/dev/null || git checkout main --force 2>/dev/null || {
+        log "ERROR: main 복귀 실패 — git status 확인 필요"
+      }
+      git branch -D "$fp_branch" 2>/dev/null || true
+    else
+      log "⚠️ fix_plan PR 브랜치 생성 실패 — fix_plan 변경은 다음 iteration에서 재시도"
+      git checkout main 2>/dev/null || true
+    fi
   fi
 
   # 전부 실패면 에러
@@ -1182,7 +1268,7 @@ main() {
     generate_codebase_map || true
   fi
 
-  log "=== Ralph Loop Started ==="
+  log "=== Ralph Loop v${RALPH_VERSION} Started ==="
   log "Max iterations: $MAX_ITERATIONS | Rate limit: $RATE_LIMIT_PER_HOUR/hr"
   if [[ $PARALLEL_COUNT -gt 1 ]]; then
     log "Mode: 병렬 (${PARALLEL_COUNT}x worktree)"
