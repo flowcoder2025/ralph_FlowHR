@@ -48,3 +48,9 @@ desktop.ini
 coverage/
 .nyc_output/
 htmlcov/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+.next/
