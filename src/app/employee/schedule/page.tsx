@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardHeader,
@@ -22,6 +22,7 @@ interface TodayStatus {
   totalHours: string | null;
   shiftType: string;
   expectedEnd: string;
+  status: AttendanceStatus;
 }
 
 interface WeeklyScheduleRow {
@@ -48,82 +49,20 @@ interface AttendanceHistoryRow {
   isToday: boolean;
 }
 
-/* ────────────────────────────────────────────
-   Mock Data
-   ──────────────────────────────────────────── */
-
-const MOCK_TODAY: TodayStatus = {
-  checkIn: "09:02",
-  checkOut: null,
-  totalHours: null,
-  shiftType: "일반 근무",
-  expectedEnd: "18:00",
-};
-
-const MOCK_ATTENDANCE_STATUS: AttendanceStatus = "working";
-
-const MOCK_WEEKLY_SCHEDULE: WeeklyScheduleRow[] = [
-  { dayLabel: "월", date: "3월 10일", shiftType: "일반 근무", startTime: "09:00", endTime: "18:00", status: "normal", isToday: false },
-  { dayLabel: "화", date: "3월 11일", shiftType: "일반 근무", startTime: "09:00", endTime: "18:00", status: "normal", isToday: false },
-  { dayLabel: "수", date: "3월 12일", shiftType: "일반 근무", startTime: "09:00", endTime: "18:00", status: "normal", isToday: false },
-  { dayLabel: "목", date: "3월 13일", shiftType: "일반 근무", startTime: "09:00", endTime: "18:00", status: "working", isToday: true },
-  { dayLabel: "금", date: "3월 14일", shiftType: "일반 근무", startTime: "09:00", endTime: "18:00", status: "scheduled", isToday: false },
-];
-
-/* ── TE-103 출결 이력 Mock Data ── */
-
-const MOCK_HISTORY_RECENT2W: AttendanceHistoryRow[] = [
-  { id: "h1",  date: "2026-03-14", dayLabel: "금", checkIn: "09:02", checkOut: null,    totalWork: null,         status: "working",  isToday: true },
-  { id: "h2",  date: "2026-03-13", dayLabel: "목", checkIn: "08:55", checkOut: "18:10", totalWork: "9시간 15분", status: "normal",   isToday: false },
-  { id: "h3",  date: "2026-03-12", dayLabel: "수", checkIn: "09:00", checkOut: "18:05", totalWork: "9시간 05분", status: "normal",   isToday: false },
-  { id: "h4",  date: "2026-03-11", dayLabel: "화", checkIn: "08:58", checkOut: "18:02", totalWork: "9시간 04분", status: "normal",   isToday: false },
-  { id: "h5",  date: "2026-03-10", dayLabel: "월", checkIn: "09:12", checkOut: "18:30", totalWork: "9시간 18분", status: "late",     isToday: false },
-  { id: "h6",  date: "2026-03-07", dayLabel: "금", checkIn: "09:00", checkOut: "13:00", totalWork: "4시간 00분", status: "half_day", isToday: false },
-  { id: "h7",  date: "2026-03-06", dayLabel: "목", checkIn: "08:50", checkOut: "18:00", totalWork: "9시간 10분", status: "normal",   isToday: false },
-  { id: "h8",  date: "2026-03-05", dayLabel: "수", checkIn: null,    checkOut: null,    totalWork: null,         status: "annual",   isToday: false },
-  { id: "h9",  date: "2026-03-04", dayLabel: "화", checkIn: "08:57", checkOut: "18:15", totalWork: "9시간 18분", status: "normal",   isToday: false },
-  { id: "h10", date: "2026-03-03", dayLabel: "월", checkIn: "09:01", checkOut: "18:00", totalWork: "8시간 59분", status: "normal",   isToday: false },
-];
-
-const MOCK_HISTORY_THIS_MONTH: AttendanceHistoryRow[] = [
-  ...MOCK_HISTORY_RECENT2W,
-  { id: "h11", date: "2026-02-28", dayLabel: "금", checkIn: "09:05", checkOut: "18:20", totalWork: "9시간 15분", status: "normal",   isToday: false },
-  { id: "h12", date: "2026-02-27", dayLabel: "목", checkIn: "09:00", checkOut: "18:00", totalWork: "9시간 00분", status: "normal",   isToday: false },
-  { id: "h13", date: "2026-02-26", dayLabel: "수", checkIn: "09:15", checkOut: "18:30", totalWork: "9시간 15분", status: "late",     isToday: false },
-  { id: "h14", date: "2026-02-25", dayLabel: "화", checkIn: "08:50", checkOut: "18:10", totalWork: "9시간 20분", status: "normal",   isToday: false },
-  { id: "h15", date: "2026-02-24", dayLabel: "월", checkIn: "09:00", checkOut: "18:05", totalWork: "9시간 05분", status: "normal",   isToday: false },
-  { id: "h16", date: "2026-02-21", dayLabel: "금", checkIn: null,    checkOut: null,    totalWork: null,         status: "annual",   isToday: false },
-  { id: "h17", date: "2026-02-20", dayLabel: "목", checkIn: "08:55", checkOut: "18:00", totalWork: "9시간 05분", status: "normal",   isToday: false },
-  { id: "h18", date: "2026-02-19", dayLabel: "수", checkIn: "09:02", checkOut: "13:00", totalWork: "3시간 58분", status: "half_day", isToday: false },
-  { id: "h19", date: "2026-02-18", dayLabel: "화", checkIn: "08:58", checkOut: "18:10", totalWork: "9시간 12분", status: "normal",   isToday: false },
-  { id: "h20", date: "2026-02-17", dayLabel: "월", checkIn: "09:00", checkOut: "18:00", totalWork: "9시간 00분", status: "normal",   isToday: false },
-];
-
-const MOCK_HISTORY_LAST_MONTH: AttendanceHistoryRow[] = [
-  { id: "l1",  date: "2026-02-28", dayLabel: "금", checkIn: "09:05", checkOut: "18:20", totalWork: "9시간 15분", status: "normal",   isToday: false },
-  { id: "l2",  date: "2026-02-27", dayLabel: "목", checkIn: "09:00", checkOut: "18:00", totalWork: "9시간 00분", status: "normal",   isToday: false },
-  { id: "l3",  date: "2026-02-26", dayLabel: "수", checkIn: "09:15", checkOut: "18:30", totalWork: "9시간 15분", status: "late",     isToday: false },
-  { id: "l4",  date: "2026-02-25", dayLabel: "화", checkIn: "08:50", checkOut: "18:10", totalWork: "9시간 20분", status: "normal",   isToday: false },
-  { id: "l5",  date: "2026-02-24", dayLabel: "월", checkIn: "09:00", checkOut: "18:05", totalWork: "9시간 05분", status: "normal",   isToday: false },
-  { id: "l6",  date: "2026-02-21", dayLabel: "금", checkIn: null,    checkOut: null,    totalWork: null,         status: "annual",   isToday: false },
-  { id: "l7",  date: "2026-02-20", dayLabel: "목", checkIn: "08:55", checkOut: "18:00", totalWork: "9시간 05분", status: "normal",   isToday: false },
-  { id: "l8",  date: "2026-02-19", dayLabel: "수", checkIn: "09:02", checkOut: "13:00", totalWork: "3시간 58분", status: "half_day", isToday: false },
-  { id: "l9",  date: "2026-02-18", dayLabel: "화", checkIn: "08:58", checkOut: "18:10", totalWork: "9시간 12분", status: "normal",   isToday: false },
-  { id: "l10", date: "2026-02-17", dayLabel: "월", checkIn: "09:00", checkOut: "18:00", totalWork: "9시간 00분", status: "normal",   isToday: false },
-  { id: "l11", date: "2026-02-14", dayLabel: "금", checkIn: "09:10", checkOut: "18:25", totalWork: "9시간 15분", status: "late",     isToday: false },
-  { id: "l12", date: "2026-02-13", dayLabel: "목", checkIn: "08:50", checkOut: "18:00", totalWork: "9시간 10분", status: "normal",   isToday: false },
-  { id: "l13", date: "2026-02-12", dayLabel: "수", checkIn: "09:00", checkOut: "18:05", totalWork: "9시간 05분", status: "normal",   isToday: false },
-  { id: "l14", date: "2026-02-11", dayLabel: "화", checkIn: "08:55", checkOut: "18:00", totalWork: "9시간 05분", status: "normal",   isToday: false },
-  { id: "l15", date: "2026-02-10", dayLabel: "월", checkIn: "09:00", checkOut: "18:00", totalWork: "9시간 00분", status: "normal",   isToday: false },
-];
-
-const HISTORY_DATA_MAP: Record<HistoryFilter, AttendanceHistoryRow[]> = {
-  recent2w: MOCK_HISTORY_RECENT2W,
-  thisMonth: MOCK_HISTORY_THIS_MONTH,
-  lastMonth: MOCK_HISTORY_LAST_MONTH,
-};
-
-const PAGE_SIZE = 10;
+interface ScheduleResponse {
+  data: {
+    today: TodayStatus;
+    weekLabel: string;
+    weeklySchedule: WeeklyScheduleRow[];
+    history: {
+      items: AttendanceHistoryRow[];
+      total: number;
+      totalPages: number;
+      page: number;
+      pageSize: number;
+    };
+  };
+}
 
 /* ────────────────────────────────────────────
    Helpers
@@ -190,18 +129,45 @@ function StatRow({ label, value, muted }: { label: string; value: string; muted?
 export default function SchedulePage() {
   const [currentTime, setCurrentTime] = useState<string>("");
   const [currentDate, setCurrentDate] = useState<string>("");
-  const [attendanceStatus] = useState<AttendanceStatus>(MOCK_ATTENDANCE_STATUS);
-  const [todayStatus] = useState<TodayStatus>(MOCK_TODAY);
-  const [weeklySchedule] = useState<WeeklyScheduleRow[]>(MOCK_WEEKLY_SCHEDULE);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [todayStatus, setTodayStatus] = useState<TodayStatus>({
+    checkIn: null, checkOut: null, totalHours: null, shiftType: "일반 근무", expectedEnd: "18:00", status: "not_started",
+  });
+  const [attendanceStatus, setAttendanceStatus] = useState<AttendanceStatus>("not_started");
+  const [weeklySchedule, setWeeklySchedule] = useState<WeeklyScheduleRow[]>([]);
+  const [weekLabel, setWeekLabel] = useState<string>("");
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>("recent2w");
   const [historyPage, setHistoryPage] = useState(1);
+  const [historyPageData, setHistoryPageData] = useState<AttendanceHistoryRow[]>([]);
+  const [historyTotal, setHistoryTotal] = useState(0);
+  const [historyTotalPages, setHistoryTotalPages] = useState(1);
 
-  const historyData = HISTORY_DATA_MAP[historyFilter];
-  const historyTotalPages = Math.max(1, Math.ceil(historyData.length / PAGE_SIZE));
-  const historyPageData = useMemo(
-    () => historyData.slice((historyPage - 1) * PAGE_SIZE, historyPage * PAGE_SIZE),
-    [historyData, historyPage],
-  );
+  const fetchSchedule = useCallback(async (filter: HistoryFilter, page: number) => {
+    try {
+      const res = await fetch(`/api/employee/schedule?filter=${filter}&page=${page}`);
+      if (!res.ok) {
+        throw new Error(res.status === 401 ? "인증이 필요합니다" : "데이터를 불러올 수 없습니다");
+      }
+      const json: ScheduleResponse = await res.json();
+      setTodayStatus(json.data.today);
+      setAttendanceStatus(json.data.today.status);
+      setWeekLabel(json.data.weekLabel);
+      setWeeklySchedule(json.data.weeklySchedule);
+      setHistoryPageData(json.data.history.items);
+      setHistoryTotal(json.data.history.total);
+      setHistoryTotalPages(json.data.history.totalPages);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSchedule(historyFilter, historyPage);
+  }, [fetchSchedule, historyFilter, historyPage]);
 
   useEffect(() => {
     function updateTime() {
@@ -222,6 +188,22 @@ export default function SchedulePage() {
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-text-tertiary">일정 정보를 불러오는 중...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-red-500">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -291,7 +273,7 @@ export default function SchedulePage() {
       <div className="mb-sp-4">
         <h2 className="text-lg font-semibold text-text-primary">이번 주 근무 일정</h2>
         <p className="text-sm text-text-tertiary mt-sp-1">
-          2026년 3월 2주차 (3/10 ~ 3/14)
+          {weekLabel}
         </p>
       </div>
 
@@ -402,8 +384,8 @@ export default function SchedulePage() {
         {/* Pagination Footer */}
         <div className="flex items-center justify-between px-sp-5 py-sp-3 border-t border-border">
           <span className="text-xs text-text-tertiary">
-            {historyData.length}건 중 {(historyPage - 1) * PAGE_SIZE + 1}–
-            {Math.min(historyPage * PAGE_SIZE, historyData.length)}건 표시
+            {historyTotal}건 중 {historyTotal > 0 ? (historyPage - 1) * 10 + 1 : 0}–
+            {Math.min(historyPage * 10, historyTotal)}건 표시
           </span>
           <div className="flex items-center gap-sp-2">
             <Button
