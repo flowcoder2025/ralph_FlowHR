@@ -26,6 +26,15 @@
         "@anthropic/mcp-playwright@latest"
       ],
       "env": {}
+    },
+    "supabase": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server"
+      ],
+      "env": {}
     }
   }
 }
