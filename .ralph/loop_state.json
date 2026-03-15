@@ -1,9 +1,9 @@
 {
-  "loop_count": 2,
-  "call_count": 2,
+  "loop_count": 0,
+  "call_count": 0,
   "session_id": "",
   "total_cost_usd": 0,
-  "last_git_sha": "e89e82804223c5a3b50440934b831baee3bdbb85",
-  "timestamp": "2026-03-14 17:40:54",
-  "status": "running"
+  "last_git_sha": "",
+  "timestamp": "2026-03-15 16:48:01",
+  "status": "crashed"
 }

@@ -167,3 +167,49 @@
 - [x] WI-076-test E2E 테스트 (Playwright: 로그인→대시보드→People→Attendance 핵심 플로우) | L1:QA > L2:E2E > L3:핵심플로우 | batch:28
 - [x] WI-077-test 유닛 + API 테스트 (Vitest: 모듈별 비즈니스 로직, API Route, 커버리지 70%+) | L1:QA > L2:유닛 > L3:API | batch:29
 - [x] WI-078-chore 반응형 + 접근성 + i18n 기본 구조 | L1:QA > L2:폴리시 > L3:반응형접근성 | batch:30
+
+## Phase 18: Refactoring (리팩토링)
+
+### L1: Infra > L2: 환경구성
+- [ ] WI-079-fix Prisma directUrl 추가 + Supabase 연결 검증 | L1:Infra > L2:DB > L3:directUrl
+
+### L1: Public > L2: 랜딩 복원
+- [ ] WI-080-fix 랜딩 페이지 복원 + 네비게이션 허브 통합 (/ = 마케팅 랜딩 + 하단 허브 섹션, 원본 landing.html 기반 히어로+6기능카드+3역할카드+CTA+푸터, 기존 page.tsx 허브 코드를 하단 섹션으로 통합) | L1:Public > L2:랜딩 > L3:복원
+
+### L1: Employee > L2: mock → API 연결
+- [ ] WI-081-refactor Employee Profile mock 데이터 → API 연결 (PROFILE, LEAVE_BALANCES, GOALS, EVALUATION, ONE_ON_ONES 상수 제거 → /api 호출) | L1:Employee > L2:프로필 > L3:API연결
+- [ ] WI-082-refactor Employee Requests mock 데이터 → API 연결 (REQUEST_TYPES, REQUEST_HISTORY 상수 제거 → /api 호출, remainingLeave 하드코딩 제거) | L1:Employee > L2:신청 > L3:API연결
+- [ ] WI-083-refactor Employee Schedule mock 데이터 → API 연결 (MOCK_TODAY, MOCK_WEEKLY_SCHEDULE, MOCK_HISTORY 상수 제거 → /api 호출) | L1:Employee > L2:스케줄 > L3:API연결
+
+### L1: Shared > L2: Error Handling
+- [ ] WI-084-fix Employee + Platform 페이지 error.tsx + loading.tsx 추가 (Suspense boundary, 에러 바운더리, 로딩 스켈레톤) | L1:Shared > L2:에러처리 > L3:바운더리
+
+### L1: QA > L2: E2E 인프라
+- [ ] WI-085-test E2E 인프라 개선 (storageState 3역할 인증 캐싱: auth.setup.ts에서 Admin/Employee/Operator 로그인 → playwright/.auth/*.json 저장, playwright.config.ts에 setup+3 projects 구성, 매 테스트 loginAs() 제거) | L1:QA > L2:E2E > L3:인프라
+- [ ] WI-086-test E2E DB 시딩 + globalSetup (globalSetup에서 prisma db push + prisma db seed 자동 실행, 테스트용 시드 데이터 보강: 10명 직원 3부서 출결30일 휴가요청 급여런, 테스트 종료 후 cleanup) | L1:QA > L2:E2E > L3:시딩
+
+### L1: QA > L2: E2E Auth Flow
+- [ ] WI-086-1-test Auth E2E (로그인 폼 렌더링+유효성검증, Admin/Employee/Operator 자격증명 로그인→역할별 리다이렉트, 잘못된 자격증명→에러메시지, SSO 버튼 Google/Microsoft 존재확인, 데모 퀵액세스 3버튼 클릭→역할전환, 로그아웃→세션해제→/login 리다이렉트, 세션만료 후 재접근→/login) | L1:QA > L2:E2E > L3:Auth
+
+### L1: QA > L2: E2E 구조
+- [ ] WI-087-test E2E 구조 개편 + POM (e2e/admin/ e2e/employee/ e2e/platform/ 디렉토리 분리, 도메인별 Page Object 생성, Fixture 결합, 기존 smoke/core-flow를 도메인별로 분할 이관) | L1:QA > L2:E2E > L3:POM
+
+### L1: QA > L2: E2E Admin Core Flow
+- [ ] WI-088-test Admin 대시보드+People+조직도 E2E (대시보드 5KPI+오늘큐 렌더링, People 디렉토리 검색+필터+페이지네이션, 직원 상세 드로어, 조직도 트리, 인사변동 타임라인) | L1:QA > L2:E2E > L3:AdminPeople
+- [ ] WI-089-test Admin 근태+휴가 E2E (근태 대시보드 4KPI+5탭, 교대보드 주간표, 출결기록 테이블+필터, 예외처리 승인/반려, 마감 체크리스트, 휴가 대시보드+캘린더+정책관리+신청큐 승인/반려) | L1:QA > L2:E2E > L3:AdminAttLeave
+- [ ] WI-090-test Admin 결재+문서 E2E (결재 대시보드+수신함, 결재 상세 4단계체인, 워크플로우 빌더 생성, 결재 이력 필터, 문서 대시보드+템플릿관리+발송폼+미리보기+보관함) | L1:QA > L2:E2E > L3:AdminWfDoc
+- [ ] WI-091-test Admin 급여+성과 E2E (급여 대시보드+규칙관리+마감5단계+명세서 월별조회, 성과 목표대시보드+평가설정+가중치+진행현황 테이블+1:1허브 일정) | L1:QA > L2:E2E > L3:AdminPayPerf
+- [ ] WI-092-test Admin 채용+리포트+설정 E2E (채용 대시보드+공고CRUD+파이프라인 칸반+온보딩 체크리스트+오프보딩, 리포트센터 7카드+인사인사이트+근태인사이트+예약리포트, 설정 회사정보+역할관리+권한매트릭스+알림규칙+외부연동+감사로그) | L1:QA > L2:E2E > L3:AdminRecRepSet
+
+### L1: QA > L2: E2E Employee Flow
+- [ ] WI-093-test Employee 전체 플로우 E2E (홈 근무상태+퀵액션+미니캘린더, 출퇴근 체크+주간스케줄+출결이력, 신청 7유형+휴가3단계폼+근태정정폼+신청이력, 수신함 5탭+미읽음+상세드로어, 문서 서명수신함+PDF뷰어+서명패드+보관함, 프로필 기본정보+휴가잔여+성과+1:1) | L1:QA > L2:E2E > L3:EmployeeFull
+
+### L1: QA > L2: E2E Platform Flow
+- [ ] WI-094-test Platform 전체 플로우 E2E (대시보드 4KPI+운영큐+헬스+보안시그널, 테넌트 필터+테이블+상세드로어, 빌링 4KPI+플랜카탈로그+결제계정+인보이스, 서포트 티켓큐+SLA, 모니터링 API메트릭+업타임, 감사로그+보안이벤트, 플랫폼설정 피처플래그+시스템설정) | L1:QA > L2:E2E > L3:PlatformFull
+
+### L1: QA > L2: E2E Cross-Role + Permission
+- [ ] WI-095-test Cross-Role 워크플로우 E2E (Employee 휴가신청→Admin 승인큐 확인→승인처리→Employee 알림수신 확인, Employee 근태정정→Admin 예외처리→Employee 이력반영, Employee 문서서명→Admin 보관함 확인) | L1:QA > L2:E2E > L3:CrossRole
+- [ ] WI-096-test Permission 경계 E2E (Admin→/platform 접근차단→403/리다이렉트, Employee→/admin 접근차단, Operator→/admin 접근차단, 미인증→/admin 리다이렉트→/login, 미인증→/employee 리다이렉트→/login, 각 역할별 사이드바 메뉴 노출범위 검증) | L1:QA > L2:E2E > L3:Permission
+
+### L1: QA > L2: CI 강화
+- [ ] WI-097-chore CI E2E 파이프라인 개선 (PR+merge_group 트리거, Playwright 브라우저 캐싱, production 빌드 테스트, playwright-report artifact 업로드, HTML reporter, 50+테스트 대비 shard 설정) | L1:QA > L2:CI > L3:E2E파이프라인
