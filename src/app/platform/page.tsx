@@ -214,7 +214,22 @@ function PlatformDashboardContent() {
               );
             });
           }}>내보내기</Button>
-          <Button variant="primary" onClick={() => alert("테넌트 추가 기능 준비 중입니다.")}>테넌트 추가</Button>
+          <Button variant="primary" onClick={async () => {
+            const name = prompt("추가할 테넌트 이름을 입력하세요:");
+            if (!name) return;
+            try {
+              const res = await fetch("/api/platform/tenants", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name }),
+              });
+              if (!res.ok) throw new Error("테넌트 추가 실패");
+              alert("테넌트가 성공적으로 추가되었습니다.");
+              fetchDashboard();
+            } catch {
+              alert("테넌트 추가에 실패했습니다. 다시 시도해 주세요.");
+            }
+          }}>테넌트 추가</Button>
         </div>
       </div>
 
@@ -291,9 +306,9 @@ function PlatformDashboardContent() {
                         size="sm"
                         onClick={() => {
                           if (item.actionLabel === "검토") {
-                            alert("검토 기능 준비 중입니다.");
+                            router.push("/platform/tenants");
                           } else if (item.actionLabel === "응답") {
-                            alert("응답 기능 준비 중입니다.");
+                            router.push("/platform/tenants");
                           }
                         }}
                       >
@@ -412,7 +427,7 @@ function PlatformDashboardContent() {
             ))}
           </CardBody>
           <CardFooter>
-            <Button variant="ghost" size="sm" onClick={() => alert("감사 로그 전체 보기 기능 준비 중입니다.")}>
+            <Button variant="ghost" size="sm" onClick={() => router.push("/platform/audit-log")}>
               감사 로그 전체 보기 →
             </Button>
           </CardFooter>

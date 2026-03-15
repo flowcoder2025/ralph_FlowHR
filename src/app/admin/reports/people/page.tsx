@@ -128,7 +128,24 @@ function PeopleInsightsContent() {
               부서별 인원 분포, 근속 분포 등 인사 현황 분석
             </p>
           </div>
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={() => {
+            if (!data) return;
+            import("@/lib/export").then(({ exportToCSV }) => {
+              exportToCSV(
+                [
+                  { key: "name", label: "부서" },
+                  { key: "count", label: "인원" },
+                  { key: "percentage", label: "비율(%)" },
+                ],
+                data.departmentDistribution.map((d) => ({
+                  name: d.name,
+                  count: d.count,
+                  percentage: d.percentage,
+                })),
+                "people-insights-report",
+              );
+            });
+          }}>
             리포트 내보내기
           </Button>
         </div>

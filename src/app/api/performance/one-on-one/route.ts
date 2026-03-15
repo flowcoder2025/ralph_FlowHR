@@ -76,3 +76,64 @@ export async function GET(request: NextRequest) {
     },
   });
 }
+
+// ─── POST: 1:1 미팅 생성 ───────────────────────────────
+export async function POST(request: NextRequest) {
+  const token = await getToken({ req: request });
+  if (!token || !token.tenantId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const tenantId = token.tenantId as string;
+
+  const body = await request.json();
+  const { managerId, employeeId, scheduledAt, duration, agenda } = body;
+
+  if (!managerId || !employeeId || !scheduledAt) {
+    return NextResponse.json(
+      { error: "managerId, employeeId, scheduledAt은 필수입니다" },
+      { status: 400 },
+    );
+  }
+
+  // 매니저 존재 확인
+  const manager = await prisma.employee.findFirst({
+    where: { id: managerId, tenantId },
+  });
+
+  if (!manager) {
+    return NextResponse.json(
+      { error: "해당 매니저를 찾을 수 없습니다" },
+      { status: 404 },
+    );
+  }
+
+  // 직원 존재 확인
+  const employee = await prisma.employee.findFirst({
+    where: { id: employeeId, tenantId },
+  });
+
+  if (!employee) {
+    return NextResponse.json(
+      { error: "해당 직원을 찾을 수 없습니다" },
+      { status: 404 },
+    );
+  }
+
+  const meeting = await prisma.oneOnOne.create({
+    data: {
+      tenantId,
+      managerId,
+      employeeId,
+      scheduledAt: new Date(scheduledAt),
+      duration: duration ? Number(duration) : 30,
+      agenda: agenda || null,
+    },
+    include: {
+      manager: { select: { id: true, name: true } },
+      employee: { select: { id: true, name: true } },
+    },
+  });
+
+  return NextResponse.json({ data: meeting }, { status: 201 });
+}

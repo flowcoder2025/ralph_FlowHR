@@ -320,7 +320,23 @@ function BasicInfoTab({ profile }: { profile: ProfileData }) {
             <p className="text-xs text-text-tertiary mb-sp-3">
               연락처 정보 변경은 HR 담당자에게 요청해 주세요.
             </p>
-            <Button size="sm" variant="secondary" onClick={() => alert("정보 수정 요청이 제출되었습니다.")}>
+            <Button size="sm" variant="secondary" onClick={async () => {
+              try {
+                const res = await fetch("/api/employee/profile", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    requestType: "info_change",
+                    email: profile.email,
+                    phone: profile.phone,
+                  }),
+                });
+                if (!res.ok) throw new Error("요청 실패");
+                alert("정보 수정 요청이 성공적으로 제출되었습니다.");
+              } catch {
+                alert("정보 수정 요청에 실패했습니다. 다시 시도해 주세요.");
+              }
+            }}>
               정보 수정 요청
             </Button>
           </div>

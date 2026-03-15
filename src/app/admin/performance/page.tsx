@@ -954,7 +954,24 @@ function OneOnOneHub() {
               예정된 1:1 미팅 및 의제 관리
             </p>
           </div>
-          <Button variant="primary" size="sm" onClick={() => alert("1:1 예약 기능 준비 중입니다.")}>
+          <Button variant="primary" size="sm" onClick={async () => {
+            const employeeName = prompt("1:1 미팅 대상 직원 이름을 입력하세요:");
+            if (!employeeName) return;
+            const dateStr = prompt("미팅 날짜와 시간을 입력하세요 (예: 2026-03-20 14:00):");
+            if (!dateStr) return;
+            try {
+              const res = await fetch("/api/performance/one-on-one", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ employeeName, scheduledAt: dateStr }),
+              });
+              if (!res.ok) throw new Error("1:1 예약 실패");
+              alert("1:1 미팅이 성공적으로 예약되었습니다.");
+              fetchOneOnOnes();
+            } catch {
+              alert("1:1 예약에 실패했습니다. 다시 시도해 주세요.");
+            }
+          }}>
             + 1:1 예약
           </Button>
         </CardHeader>

@@ -162,3 +162,135 @@ export async function GET(request: NextRequest) {
     departments,
   });
 }
+
+// ─── POST: 근무 시프트 배정 생성 ────────────────────────
+export async function POST(request: NextRequest) {
+  const token = await getToken({ req: request });
+  if (!token || !token.tenantId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const tenantId = token.tenantId as string;
+
+  const body = await request.json();
+  const { employeeId, shiftId, startDate, endDate } = body;
+
+  if (!employeeId || !shiftId || !startDate) {
+    return NextResponse.json(
+      { error: "employeeId, shiftId, startDate는 필수입니다" },
+      { status: 400 },
+    );
+  }
+
+  // 직원 존재 확인
+  const employee = await prisma.employee.findFirst({
+    where: { id: employeeId, tenantId },
+  });
+
+  if (!employee) {
+    return NextResponse.json(
+      { error: "해당 직원을 찾을 수 없습니다" },
+      { status: 404 },
+    );
+  }
+
+  // 시프트 존재 확인
+  const shift = await prisma.shift.findFirst({
+    where: { id: shiftId, tenantId },
+  });
+
+  if (!shift) {
+    return NextResponse.json(
+      { error: "해당 시프트를 찾을 수 없습니다" },
+      { status: 404 },
+    );
+  }
+
+  const assignment = await prisma.shiftAssignment.create({
+    data: {
+      tenantId,
+      employeeId,
+      shiftId,
+      startDate: new Date(startDate),
+      endDate: endDate ? new Date(endDate) : null,
+    },
+    include: {
+      employee: { select: { id: true, name: true } },
+      shift: { select: { id: true, name: true, type: true, startTime: true, endTime: true } },
+    },
+  });
+
+  return NextResponse.json({ data: assignment }, { status: 201 });
+}
+
+// ─── PATCH: 근무 시프트 배정 수정 ───────────────────────
+export async function PATCH(request: NextRequest) {
+  const token = await getToken({ req: request });
+  if (!token || !token.tenantId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const tenantId = token.tenantId as string;
+
+  const body = await request.json();
+  const { id, shiftId, startDate, endDate } = body;
+
+  if (!id) {
+    return NextResponse.json(
+      { error: "id는 필수입니다" },
+      { status: 400 },
+    );
+  }
+
+  const existing = await prisma.shiftAssignment.findFirst({
+    where: { id, tenantId },
+  });
+
+  if (!existing) {
+    return NextResponse.json(
+      { error: "해당 시프트 배정을 찾을 수 없습니다" },
+      { status: 404 },
+    );
+  }
+
+  const data: Record<string, unknown> = {};
+
+  if (shiftId !== undefined) {
+    const shift = await prisma.shift.findFirst({
+      where: { id: shiftId, tenantId },
+    });
+    if (!shift) {
+      return NextResponse.json(
+        { error: "해당 시프트를 찾을 수 없습니다" },
+        { status: 404 },
+      );
+    }
+    data.shiftId = shiftId;
+  }
+
+  if (startDate !== undefined) {
+    data.startDate = new Date(startDate);
+  }
+
+  if (endDate !== undefined) {
+    data.endDate = endDate ? new Date(endDate) : null;
+  }
+
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json(
+      { error: "수정할 필드가 없습니다" },
+      { status: 400 },
+    );
+  }
+
+  const updated = await prisma.shiftAssignment.update({
+    where: { id },
+    data,
+    include: {
+      employee: { select: { id: true, name: true } },
+      shift: { select: { id: true, name: true, type: true, startTime: true, endTime: true } },
+    },
+  });
+
+  return NextResponse.json({ data: updated });
+}

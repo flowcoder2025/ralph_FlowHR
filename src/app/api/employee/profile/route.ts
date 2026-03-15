@@ -112,3 +112,59 @@ export async function GET(request: NextRequest) {
     },
   });
 }
+
+// ─── PATCH: 프로필 수정 ─────────────────────────────────
+export async function PATCH(request: NextRequest) {
+  const token = await getToken({ req: request });
+  if (!token || !token.tenantId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const employee = await prisma.employee.findFirst({
+    where: {
+      userId: token.id,
+      tenantId: token.tenantId,
+    },
+  });
+
+  if (!employee) {
+    return NextResponse.json({ error: "Employee not found" }, { status: 404 });
+  }
+
+  const body = await request.json();
+  const allowedFields = ["phone", "email"];
+  const data: Record<string, unknown> = {};
+
+  for (const field of allowedFields) {
+    if (body[field] !== undefined) {
+      data[field] = body[field];
+    }
+  }
+
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json(
+      { error: "수정할 필드가 없습니다" },
+      { status: 400 },
+    );
+  }
+
+  const updated = await prisma.employee.update({
+    where: { id: employee.id },
+    data,
+    include: {
+      department: { select: { name: true } },
+      position: { select: { name: true } },
+    },
+  });
+
+  return NextResponse.json({
+    data: {
+      name: updated.name,
+      employeeNumber: updated.employeeNumber,
+      email: updated.email,
+      phone: updated.phone ?? "",
+      department: updated.department?.name ?? "",
+      position: updated.position?.name ?? "",
+    },
+  });
+}

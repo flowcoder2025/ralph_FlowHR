@@ -146,3 +146,46 @@ export async function GET(request: NextRequest) {
     },
   });
 }
+
+// ─── POST: 테넌트 생성 ──────────────────────────────────
+export async function POST(request: NextRequest) {
+  const token = await getToken({ req: request });
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { name, slug, plan } = body;
+
+  if (!name || !slug) {
+    return NextResponse.json(
+      { error: "name, slug는 필수입니다" },
+      { status: 400 },
+    );
+  }
+
+  // slug 중복 검사
+  const existing = await prisma.tenant.findUnique({
+    where: { slug },
+  });
+
+  if (existing) {
+    return NextResponse.json(
+      { error: "이미 사용 중인 slug입니다" },
+      { status: 409 },
+    );
+  }
+
+  const validPlans = ["TRIAL", "STARTER", "GROWTH", "ENTERPRISE"];
+  const tenantPlan = plan && validPlans.includes(plan) ? plan : "TRIAL";
+
+  const tenant = await prisma.tenant.create({
+    data: {
+      name,
+      slug,
+      plan: tenantPlan,
+    },
+  });
+
+  return NextResponse.json({ data: tenant }, { status: 201 });
+}

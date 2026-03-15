@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
-import type { Prisma, EmployeeStatus } from "@prisma/client";
+import type { Prisma, EmployeeStatus, EmploymentType } from "@prisma/client";
 
 const VALID_STATUSES: EmployeeStatus[] = [
   "ACTIVE",
@@ -70,4 +70,57 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil(total / pageSize),
     },
   });
+}
+
+// ─── POST: 직원 생성 ───────────────────────────────────
+export async function POST(request: NextRequest) {
+  const token = await getToken({ req: request });
+  if (!token || !token.tenantId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const tenantId = token.tenantId as string;
+  const body = await request.json();
+  const { name, email, phone, departmentId, positionId, employeeNumber, hireDate, type } = body;
+
+  if (!name || !email || !employeeNumber || !hireDate) {
+    return NextResponse.json(
+      { error: "name, email, employeeNumber, hireDate는 필수입니다" },
+      { status: 400 },
+    );
+  }
+
+  // 동일 tenant + employeeNumber 중복 검사
+  const existing = await prisma.employee.findUnique({
+    where: { tenantId_employeeNumber: { tenantId, employeeNumber } },
+  });
+  if (existing) {
+    return NextResponse.json(
+      { error: "이미 동일한 사번의 직원이 존재합니다" },
+      { status: 409 },
+    );
+  }
+
+  const validTypes: EmploymentType[] = ["FULL_TIME", "PART_TIME", "CONTRACT", "INTERN"];
+  const empType = type && validTypes.includes(type) ? type : "FULL_TIME";
+
+  const employee = await prisma.employee.create({
+    data: {
+      tenantId,
+      name,
+      email,
+      phone: phone || null,
+      departmentId: departmentId || null,
+      positionId: positionId || null,
+      employeeNumber,
+      hireDate: new Date(hireDate),
+      type: empType,
+    },
+    include: {
+      department: { select: { id: true, name: true } },
+      position: { select: { id: true, name: true, level: true } },
+    },
+  });
+
+  return NextResponse.json({ data: employee }, { status: 201 });
 }
