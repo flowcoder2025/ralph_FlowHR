@@ -21,6 +21,8 @@ export const prismaMock = {
   employee: createModelMock(),
   department: createModelMock(),
   position: createModelMock(),
+  shift: createModelMock(),
+  shiftAssignment: createModelMock(),
   attendanceRecord: createModelMock(),
   attendanceException: createModelMock(),
   attendanceClosing: createModelMock(),
