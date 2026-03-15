@@ -234,6 +234,16 @@ export default function SchedulePage() {
                 size="lg"
                 disabled={attendanceStatus === "working" || attendanceStatus === "done"}
                 className="min-w-[140px]"
+                onClick={async () => {
+                  const res = await fetch("/api/employee/schedule/checkin", { method: "POST" });
+                  if (res.ok) {
+                    alert("출근 처리되었습니다.");
+                    window.location.reload();
+                  } else {
+                    const data = await res.json().catch(() => ({}));
+                    alert(data.error || "출근 처리에 실패했습니다.");
+                  }
+                }}
               >
                 <div>
                   <div>출근</div>
@@ -247,6 +257,16 @@ export default function SchedulePage() {
                 size="lg"
                 disabled={attendanceStatus !== "working"}
                 className="min-w-[140px]"
+                onClick={async () => {
+                  const res = await fetch("/api/employee/schedule/checkin", { method: "PATCH" });
+                  if (res.ok) {
+                    alert("퇴근 처리되었습니다.");
+                    window.location.reload();
+                  } else {
+                    const data = await res.json().catch(() => ({}));
+                    alert(data.error || "퇴근 처리에 실패했습니다.");
+                  }
+                }}
               >
                 퇴근
               </Button>

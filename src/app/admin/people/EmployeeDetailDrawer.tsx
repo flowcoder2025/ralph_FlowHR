@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Drawer } from "@/components/layout/Drawer";
 import { Badge, Button } from "@/components/ui";
 import type { BadgeVariant } from "@/components/ui";
@@ -103,6 +104,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 // ─── Component ──────────────────────────────────────────────
 
 export function EmployeeDetailDrawer({ employeeId, onClose }: EmployeeDetailDrawerProps) {
+  const router = useRouter();
   const [employee, setEmployee] = useState<EmployeeDetail | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -226,10 +228,20 @@ export function EmployeeDetailDrawer({ employeeId, onClose }: EmployeeDetailDraw
                 연결된 액션
               </h3>
               <div className="flex flex-wrap gap-sp-2">
-                <Button size="sm" variant="secondary">근태 기록</Button>
-                <Button size="sm" variant="secondary">휴가 이력</Button>
-                <Button size="sm" variant="secondary">급여 명세</Button>
-                <Button size="sm" variant="primary">1:1 예약</Button>
+                <Button size="sm" variant="secondary" onClick={() => { onClose(); router.push("/admin/attendance"); }}>근태 기록</Button>
+                <Button size="sm" variant="secondary" onClick={() => { onClose(); router.push("/admin/leave"); }}>휴가 이력</Button>
+                <Button size="sm" variant="secondary" onClick={() => { onClose(); router.push("/admin/payroll"); }}>급여 명세</Button>
+                <Button size="sm" variant="primary" onClick={async () => {
+                  if (!employee) return;
+                  const date = prompt("1:1 일정 (예: 2026-03-20 14:00)");
+                  if (!date) return;
+                  const res = await fetch("/api/performance/one-on-one", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ employeeId: employee.id, scheduledAt: new Date(date).toISOString(), duration: 30, agenda: `${employee.name} 1:1 미팅` }),
+                  });
+                  alert(res.ok ? "1:1 예약이 생성되었습니다." : "1:1 예약에 실패했습니다.");
+                }}>1:1 예약</Button>
               </div>
             </div>
 

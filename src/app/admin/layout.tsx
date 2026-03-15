@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import type { NavSection } from "@/components/layout/Sidebar";
 
@@ -66,6 +67,15 @@ export default function AdminLayout({
         sections={ADMIN_NAV}
         activeId={activeId}
         onNavigate={handleNavigate}
+        footer={
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="flex w-full items-center gap-sp-2 rounded-md px-sp-3 py-sp-2 text-sm text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            로그아웃
+          </button>
+        }
       />
       <main className="flex-1 overflow-y-auto p-sp-8">{children}</main>
     </div>
