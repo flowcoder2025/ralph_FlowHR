@@ -8,6 +8,13 @@ import type { FullConfig } from "@playwright/test";
  * 2. prisma db seed: 테스트용 시드 데이터 주입
  */
 export default async function globalSetup(_config: FullConfig): Promise<void> {
+  // CI에서는 shard별로 globalSetup이 실행되므로 seed를 여기서 하면 충돌.
+  // CI의 seed는 ci.yml의 별도 step에서 1회만 실행.
+  if (process.env.CI) {
+    console.log("\n[globalSetup] CI 환경 — DB seed 스킵 (ci.yml에서 처리)\n");
+    return;
+  }
+
   console.log("\n[globalSetup] E2E DB 준비 시작...");
 
   const execOpts = {
