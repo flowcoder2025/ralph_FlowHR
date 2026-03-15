@@ -31,6 +31,10 @@ export const prismaMock = {
   document: createModelMock(),
   payrollRun: createModelMock(),
   payslip: createModelMock(),
+  goal: createModelMock(),
+  evalCycle: createModelMock(),
+  evaluation: createModelMock(),
+  oneOnOne: createModelMock(),
   $transaction: vi.fn().mockResolvedValue([]),
 };
 

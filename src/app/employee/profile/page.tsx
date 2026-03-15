@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -15,6 +15,19 @@ import type { BadgeVariant } from "@/components/ui";
 /* ────────────────────────────────────────────
    Types
    ──────────────────────────────────────────── */
+
+interface ProfileData {
+  name: string;
+  employeeNumber: string;
+  email: string;
+  phone: string;
+  department: string;
+  position: string;
+  hireDate: string;
+  status: string;
+  type: string;
+  avatar: string;
+}
 
 interface LeaveBalanceItem {
   type: string;
@@ -49,96 +62,15 @@ interface OneOnOneItem {
   agenda: string | null;
 }
 
-/* ────────────────────────────────────────────
-   Mock Data
-   ──────────────────────────────────────────── */
-
-const PROFILE = {
-  name: "김지은",
-  employeeNumber: "EMP-001",
-  email: "jieun.kim@flowhr.com",
-  phone: "010-1234-5678",
-  department: "Product",
-  position: "시니어 개발자",
-  hireDate: "2022-03-15",
-  status: "ACTIVE" as const,
-  type: "FULL_TIME" as const,
-  avatar: "김",
-};
-
-const LEAVE_BALANCES: LeaveBalanceItem[] = [
-  { type: "ANNUAL", label: "연차", total: 15, used: 6.5, pending: 1 },
-  { type: "HALF_DAY", label: "반차", total: 4, used: 2, pending: 0 },
-  { type: "SICK", label: "병가", total: 3, used: 0, pending: 0 },
-  { type: "FAMILY_EVENT", label: "경조사", total: 5, used: 1, pending: 0 },
-  { type: "COMPENSATORY", label: "보상휴가", total: 2, used: 0, pending: 0 },
-];
-
-const GOALS: GoalItem[] = [
-  {
-    id: "g1",
-    title: "API 응답 시간 30% 개선",
-    progress: 75,
-    status: "IN_PROGRESS",
-    dueDate: "2026-06-30",
-  },
-  {
-    id: "g2",
-    title: "코드 리뷰 가이드라인 작성",
-    progress: 100,
-    status: "COMPLETED",
-    dueDate: "2026-03-01",
-  },
-  {
-    id: "g3",
-    title: "신규 인증 모듈 설계",
-    progress: 40,
-    status: "IN_PROGRESS",
-    dueDate: "2026-05-15",
-  },
-  {
-    id: "g4",
-    title: "팀 온보딩 문서 정비",
-    progress: 0,
-    status: "NOT_STARTED",
-    dueDate: "2026-07-31",
-  },
-];
-
-const EVALUATION: EvaluationSummary = {
-  cycleName: "2025 하반기 평가",
-  selfScore: 4.2,
-  managerScore: 4.5,
-  finalScore: 4.4,
-  status: "COMPLETED",
-};
-
-const ONE_ON_ONES: OneOnOneItem[] = [
-  {
-    id: "o1",
-    managerName: "박서준",
-    scheduledAt: "2026-03-18T14:00:00",
-    duration: 30,
-    status: "SCHEDULED",
-    agenda: "Q1 목표 중간 점검, 기술 부채 논의",
-  },
-  {
-    id: "o2",
-    managerName: "박서준",
-    scheduledAt: "2026-03-04T14:00:00",
-    duration: 30,
-    status: "COMPLETED",
-    agenda: "프로젝트 진행 상황 공유",
-  },
-  {
-    id: "o3",
-    managerName: "박서준",
-    scheduledAt: "2026-02-18T14:00:00",
-    duration: 30,
-    status: "COMPLETED",
-    agenda: "성과 평가 피드백",
-  },
-];
+interface ProfileResponse {
+  data: {
+    profile: ProfileData;
+    leaveBalances: LeaveBalanceItem[];
+    goals: GoalItem[];
+    evaluation: EvaluationSummary | null;
+    oneOnOnes: OneOnOneItem[];
+  };
+}
 
 /* ────────────────────────────────────────────
    Constants
@@ -219,8 +151,54 @@ const TABS: { id: ProfileTab; label: string }[] = [
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<ProfileTab>("basic");
-  const statusInfo = STATUS_MAP[PROFILE.status];
-  const totalLeaveRemaining = LEAVE_BALANCES.reduce(
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [leaveBalances, setLeaveBalances] = useState<LeaveBalanceItem[]>([]);
+  const [goals, setGoals] = useState<GoalItem[]>([]);
+  const [evaluation, setEvaluation] = useState<EvaluationSummary | null>(null);
+  const [oneOnOnes, setOneOnOnes] = useState<OneOnOneItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const res = await fetch("/api/employee/profile");
+        if (!res.ok) {
+          throw new Error(res.status === 401 ? "인증이 필요합니다" : "프로필을 불러올 수 없습니다");
+        }
+        const json: ProfileResponse = await res.json();
+        setProfile(json.data.profile);
+        setLeaveBalances(json.data.leaveBalances);
+        setGoals(json.data.goals);
+        setEvaluation(json.data.evaluation);
+        setOneOnOnes(json.data.oneOnOnes);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProfile();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-text-tertiary">프로필을 불러오는 중...</div>
+      </div>
+    );
+  }
+
+  if (error || !profile) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-status-error">{error ?? "프로필을 불러올 수 없습니다"}</div>
+      </div>
+    );
+  }
+
+  const statusInfo = STATUS_MAP[profile.status];
+  const totalLeaveRemaining = leaveBalances.reduce(
     (sum, b) => sum + (b.total - b.used - b.pending),
     0
   );
@@ -241,22 +219,22 @@ export default function ProfilePage() {
         <CardBody>
           <div className="flex items-center gap-sp-6">
             <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-brand-soft text-2xl font-bold text-brand-text">
-              {PROFILE.avatar}
+              {profile.avatar}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-sp-3 mb-sp-1">
                 <span className="text-xl font-bold text-text-primary">
-                  {PROFILE.name}
+                  {profile.name}
                 </span>
                 {statusInfo && (
                   <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
                 )}
               </div>
               <div className="text-sm text-text-secondary mb-sp-1">
-                {PROFILE.department} · {PROFILE.position}
+                {profile.department} · {profile.position}
               </div>
               <div className="text-sm text-text-tertiary">
-                사번: {PROFILE.employeeNumber} · 입사일: {formatDate(PROFILE.hireDate)} · 근속: {getTenure(PROFILE.hireDate)}
+                사번: {profile.employeeNumber} · 입사일: {formatDate(profile.hireDate)} · 근속: {getTenure(profile.hireDate)}
               </div>
             </div>
             <div className="hidden sm:flex flex-col items-end gap-sp-2">
@@ -291,10 +269,10 @@ export default function ProfilePage() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === "basic" && <BasicInfoTab />}
-      {activeTab === "leave" && <LeaveBalanceTab />}
-      {activeTab === "performance" && <PerformanceTab />}
-      {activeTab === "oneOnOne" && <OneOnOneTab />}
+      {activeTab === "basic" && <BasicInfoTab profile={profile} />}
+      {activeTab === "leave" && <LeaveBalanceTab leaveBalances={leaveBalances} />}
+      {activeTab === "performance" && <PerformanceTab goals={goals} evaluation={evaluation} />}
+      {activeTab === "oneOnOne" && <OneOnOneTab oneOnOnes={oneOnOnes} />}
     </div>
   );
 }
@@ -303,7 +281,7 @@ export default function ProfilePage() {
    Tab: 기본정보 + 연락처
    ──────────────────────────────────────────── */
 
-function BasicInfoTab() {
+function BasicInfoTab({ profile }: { profile: ProfileData }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-sp-6">
       {/* 기본정보 */}
@@ -313,16 +291,16 @@ function BasicInfoTab() {
         </CardHeader>
         <CardBody>
           <div className="space-y-sp-3">
-            <InfoRow label="이름" value={PROFILE.name} />
-            <InfoRow label="사번" value={PROFILE.employeeNumber} />
-            <InfoRow label="부서" value={PROFILE.department} />
-            <InfoRow label="직위" value={PROFILE.position} />
-            <InfoRow label="입사일" value={formatDate(PROFILE.hireDate)} />
-            <InfoRow label="근속 기간" value={getTenure(PROFILE.hireDate)} />
-            <InfoRow label="고용 형태" value={TYPE_MAP[PROFILE.type] ?? PROFILE.type} />
+            <InfoRow label="이름" value={profile.name} />
+            <InfoRow label="사번" value={profile.employeeNumber} />
+            <InfoRow label="부서" value={profile.department} />
+            <InfoRow label="직위" value={profile.position} />
+            <InfoRow label="입사일" value={formatDate(profile.hireDate)} />
+            <InfoRow label="근속 기간" value={getTenure(profile.hireDate)} />
+            <InfoRow label="고용 형태" value={TYPE_MAP[profile.type] ?? profile.type} />
             <InfoRow
               label="재직 상태"
-              value={STATUS_MAP[PROFILE.status]?.label ?? PROFILE.status}
+              value={STATUS_MAP[profile.status]?.label ?? profile.status}
             />
           </div>
         </CardBody>
@@ -335,8 +313,8 @@ function BasicInfoTab() {
         </CardHeader>
         <CardBody>
           <div className="space-y-sp-3">
-            <InfoRow label="이메일" value={PROFILE.email} />
-            <InfoRow label="전화번호" value={PROFILE.phone} />
+            <InfoRow label="이메일" value={profile.email} />
+            <InfoRow label="전화번호" value={profile.phone} />
           </div>
           <div className="mt-sp-6 pt-sp-4 border-t border-border-subtle">
             <p className="text-xs text-text-tertiary mb-sp-3">
@@ -356,10 +334,10 @@ function BasicInfoTab() {
    Tab: 휴가 잔여
    ──────────────────────────────────────────── */
 
-function LeaveBalanceTab() {
-  const totalUsed = LEAVE_BALANCES.reduce((s, b) => s + b.used, 0);
-  const totalAll = LEAVE_BALANCES.reduce((s, b) => s + b.total, 0);
-  const totalPending = LEAVE_BALANCES.reduce((s, b) => s + b.pending, 0);
+function LeaveBalanceTab({ leaveBalances }: { leaveBalances: LeaveBalanceItem[] }) {
+  const totalUsed = leaveBalances.reduce((s, b) => s + b.used, 0);
+  const totalAll = leaveBalances.reduce((s, b) => s + b.total, 0);
+  const totalPending = leaveBalances.reduce((s, b) => s + b.pending, 0);
   const totalRemaining = totalAll - totalUsed - totalPending;
 
   return (
@@ -391,7 +369,7 @@ function LeaveBalanceTab() {
                 </tr>
               </thead>
               <tbody>
-                {LEAVE_BALANCES.map((bal) => {
+                {leaveBalances.map((bal) => {
                   const remaining = bal.total - bal.used - bal.pending;
                   const usagePercent = bal.total > 0 ? Math.round((bal.used / bal.total) * 100) : 0;
                   return (
@@ -429,83 +407,106 @@ function LeaveBalanceTab() {
    Tab: 성과
    ──────────────────────────────────────────── */
 
-function PerformanceTab() {
+function PerformanceTab({ goals, evaluation }: { goals: GoalItem[]; evaluation: EvaluationSummary | null }) {
   return (
     <div className="space-y-sp-6">
       {/* Evaluation Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>최근 평가</CardTitle>
-          <Badge variant={EVALUATION.status === "COMPLETED" ? "success" : "info"}>
-            {EVALUATION.status === "COMPLETED" ? "완료" : "진행 중"}
-          </Badge>
-        </CardHeader>
-        <CardBody>
-          <div className="mb-sp-3 text-sm text-text-secondary">
-            {EVALUATION.cycleName}
-          </div>
-          <div className="grid grid-cols-3 gap-sp-4">
-            <ScoreCard
-              label="자기 평가"
-              score={EVALUATION.selfScore}
-            />
-            <ScoreCard
-              label="매니저 평가"
-              score={EVALUATION.managerScore}
-            />
-            <ScoreCard
-              label="최종 점수"
-              score={EVALUATION.finalScore}
-              highlight
-            />
-          </div>
-        </CardBody>
-      </Card>
+      {evaluation && (
+        <Card>
+          <CardHeader>
+            <CardTitle>최근 평가</CardTitle>
+            <Badge variant={evaluation.status === "COMPLETED" ? "success" : "info"}>
+              {evaluation.status === "COMPLETED" ? "완료" : "진행 중"}
+            </Badge>
+          </CardHeader>
+          <CardBody>
+            <div className="mb-sp-3 text-sm text-text-secondary">
+              {evaluation.cycleName}
+            </div>
+            <div className="grid grid-cols-3 gap-sp-4">
+              <ScoreCard
+                label="자기 평가"
+                score={evaluation.selfScore}
+              />
+              <ScoreCard
+                label="매니저 평가"
+                score={evaluation.managerScore}
+              />
+              <ScoreCard
+                label="최종 점수"
+                score={evaluation.finalScore}
+                highlight
+              />
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
+      {!evaluation && (
+        <Card>
+          <CardHeader>
+            <CardTitle>최근 평가</CardTitle>
+          </CardHeader>
+          <CardBody>
+            <p className="text-sm text-text-tertiary py-sp-4 text-center">
+              평가 데이터가 없습니다
+            </p>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Goals */}
       <Card>
         <CardHeader>
           <CardTitle>목표 현황</CardTitle>
           <Badge variant="neutral">
-            {GOALS.filter((g) => g.status === "COMPLETED").length}/{GOALS.length} 완료
+            {goals.filter((g) => g.status === "COMPLETED").length}/{goals.length} 완료
           </Badge>
         </CardHeader>
         <CardBody>
-          <div className="space-y-sp-4">
-            {GOALS.map((goal) => {
-              const statusInfo = GOAL_STATUS_MAP[goal.status];
-              return (
-                <div
-                  key={goal.id}
-                  className="flex items-start gap-sp-4 p-sp-4 rounded-lg border border-border-subtle"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-sp-2 mb-sp-2">
-                      <span className="text-sm font-medium text-text-primary">
-                        {goal.title}
-                      </span>
-                      {statusInfo && (
-                        <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+          {goals.length === 0 ? (
+            <p className="text-sm text-text-tertiary py-sp-4 text-center">
+              등록된 목표가 없습니다
+            </p>
+          ) : (
+            <div className="space-y-sp-4">
+              {goals.map((goal) => {
+                const statusInfo = GOAL_STATUS_MAP[goal.status];
+                return (
+                  <div
+                    key={goal.id}
+                    className="flex items-start gap-sp-4 p-sp-4 rounded-lg border border-border-subtle"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-sp-2 mb-sp-2">
+                        <span className="text-sm font-medium text-text-primary">
+                          {goal.title}
+                        </span>
+                        {statusInfo && (
+                          <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-sp-3">
+                        <ProgressBar
+                          value={goal.progress}
+                          variant={goal.status === "COMPLETED" ? "success" : "brand"}
+                          className="flex-1"
+                        />
+                        <span className="text-sm font-semibold text-text-primary w-12 text-right">
+                          {goal.progress}%
+                        </span>
+                      </div>
+                      {goal.dueDate && (
+                        <div className="text-xs text-text-tertiary mt-sp-1">
+                          마감: {formatDate(goal.dueDate)}
+                        </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-sp-3">
-                      <ProgressBar
-                        value={goal.progress}
-                        variant={goal.status === "COMPLETED" ? "success" : "brand"}
-                        className="flex-1"
-                      />
-                      <span className="text-sm font-semibold text-text-primary w-12 text-right">
-                        {goal.progress}%
-                      </span>
-                    </div>
-                    <div className="text-xs text-text-tertiary mt-sp-1">
-                      마감: {formatDate(goal.dueDate)}
-                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </CardBody>
       </Card>
     </div>
@@ -516,9 +517,9 @@ function PerformanceTab() {
    Tab: 1:1
    ──────────────────────────────────────────── */
 
-function OneOnOneTab() {
-  const upcoming = ONE_ON_ONES.filter((o) => o.status === "SCHEDULED");
-  const past = ONE_ON_ONES.filter((o) => o.status !== "SCHEDULED");
+function OneOnOneTab({ oneOnOnes }: { oneOnOnes: OneOnOneItem[] }) {
+  const upcoming = oneOnOnes.filter((o) => o.status === "SCHEDULED");
+  const past = oneOnOnes.filter((o) => o.status !== "SCHEDULED");
 
   return (
     <div className="space-y-sp-6">
