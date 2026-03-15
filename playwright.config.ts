@@ -56,6 +56,14 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
       testMatch: ["**/smoke.spec.ts", "**/core-flow.spec.ts"],
     },
+
+    /* ── 5. Cross-role (역할 전환 테스트, 자체 인증) ── */
+    {
+      name: "cross-role",
+      dependencies: ["setup"],
+      use: { ...devices["Desktop Chrome"] },
+      testMatch: ["**/cross-role.*.spec.ts", "**/auth.spec.ts"],
+    },
   ],
   webServer: process.env.CI
     ? undefined
