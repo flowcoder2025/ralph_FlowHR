@@ -36,8 +36,14 @@ import {
   PlatformAuditAction,
   PlatformAuditResult,
 } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+// Seed는 직접 연결(Session pooler)을 사용해야 prepared statement 충돌 방지
+const prisma = new PrismaClient({
+  datasourceUrl: process.env.DIRECT_URL || process.env.DATABASE_URL,
+});
+
+const DEMO_PASSWORD_HASH = bcrypt.hashSync("demo1234!", 10);
 
 async function upsertSystemRole(
   name: string,
@@ -170,49 +176,49 @@ async function main(): Promise<void> {
       name: "플랫폼 운영자",
       roleId: platformOperatorRoleId,
       tenantId: undefined,
-      password: "demo1234!",
+      password: DEMO_PASSWORD_HASH,
     },
     {
       email: "admin@acme.example.com",
       name: "김관리",
       roleId: acmeRoles.SUPER_ADMIN,
       tenantId: acme.id,
-      password: "demo1234!",
+      password: DEMO_PASSWORD_HASH,
     },
     {
       email: "hr@acme.example.com",
       name: "이인사",
       roleId: acmeRoles.HR_ADMIN,
       tenantId: acme.id,
-      password: "demo1234!",
+      password: DEMO_PASSWORD_HASH,
     },
     {
       email: "manager@acme.example.com",
       name: "박팀장",
       roleId: acmeRoles.MANAGER,
       tenantId: acme.id,
-      password: "demo1234!",
+      password: DEMO_PASSWORD_HASH,
     },
     {
       email: "employee@acme.example.com",
       name: "최직원",
       roleId: acmeRoles.EMPLOYEE,
       tenantId: acme.id,
-      password: "demo1234!",
+      password: DEMO_PASSWORD_HASH,
     },
     {
       email: "admin@techstart.example.com",
       name: "정대표",
       roleId: techRoles.SUPER_ADMIN,
       tenantId: techstart.id,
-      password: "demo1234!",
+      password: DEMO_PASSWORD_HASH,
     },
     {
       email: "dev@techstart.example.com",
       name: "한개발",
       roleId: techRoles.EMPLOYEE,
       tenantId: techstart.id,
-      password: "demo1234!",
+      password: DEMO_PASSWORD_HASH,
     },
   ];
 
