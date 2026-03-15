@@ -6,12 +6,18 @@ import { prisma } from "@/lib/prisma";
 // ─── POST: 근태 정정 신청 ──────────────────────────────
 export async function POST(request: NextRequest) {
   const token = await getToken({ req: request });
-  if (!token || !token.tenantId || !token.employeeId) {
+  if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const tenantId = token.tenantId as string;
-  const employeeId = token.employeeId as string;
+  const employee = await prisma.employee.findFirst({
+    where: { userId: token.id, tenantId },
+  });
+  if (!employee) {
+    return NextResponse.json({ error: "직원 정보를 찾을 수 없습니다" }, { status: 404 });
+  }
+  const employeeId = employee.id;
 
   const body = await request.json();
   const { date, reason } = body;
