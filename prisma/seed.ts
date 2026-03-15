@@ -396,15 +396,15 @@ async function main(): Promise<void> {
     data: { managerId: employeeIds["EMP-20200101"] },
   });
   await prisma.department.update({
-    where: { tenantId_code: { tenantId: acme.id, code: "HRM" } },
+    where: { tenantId_code: { tenantId: acme.id, code: "HR" } },
     data: { managerId: employeeIds["EMP-20210301"] },
   });
   await prisma.department.update({
-    where: { tenantId_code: { tenantId: acme.id, code: "BE" } },
+    where: { tenantId_code: { tenantId: acme.id, code: "BACKEND" } },
     data: { managerId: employeeIds["EMP-20210601"] },
   });
   await prisma.department.update({
-    where: { tenantId_code: { tenantId: acme.id, code: "FE" } },
+    where: { tenantId_code: { tenantId: acme.id, code: "FRONTEND" } },
     data: { managerId: employeeIds["EMP-20230201"] },
   });
   await prisma.department.update({
