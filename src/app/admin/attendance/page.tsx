@@ -758,7 +758,7 @@ function RecordsTab() {
       align: "center",
       width: "80px",
       render: () => (
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" onClick={() => alert("출결 기록 수정 기능 준비 중입니다.")}>
           수정
         </Button>
       ),

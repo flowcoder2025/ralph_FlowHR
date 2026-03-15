@@ -15,6 +15,7 @@ import {
 } from "@/components/ui";
 import type { Column } from "@/components/ui";
 import { Modal } from "@/components/layout/Modal";
+import { exportToCSV } from "@/lib/export";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -983,8 +984,8 @@ function NotificationsTab() {
       header: "액션",
       align: "center",
       width: "80px",
-      render: () => (
-        <Button variant="ghost" size="sm">
+      render: (row) => (
+        <Button variant="ghost" size="sm" onClick={() => alert(`알림 규칙 편집 기능 준비 중입니다. (${row.event})`)}>
           편집
         </Button>
       ),
@@ -995,7 +996,7 @@ function NotificationsTab() {
     <Card>
       <CardHeader>
         <h2 className="text-md font-semibold text-text-primary">알림 규칙</h2>
-        <Button size="sm">규칙 추가</Button>
+        <Button size="sm" onClick={() => alert("알림 규칙 추가 기능 준비 중입니다.")}>규칙 추가</Button>
       </CardHeader>
       <CardBody>
         <DataTable<NotificationRule>
@@ -1125,6 +1126,7 @@ function IntegrationsTab() {
                     variant={svc.connected ? "secondary" : "primary"}
                     size="sm"
                     className="w-full"
+                    onClick={() => alert(`${svc.name} 연동 설정 기능 준비 중입니다.`)}
                   >
                     {svc.connected ? "설정" : "연결하기"}
                   </Button>
@@ -1246,21 +1248,15 @@ function AuditLogTab() {
   const displayed = filtered.slice(0, AUDIT_PAGE_SIZE);
 
   function handleExport() {
-    const header = "시간,사용자,역할,액션,대상,IP";
-    const rows = AUDIT_LOG_DATA.map(
-      (e) =>
-        `"${e.timestamp}","${e.user}","${e.role}","${e.action}","${e.target}","${e.ip}"`,
-    );
-    const csv = [header, ...rows].join("\n");
-    const blob = new Blob(["\uFEFF" + csv], {
-      type: "text/csv;charset=utf-8;",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `audit-log-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const columns = [
+      { key: "timestamp", label: "시간" },
+      { key: "user", label: "사용자" },
+      { key: "role", label: "역할" },
+      { key: "action", label: "액션" },
+      { key: "target", label: "대상" },
+      { key: "ip", label: "IP" },
+    ];
+    exportToCSV(columns, AUDIT_LOG_DATA as unknown as Record<string, unknown>[], `audit-log-${new Date().toISOString().slice(0, 10)}.csv`);
   }
 
   function getPageNumbers(): (number | "ellipsis")[] {

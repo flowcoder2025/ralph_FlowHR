@@ -20,6 +20,7 @@ import {
 } from "@/components/ui";
 import type { BadgeVariant, QueuePriority, Column } from "@/components/ui";
 import { Modal } from "@/components/layout/Modal";
+import { exportToCSV } from "@/lib/export";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -910,7 +911,7 @@ function PayslipsTab() {
               재발송
             </Button>
           )}
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" onClick={() => alert("PDF 다운로드 기능 준비 중입니다.")}>
             다운로드
           </Button>
         </div>
@@ -936,10 +937,21 @@ function PayslipsTab() {
             value={selectedMonth}
             onChange={handleMonthChange}
           />
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={() => alert("급여 명세서가 발송되었습니다.")}>
             일괄 발송
           </Button>
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={() => {
+            const columns = [
+              { key: "employeeName", label: "이름" },
+              { key: "department", label: "부서" },
+              { key: "baseSalary", label: "기본급" },
+              { key: "allowances", label: "수당" },
+              { key: "deductions", label: "공제" },
+              { key: "netAmount", label: "실수령액" },
+              { key: "status", label: "상태" },
+            ];
+            exportToCSV(columns, payslips as unknown as Record<string, unknown>[], `payslips-${selectedMonth}.csv`);
+          }}>
             내보내기
           </Button>
         </div>

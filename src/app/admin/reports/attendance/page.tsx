@@ -13,6 +13,7 @@ import {
   Button,
 } from "@/components/ui";
 import type { BarChartDatum } from "@/components/ui";
+import { exportToCSV } from "@/lib/export";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -128,7 +129,18 @@ function AttendanceInsightsContent() {
               주간 출근 추이, 예외 현황 분석
             </p>
           </div>
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={() => {
+            if (!data) return;
+            const columns = [
+              { key: "week", label: "주차" },
+              { key: "presentCount", label: "출근" },
+              { key: "absentCount", label: "결근" },
+              { key: "lateCount", label: "지각" },
+              { key: "totalCount", label: "전체" },
+              { key: "presentRate", label: "출근율(%)" },
+            ];
+            exportToCSV(columns, data.weeklyTrend as unknown as Record<string, unknown>[], `attendance-report-${new Date().toISOString().slice(0, 10)}.csv`);
+          }}>
             리포트 내보내기
           </Button>
         </div>

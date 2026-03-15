@@ -746,7 +746,13 @@ function EvalProgressTab() {
       header: "액션",
       align: "center",
       render: (row) => (
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" onClick={() => {
+          if (row.status === "NOT_STARTED") {
+            alert("리마인더가 발송되었습니다.");
+          } else {
+            alert("상세 정보를 준비 중입니다.");
+          }
+        }}>
           {row.status === "NOT_STARTED" ? "리마인더" : "상세"}
         </Button>
       ),
@@ -948,7 +954,7 @@ function OneOnOneHub() {
               예정된 1:1 미팅 및 의제 관리
             </p>
           </div>
-          <Button variant="primary" size="sm">
+          <Button variant="primary" size="sm" onClick={() => alert("1:1 예약 기능 준비 중입니다.")}>
             + 1:1 예약
           </Button>
         </CardHeader>

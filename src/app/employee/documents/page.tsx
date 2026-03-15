@@ -13,6 +13,7 @@ import {
   QueueItem,
 } from "@/components/ui";
 import type { Column, QueuePriority } from "@/components/ui";
+import { printPage } from "@/lib/export";
 
 /* ────────────────────────────────────────────
    Types
@@ -198,7 +199,7 @@ const ARCHIVE_COLUMNS: Column<ArchivedDoc>[] = [
     header: "\uB2E4\uC6B4\uB85C\uB4DC",
     align: "right" as const,
     render: () => (
-      <Button variant="ghost" size="sm">
+      <Button variant="ghost" size="sm" onClick={() => alert("PDF 다운로드 기능 준비 중입니다.")}>
         {"\uD83D\uDCE5 PDF"}
       </Button>
     ),
@@ -277,10 +278,10 @@ export default function EmployeeDocumentsPage() {
               </div>
             </div>
             <div className="flex gap-sp-2">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" onClick={() => alert("PDF 다운로드 기능 준비 중입니다.")}>
                 {"\uB2E4\uC6B4\uB85C\uB4DC"}
               </Button>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" onClick={() => printPage()}>
                 {"\uC778\uC1C4"}
               </Button>
             </div>
@@ -346,7 +347,19 @@ export default function EmployeeDocumentsPage() {
               >
                 {"\uC11C\uBA85 \uC644\uB8CC"}
               </Button>
-              <Button variant="danger" size="lg">
+              <Button variant="danger" size="lg" onClick={() => {
+                if (!selectedDoc) return;
+                fetch(`/api/employee/documents/${selectedDoc.id}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ status: "REJECTED" }),
+                }).then(() => {
+                  alert("문서가 거부되었습니다.");
+                  handleBack();
+                }).catch(() => {
+                  alert("문서 거부 처리에 실패했습니다.");
+                });
+              }}>
                 {"\uAC70\uBD80"}
               </Button>
               <Button variant="ghost" onClick={handleBack}>
