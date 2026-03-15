@@ -108,31 +108,23 @@ jobs:
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           NEXTAUTH_URL: http://localhost:3000
 
-      - name: Start server
-        run: npm start &
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: http://localhost:3000
-          PORT: 3000
-
-      - name: Wait for server
+      - name: Run E2E tests (shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
         run: |
+          npm start &
+          SERVER_PID=$!
           for i in $(seq 1 30); do
-            curl -s http://localhost:3000 > /dev/null 2>&1 && exit 0
+            curl -s http://localhost:3000 > /dev/null 2>&1 && break
             sleep 1
           done
-          echo "Server failed to start" && exit 1
-
-      - name: Run E2E tests (shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
-        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+          npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+          kill $SERVER_PID 2>/dev/null || true
         env:
           CI: true
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           NEXTAUTH_URL: http://localhost:3000
+          PORT: 3000
 
       - name: Upload playwright-report
         if: ${{ !cancelled() }}
