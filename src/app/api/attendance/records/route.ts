@@ -142,3 +142,89 @@ export async function GET(request: NextRequest) {
     },
   });
 }
+
+// ─── PATCH: 출퇴근 기록 수정 ────────────────────────────
+export async function PATCH(request: NextRequest) {
+  const token = await getToken({ req: request });
+  if (!token || !token.tenantId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const tenantId = token.tenantId;
+
+  const body = await request.json();
+  const { id, checkIn, checkOut, status, note, overtime } = body;
+
+  if (!id) {
+    return NextResponse.json(
+      { error: "id는 필수입니다" },
+      { status: 400 },
+    );
+  }
+
+  const record = await prisma.attendanceRecord.findFirst({
+    where: { id, tenantId },
+  });
+
+  if (!record) {
+    return NextResponse.json(
+      { error: "해당 출퇴근 기록을 찾을 수 없습니다" },
+      { status: 404 },
+    );
+  }
+
+  const data: Record<string, unknown> = {};
+
+  if (checkIn !== undefined) {
+    data.checkIn = checkIn ? new Date(checkIn) : null;
+  }
+
+  if (checkOut !== undefined) {
+    data.checkOut = checkOut ? new Date(checkOut) : null;
+  }
+
+  if (status !== undefined && VALID_STATUSES.includes(status as AttendanceStatus)) {
+    data.status = status;
+  }
+
+  if (note !== undefined) {
+    data.note = note;
+  }
+
+  if (overtime !== undefined) {
+    data.overtime = Number(overtime);
+  }
+
+  // 근무 시간 재계산
+  const finalCheckIn = data.checkIn !== undefined ? data.checkIn as Date | null : record.checkIn;
+  const finalCheckOut = data.checkOut !== undefined ? data.checkOut as Date | null : record.checkOut;
+
+  if (finalCheckIn && finalCheckOut) {
+    data.workMinutes = Math.floor(
+      ((finalCheckOut as Date).getTime() - (finalCheckIn as Date).getTime()) / (1000 * 60),
+    );
+  }
+
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json(
+      { error: "수정할 필드가 없습니다" },
+      { status: 400 },
+    );
+  }
+
+  const updated = await prisma.attendanceRecord.update({
+    where: { id },
+    data,
+    include: {
+      employee: {
+        select: {
+          id: true,
+          name: true,
+          department: { select: { name: true } },
+        },
+      },
+    },
+  });
+
+  return NextResponse.json({ data: updated });
+}

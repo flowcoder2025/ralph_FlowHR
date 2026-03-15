@@ -153,3 +153,92 @@ export async function GET(request: NextRequest) {
     pageSize,
   });
 }
+
+// ─── PATCH: 신청 취소 ──────────────────────────────────
+export async function PATCH(request: NextRequest) {
+  const token = await getToken({ req: request });
+  if (!token || !token.tenantId || !token.employeeId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const tenantId = token.tenantId as string;
+  const employeeId = token.employeeId as string;
+
+  const body = await request.json();
+  const { id, type } = body as { id: string; type: "leave" | "correction" | "approval" };
+
+  if (!id || !type) {
+    return NextResponse.json(
+      { error: "id와 type은 필수입니다" },
+      { status: 400 },
+    );
+  }
+
+  if (type === "leave") {
+    const leaveRequest = await prisma.leaveRequest.findFirst({
+      where: { id, tenantId, employeeId, status: "PENDING" },
+    });
+
+    if (!leaveRequest) {
+      return NextResponse.json(
+        { error: "취소할 수 있는 대기 중인 휴가 신청을 찾을 수 없습니다" },
+        { status: 404 },
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.leaveRequest.update({
+        where: { id },
+        data: { status: "CANCELLED" },
+      }),
+      prisma.leaveBalance.updateMany({
+        where: {
+          tenantId,
+          employeeId,
+          policyId: leaveRequest.policyId,
+          year: new Date().getFullYear(),
+        },
+        data: { pendingDays: { decrement: leaveRequest.days } },
+      }),
+    ]);
+  } else if (type === "correction") {
+    const exception = await prisma.attendanceException.findFirst({
+      where: { id, tenantId, employeeId, status: "PENDING" },
+    });
+
+    if (!exception) {
+      return NextResponse.json(
+        { error: "취소할 수 있는 대기 중인 정정 신청을 찾을 수 없습니다" },
+        { status: 404 },
+      );
+    }
+
+    await prisma.attendanceException.update({
+      where: { id },
+      data: { status: "REJECTED" },
+    });
+  } else if (type === "approval") {
+    const approvalRequest = await prisma.approvalRequest.findFirst({
+      where: { id, tenantId, requesterId: employeeId, status: { in: ["PENDING", "IN_PROGRESS"] } },
+    });
+
+    if (!approvalRequest) {
+      return NextResponse.json(
+        { error: "취소할 수 있는 대기 중인 결재 요청을 찾을 수 없습니다" },
+        { status: 404 },
+      );
+    }
+
+    await prisma.approvalRequest.update({
+      where: { id },
+      data: { status: "CANCELLED" },
+    });
+  } else {
+    return NextResponse.json(
+      { error: "유효하지 않은 type입니다" },
+      { status: 400 },
+    );
+  }
+
+  return NextResponse.json({ success: true });
+}

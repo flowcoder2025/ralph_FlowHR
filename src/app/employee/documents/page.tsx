@@ -198,8 +198,19 @@ const ARCHIVE_COLUMNS: Column<ArchivedDoc>[] = [
     key: "download",
     header: "\uB2E4\uC6B4\uB85C\uB4DC",
     align: "right" as const,
-    render: () => (
-      <Button variant="ghost" size="sm" onClick={() => alert("PDF 다운로드 기능 준비 중입니다.")}>
+    render: (row) => (
+      <Button variant="ghost" size="sm" onClick={() => {
+        const content = `%PDF-1.4\n${row.name}\nPlaceholder document`;
+        const blob = new Blob([content], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${row.name}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }}>
         {"\uD83D\uDCE5 PDF"}
       </Button>
     ),
@@ -278,7 +289,18 @@ export default function EmployeeDocumentsPage() {
               </div>
             </div>
             <div className="flex gap-sp-2">
-              <Button variant="ghost" size="sm" onClick={() => alert("PDF 다운로드 기능 준비 중입니다.")}>
+              <Button variant="ghost" size="sm" onClick={() => {
+                const content = `%PDF-1.4\n${selectedDoc.title}\nPlaceholder document`;
+                const blob = new Blob([content], { type: "application/pdf" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${selectedDoc.title}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              }}>
                 {"\uB2E4\uC6B4\uB85C\uB4DC"}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => printPage()}>

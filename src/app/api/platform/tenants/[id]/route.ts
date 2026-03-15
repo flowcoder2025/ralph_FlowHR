@@ -102,3 +102,48 @@ export async function GET(
     updatedAt: tenant.updatedAt.toISOString(),
   });
 }
+
+// ─── PATCH: 테넌트 수정 ─────────────────────────────────
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const token = await getToken({ req: request });
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+
+  const existing = await prisma.tenant.findUnique({
+    where: { id },
+  });
+
+  if (!existing) {
+    return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+  }
+
+  const body = await request.json();
+  const allowedFields = ["name", "plan", "status", "settings"];
+  const data: Record<string, unknown> = {};
+
+  for (const field of allowedFields) {
+    if (body[field] !== undefined) {
+      data[field] = body[field];
+    }
+  }
+
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json(
+      { error: "수정할 필드가 없습니다" },
+      { status: 400 },
+    );
+  }
+
+  const updated = await prisma.tenant.update({
+    where: { id },
+    data,
+  });
+
+  return NextResponse.json({ data: updated });
+}
