@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardHeader,
@@ -14,15 +14,6 @@ import {
    Types
    ──────────────────────────────────────────── */
 
-type RequestTypeId =
-  | "annual"
-  | "half_day"
-  | "sick"
-  | "checkin_fix"
-  | "checkout_fix"
-  | "expense"
-  | "general";
-
 type LeaveType = "annual" | "half_day_am" | "half_day_pm" | "sick" | "family";
 
 type FormStep = 1 | 2 | 3;
@@ -32,7 +23,7 @@ type CorrectionType = "checkin" | "checkout";
 type HistoryFilter = "all" | "pending" | "approved" | "rejected";
 
 interface RequestTypeCard {
-  id: RequestTypeId;
+  id: string;
   icon: string;
   label: string;
   description: string;
@@ -68,18 +59,8 @@ interface RequestHistoryItem {
 }
 
 /* ────────────────────────────────────────────
-   Constants
+   Constants (UI-only)
    ──────────────────────────────────────────── */
-
-const REQUEST_TYPES: RequestTypeCard[] = [
-  { id: "annual", icon: "🌴", label: "연차 신청", description: "연차 휴가를 신청합니다", isLeave: true, isCorrection: false },
-  { id: "half_day", icon: "🌤", label: "반차 신청", description: "오전 또는 오후 반차 신청", isLeave: true, isCorrection: false },
-  { id: "sick", icon: "🏥", label: "병가 신청", description: "진단서 첨부 병가 신청", isLeave: true, isCorrection: false },
-  { id: "checkin_fix", icon: "🕐", label: "출근 정정", description: "출근 시간 정정 요청", isLeave: false, isCorrection: true },
-  { id: "checkout_fix", icon: "🕕", label: "퇴근 정정", description: "퇴근 시간 정정 요청", isLeave: false, isCorrection: true },
-  { id: "expense", icon: "💳", label: "경비 청구", description: "업무 관련 경비 청구", isLeave: false, isCorrection: false },
-  { id: "general", icon: "📝", label: "일반 품의", description: "기타 결재 품의 신청", isLeave: false, isCorrection: false },
-];
 
 const LEAVE_TYPE_OPTIONS: { value: LeaveType; label: string }[] = [
   { value: "annual", label: "연차" },
@@ -138,21 +119,6 @@ const STATUS_BADGE_VARIANT: Record<RequestHistoryItem["status"], "warning" | "su
   rejected: "danger",
 };
 
-const REQUEST_HISTORY: RequestHistoryItem[] = [
-  { id: "1", type: "연차", typeBadgeVariant: "info", content: "4/7~4/8 연차 (2일)", requestDate: "2026-03-12", approver: "박서준", approverInitial: "박", status: "pending" },
-  { id: "2", type: "출근 정정", typeBadgeVariant: "neutral", content: "3/7 출근 시간 09:12→08:55", requestDate: "2026-03-10", approver: "박서준", approverInitial: "박", status: "rejected" },
-  { id: "3", type: "반차", typeBadgeVariant: "info", content: "3/6 오후 반차", requestDate: "2026-03-04", approver: "박서준", approverInitial: "박", status: "approved" },
-  { id: "4", type: "연차", typeBadgeVariant: "info", content: "3/4 연차 (1일)", requestDate: "2026-02-28", approver: "박서준", approverInitial: "박", status: "approved" },
-  { id: "5", type: "경비", typeBadgeVariant: "neutral", content: "2월 교통비 청구 ₩45,000", requestDate: "2026-02-25", approver: "박서준", approverInitial: "박", status: "approved" },
-  { id: "6", type: "연차", typeBadgeVariant: "info", content: "2/14 연차 (1일)", requestDate: "2026-02-10", approver: "박서준", approverInitial: "박", status: "approved" },
-  { id: "7", type: "퇴근 정정", typeBadgeVariant: "neutral", content: "2/5 퇴근 시간 17:45→18:30", requestDate: "2026-02-06", approver: "박서준", approverInitial: "박", status: "approved" },
-  { id: "8", type: "연차", typeBadgeVariant: "info", content: "1/27 연차 (1일)", requestDate: "2026-01-22", approver: "박서준", approverInitial: "박", status: "approved" },
-  { id: "9", type: "반차", typeBadgeVariant: "info", content: "1/15 오전 반차", requestDate: "2026-01-13", approver: "박서준", approverInitial: "박", status: "approved" },
-  { id: "10", type: "출근 정정", typeBadgeVariant: "neutral", content: "1/10 출근 시간 09:05→08:50", requestDate: "2026-01-10", approver: "박서준", approverInitial: "박", status: "approved" },
-  { id: "11", type: "연차", typeBadgeVariant: "info", content: "1/6~1/7 연차 (2일)", requestDate: "2026-01-03", approver: "박서준", approverInitial: "박", status: "approved" },
-  { id: "12", type: "경비", typeBadgeVariant: "neutral", content: "12월 교통비 청구 ₩38,000", requestDate: "2025-12-28", approver: "박서준", approverInitial: "박", status: "approved" },
-];
-
 const PAGE_SIZE = 6;
 
 /* ────────────────────────────────────────────
@@ -167,11 +133,12 @@ function calcDays(start: string, end: string): number {
   return Math.max(0, diff);
 }
 
-function getDefaultLeaveType(requestTypeId: RequestTypeId): LeaveType {
+function getDefaultLeaveType(requestTypeId: string): LeaveType {
   switch (requestTypeId) {
     case "annual": return "annual";
     case "half_day": return "half_day_am";
     case "sick": return "sick";
+    case "family_event": return "family";
     default: return "annual";
   }
 }
@@ -181,6 +148,13 @@ function getDefaultLeaveType(requestTypeId: RequestTypeId): LeaveType {
    ──────────────────────────────────────────── */
 
 export default function RequestsPage() {
+  /* Data from API */
+  const [requestTypes, setRequestTypes] = useState<RequestTypeCard[]>([]);
+  const [requestHistory, setRequestHistory] = useState<RequestHistoryItem[]>([]);
+  const [remainingLeave, setRemainingLeave] = useState<number>(0);
+  const [totalFiltered, setTotalFiltered] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
   /* Leave form state */
   const [showLeaveForm, setShowLeaveForm] = useState(false);
   const [formStep, setFormStep] = useState<FormStep>(1);
@@ -197,16 +171,38 @@ export default function RequestsPage() {
   const [historyPage, setHistoryPage] = useState(1);
 
   const usedDays = calcDays(formData.startDate, formData.endDate);
-  const remainingLeave = 8.5;
 
-  /* Filtered history */
-  const filteredHistory = REQUEST_HISTORY.filter((item) => {
-    if (historyFilter === "all") return true;
-    return item.status === historyFilter;
-  });
-  const totalFiltered = filteredHistory.length;
-  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
-  const pagedHistory = filteredHistory.slice((historyPage - 1) * PAGE_SIZE, historyPage * PAGE_SIZE);
+  /* Fetch request types + remaining leave */
+  useEffect(() => {
+    fetch("/api/employee/requests/types")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.types) setRequestTypes(data.types);
+        if (typeof data.remainingLeave === "number") setRemainingLeave(data.remainingLeave);
+      })
+      .catch(() => {});
+  }, []);
+
+  /* Fetch request history */
+  const fetchHistory = useCallback(() => {
+    const params = new URLSearchParams({
+      status: historyFilter,
+      page: String(historyPage),
+      pageSize: String(PAGE_SIZE),
+    });
+    fetch(`/api/employee/requests/history?${params}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.items) setRequestHistory(data.items);
+        if (typeof data.total === "number") setTotalFiltered(data.total);
+        if (typeof data.totalPages === "number") setTotalPages(data.totalPages);
+      })
+      .catch(() => {});
+  }, [historyFilter, historyPage]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
 
   function handleCardClick(card: RequestTypeCard) {
     if (card.isLeave) {
@@ -299,7 +295,7 @@ export default function RequestsPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-sp-4 mb-sp-8">
-        {REQUEST_TYPES.map((type) => {
+        {requestTypes.map((type) => {
           const enabled = type.isLeave || type.isCorrection;
           return (
             <button
@@ -766,7 +762,7 @@ export default function RequestsPage() {
                 </tr>
               </thead>
               <tbody>
-                {pagedHistory.map((item) => (
+                {requestHistory.map((item) => (
                   <tr key={item.id} className="border-b border-border-subtle hover:bg-surface-secondary/50 transition-colors">
                     <td className="px-sp-4 py-sp-3">
                       <Badge variant={item.typeBadgeVariant}>{item.type}</Badge>
@@ -793,7 +789,7 @@ export default function RequestsPage() {
                     </td>
                   </tr>
                 ))}
-                {pagedHistory.length === 0 && (
+                {requestHistory.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-sp-4 py-sp-8 text-center text-text-tertiary">
                       해당 조건의 요청 이력이 없습니다.
