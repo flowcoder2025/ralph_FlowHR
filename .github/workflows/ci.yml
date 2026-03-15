@@ -58,7 +58,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: DB push + seed
-        run: npx prisma db push --skip-generate --accept-data-loss && npx prisma db seed
+        run: npx prisma db push --force-reset --skip-generate --accept-data-loss && npx prisma db seed
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
