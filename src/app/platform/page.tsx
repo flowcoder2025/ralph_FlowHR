@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   KPICard,
   KPIGrid,
@@ -136,6 +137,7 @@ export default function PlatformHomePage() {
 }
 
 function PlatformDashboardContent() {
+  const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -195,8 +197,24 @@ function PlatformDashboardContent() {
           </p>
         </div>
         <div className="flex items-center gap-sp-3">
-          <Button variant="secondary">내보내기</Button>
-          <Button variant="primary">테넌트 추가</Button>
+          <Button variant="secondary" onClick={() => {
+            import("@/lib/export").then(({ exportToCSV }) => {
+              exportToCSV(
+                [
+                  { key: "metric", label: "지표" },
+                  { key: "value", label: "값" },
+                ],
+                [
+                  { metric: "활성 테넌트", value: data.kpi.activeTenants.value },
+                  { metric: "유예 고객", value: data.kpi.gracePeriod.value },
+                  { metric: "결제 실패", value: data.kpi.paymentFailures.value },
+                  { metric: "미해결 지원", value: data.kpi.unresolvedSupport.value },
+                ],
+                "platform-dashboard",
+              );
+            });
+          }}>내보내기</Button>
+          <Button variant="primary" onClick={() => alert("테넌트 추가 기능 준비 중입니다.")}>테넌트 추가</Button>
         </div>
       </div>
 
@@ -248,7 +266,7 @@ function PlatformDashboardContent() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>운영 큐</CardTitle>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => router.push("/platform/tenants")}>
               전체 보기 →
             </Button>
           </CardHeader>
@@ -271,6 +289,13 @@ function PlatformDashboardContent() {
                               : "secondary"
                         }
                         size="sm"
+                        onClick={() => {
+                          if (item.actionLabel === "검토") {
+                            alert("검토 기능 준비 중입니다.");
+                          } else if (item.actionLabel === "응답") {
+                            alert("응답 기능 준비 중입니다.");
+                          }
+                        }}
                       >
                         {item.actionLabel}
                       </Button>
@@ -387,7 +412,7 @@ function PlatformDashboardContent() {
             ))}
           </CardBody>
           <CardFooter>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => alert("감사 로그 전체 보기 기능 준비 중입니다.")}>
               감사 로그 전체 보기 →
             </Button>
           </CardFooter>

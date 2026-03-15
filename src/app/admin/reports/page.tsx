@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Card,
@@ -51,6 +52,7 @@ export default function ReportsPage() {
 }
 
 function ReportsContent() {
+  const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -108,7 +110,7 @@ function ReportsContent() {
                 예약 보고서
               </Button>
             </Link>
-            <Button variant="primary" size="sm">
+            <Button variant="primary" size="sm" onClick={() => alert("커스텀 리포트 기능 준비 중입니다.")}>
               커스텀 리포트
             </Button>
           </div>
@@ -133,7 +135,13 @@ function ReportsContent() {
               <div className="mb-sp-4 text-sm text-text-secondary">
                 {report.description}
               </div>
-              <Button variant="secondary" size="sm">
+              <Button variant="secondary" size="sm" onClick={() => {
+                if (report.href) {
+                  router.push(report.href);
+                } else {
+                  alert("리포트 준비 중입니다.");
+                }
+              }}>
                 리포트 보기
               </Button>
             </CardBody>

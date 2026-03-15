@@ -295,6 +295,13 @@ function AdminDashboardContent() {
                           item.priority === "critical" ? "primary" : "secondary"
                         }
                         size="sm"
+                        onClick={() => {
+                          if (item.actionLabel === "처리") {
+                            router.push("/admin/workflow");
+                          } else if (item.actionLabel === "알림 발송") {
+                            alert("알림이 발송되었습니다.");
+                          }
+                        }}
                       >
                         {item.actionLabel}
                       </Button>

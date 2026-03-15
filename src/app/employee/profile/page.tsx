@@ -320,7 +320,7 @@ function BasicInfoTab({ profile }: { profile: ProfileData }) {
             <p className="text-xs text-text-tertiary mb-sp-3">
               연락처 정보 변경은 HR 담당자에게 요청해 주세요.
             </p>
-            <Button size="sm" variant="secondary">
+            <Button size="sm" variant="secondary" onClick={() => alert("정보 수정 요청이 제출되었습니다.")}>
               정보 수정 요청
             </Button>
           </div>

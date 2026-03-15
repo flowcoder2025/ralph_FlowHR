@@ -180,8 +180,28 @@ function BillingContent() {
           </p>
         </div>
         <div className="flex items-center gap-sp-3">
-          <Button variant="secondary">청구서 내보내기</Button>
-          <Button variant="primary">결제 설정</Button>
+          <Button variant="secondary" onClick={() => {
+            import("@/lib/export").then(({ exportToCSV }) => {
+              exportToCSV(
+                [
+                  { key: "invoiceNumber", label: "청구서 번호" },
+                  { key: "tenantName", label: "테넌트" },
+                  { key: "period", label: "기간" },
+                  { key: "amount", label: "금액" },
+                  { key: "status", label: "상태" },
+                ],
+                (data?.invoices ?? []).map((inv) => ({
+                  invoiceNumber: inv.invoiceNumber,
+                  tenantName: inv.tenantName,
+                  period: inv.period,
+                  amount: inv.amount,
+                  status: inv.status,
+                })),
+                "billing-invoices-export",
+              );
+            });
+          }}>청구서 내보내기</Button>
+          <Button variant="primary" onClick={() => alert("결제 설정 기능 준비 중입니다.")}>결제 설정</Button>
         </div>
       </div>
 
