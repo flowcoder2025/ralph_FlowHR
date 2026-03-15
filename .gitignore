@@ -53,6 +53,7 @@ htmlcov/
 test-results/
 playwright-report/
 blob-report/
+playwright/.auth/*.json
 .next/
 
 .vercel
