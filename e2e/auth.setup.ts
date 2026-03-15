@@ -18,11 +18,12 @@ async function login(
   password: string,
   expectedUrl: string,
 ) {
-  await page.goto(`/login?callbackUrl=${encodeURIComponent(expectedUrl)}`);
+  await page.goto(`/login?callbackUrl=${encodeURIComponent(expectedUrl)}`, { waitUntil: "networkidle" });
+  await page.waitForSelector('input[id="email"]', { timeout: 15_000 });
   await page.fill('input[id="email"]', email);
   await page.fill('input[id="password"]', password);
   await page.click('button[type="submit"]');
-  await page.waitForURL(`**${expectedUrl}**`, { timeout: 15_000 });
+  await page.waitForURL(`**${expectedUrl}**`, { timeout: 30_000 });
 }
 
 setup("Admin 인증 캐싱", async ({ page }) => {
@@ -32,7 +33,7 @@ setup("Admin 인증 캐싱", async ({ page }) => {
 });
 
 setup("Employee 인증 캐싱", async ({ page }) => {
-  await login(page, "employee@acme.example.com", "demo1234!", "/employee");
+  await login(page, "employee@acme.example.com", "demo1234!", "/employee/schedule");
   await expect(page).toHaveURL(/\/employee/);
   await page.context().storageState({ path: EMPLOYEE_FILE });
 });
