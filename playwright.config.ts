@@ -1,5 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const ADMIN_STATE = "playwright/.auth/admin.json";
+const EMPLOYEE_STATE = "playwright/.auth/employee.json";
+const OPERATOR_STATE = "playwright/.auth/operator.json";
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
@@ -14,9 +18,41 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
+    /* ── 0. Auth Setup ─────────────────────────────── */
     {
-      name: "chromium",
+      name: "setup",
+      testMatch: /auth\.setup\.ts/,
+    },
+
+    /* ── 1. Admin (storageState 캐싱) ──────────────── */
+    {
+      name: "admin",
+      dependencies: ["setup"],
+      use: { ...devices["Desktop Chrome"], storageState: ADMIN_STATE },
+      testMatch: ["**/admin.*.spec.ts"],
+    },
+
+    /* ── 2. Employee (storageState 캐싱) ───────────── */
+    {
+      name: "employee",
+      dependencies: ["setup"],
+      use: { ...devices["Desktop Chrome"], storageState: EMPLOYEE_STATE },
+      testMatch: ["**/employee.*.spec.ts"],
+    },
+
+    /* ── 3. Operator (storageState 캐싱) ───────────── */
+    {
+      name: "operator",
+      dependencies: ["setup"],
+      use: { ...devices["Desktop Chrome"], storageState: OPERATOR_STATE },
+      testMatch: ["**/operator.*.spec.ts"],
+    },
+
+    /* ── 4. Logged-out (인증 불필요 테스트) ─────────── */
+    {
+      name: "logged-out",
       use: { ...devices["Desktop Chrome"] },
+      testMatch: ["**/smoke.spec.ts", "**/core-flow.spec.ts"],
     },
   ],
   webServer: process.env.CI
