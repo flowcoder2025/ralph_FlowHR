@@ -12,7 +12,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   workers: 1,
-  reporter: process.env.CI ? "github" : "list",
+  reporter: process.env.CI
+    ? [["html", { open: "never" }], ["github"]]
+    : "list",
   timeout: 30_000,
   use: {
     baseURL: process.env.BASE_URL ?? "http://localhost:3000",
