@@ -18,7 +18,7 @@ async function login(
   password: string,
   expectedUrl: string,
 ) {
-  await page.goto("/login");
+  await page.goto(`/login?callbackUrl=${encodeURIComponent(expectedUrl)}`);
   await page.fill('input[id="email"]', email);
   await page.fill('input[id="password"]', password);
   await page.click('button[type="submit"]');

@@ -1,4 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const ADMIN_STATE = "playwright/.auth/admin.json";
 const EMPLOYEE_STATE = "playwright/.auth/employee.json";
@@ -70,8 +73,8 @@ export default defineConfig({
   webServer: process.env.CI
     ? undefined
     : {
-        command: "npm run dev",
-        url: "http://localhost:3000",
+        command: `npm run dev -- -p ${process.env.PORT ?? 3000}`,
+        url: process.env.BASE_URL ?? "http://localhost:3000",
         reuseExistingServer: true,
         timeout: 60_000,
       },
