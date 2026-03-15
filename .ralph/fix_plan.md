@@ -179,7 +179,7 @@
 ### L1: Employee > L2: mock → API 연결
 - [x] WI-081-refactor Employee Profile mock 데이터 → API 연결 (PROFILE, LEAVE_BALANCES, GOALS, EVALUATION, ONE_ON_ONES 상수 제거 → /api 호출) | L1:Employee > L2:프로필 > L3:API연결
 - [x] WI-082-refactor Employee Requests mock 데이터 → API 연결 (REQUEST_TYPES, REQUEST_HISTORY 상수 제거 → /api 호출, remainingLeave 하드코딩 제거) | L1:Employee > L2:신청 > L3:API연결
-- [ ] WI-083-refactor Employee Schedule mock 데이터 → API 연결 (MOCK_TODAY, MOCK_WEEKLY_SCHEDULE, MOCK_HISTORY 상수 제거 → /api 호출) | L1:Employee > L2:스케줄 > L3:API연결
+- [x] WI-083-refactor Employee Schedule mock 데이터 → API 연결 (MOCK_TODAY, MOCK_WEEKLY_SCHEDULE, MOCK_HISTORY 상수 제거 → /api 호출) | L1:Employee > L2:스케줄 > L3:API연결
 
 ### L1: Shared > L2: Error Handling
 - [x] WI-084-fix Employee + Platform 페이지 error.tsx + loading.tsx 추가 (Suspense boundary, 에러 바운더리, 로딩 스켈레톤) | L1:Shared > L2:에러처리 > L3:바운더리
@@ -192,7 +192,7 @@
 - [x] WI-098-test Auth E2E (로그인 폼 렌더링+유효성검증, Admin/Employee/Operator 자격증명 로그인→역할별 리다이렉트, 잘못된 자격증명→에러메시지, SSO 버튼 Google/Microsoft 존재확인, 데모 퀵액세스 3버튼 클릭→역할전환, 로그아웃→세션해제→/login 리다이렉트, 세션만료 후 재접근→/login) | L1:QA > L2:E2E > L3:Auth
 
 ### L1: QA > L2: E2E 구조
-- [ ] WI-087-test E2E 구조 개편 + POM (e2e/admin/ e2e/employee/ e2e/platform/ 디렉토리 분리, 도메인별 Page Object 생성, Fixture 결합, 기존 smoke/core-flow를 도메인별로 분할 이관) | L1:QA > L2:E2E > L3:POM
+- [x] WI-087-test E2E 구조 개편 + POM (e2e/admin/ e2e/employee/ e2e/platform/ 디렉토리 분리, 도메인별 Page Object 생성, Fixture 결합, 기존 smoke/core-flow를 도메인별로 분할 이관) | L1:QA > L2:E2E > L3:POM
 
 ### L1: QA > L2: E2E Admin Core Flow
 - [x] WI-088-test Admin 대시보드+People+조직도 E2E (대시보드 5KPI+오늘큐 렌더링, People 디렉토리 검색+필터+페이지네이션, 직원 상세 드로어, 조직도 트리, 인사변동 타임라인) | L1:QA > L2:E2E > L3:AdminPeople
