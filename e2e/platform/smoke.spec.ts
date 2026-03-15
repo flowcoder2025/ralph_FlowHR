@@ -1,17 +1,14 @@
 import { test, expect } from "@playwright/test";
 
-/**
- * Operator Smoke Tests — 플랫폼 콘솔 핵심 경로 검증
- *
- * storageState(operator.json)로 인증이 사전 캐싱되어 있으므로
- * 매 테스트마다 loginAs() 없이 바로 페이지 접근합니다.
- */
+const PLATFORM_PAGES = [
+  { url: "/platform", h1: "플랫폼 운영 콘솔" },
+  { url: "/platform/tenants", h1: "테넌트 관리" },
+  { url: "/platform/billing", h1: "플랜 & 빌링" },
+];
 
-// ─── Platform Console (WI-069) ──────────────────────────────
-
-test.describe("WI-069: Platform Console smoke", () => {
-  test("플랫폼 대시보드 접근", async ({ page }) => {
-    await page.goto("/platform");
-    await expect(page.locator("body")).not.toContainText("404");
+for (const { url, h1 } of PLATFORM_PAGES) {
+  test(`${url} 페이지 로드 → H1: "${h1}"`, async ({ page }) => {
+    await page.goto(url, { waitUntil: "networkidle" });
+    await expect(page.locator("h1")).toContainText(h1, { timeout: 15_000 });
   });
-});
+}

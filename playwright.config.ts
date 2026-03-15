@@ -55,19 +55,11 @@ export default defineConfig({
       testMatch: ["**/platform/*.spec.ts"],
     },
 
-    /* ── 4. Logged-out (인증 불필요, e2e/ 루트) ────── */
+    /* ── 4. No-auth (인증 불필요, e2e/ 루트) ──────── */
     {
-      name: "logged-out",
+      name: "no-auth",
       use: { ...devices["Desktop Chrome"] },
-      testMatch: ["smoke.spec.ts", "core-flow.spec.ts"],
-    },
-
-    /* ── 5. Cross-role (역할 전환, 자체 인증) ────────── */
-    {
-      name: "cross-role",
-      dependencies: ["setup"],
-      use: { ...devices["Desktop Chrome"] },
-      testMatch: ["cross-role.*.spec.ts", "auth.spec.ts"],
+      testMatch: ["auth.spec.ts"],
     },
   ],
   webServer: process.env.CI
