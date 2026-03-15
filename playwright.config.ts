@@ -28,43 +28,43 @@ export default defineConfig({
       testMatch: /auth\.setup\.ts/,
     },
 
-    /* ── 1. Admin (storageState 캐싱) ──────────────── */
+    /* ── 1. Admin (storageState 캐싱, e2e/admin/) ─── */
     {
       name: "admin",
       dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"], storageState: ADMIN_STATE },
-      testMatch: ["**/admin.*.spec.ts"],
+      testMatch: ["**/admin/*.spec.ts"],
     },
 
-    /* ── 2. Employee (storageState 캐싱) ───────────── */
+    /* ── 2. Employee (storageState 캐싱, e2e/employee/) */
     {
       name: "employee",
       dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"], storageState: EMPLOYEE_STATE },
-      testMatch: ["**/employee.*.spec.ts"],
+      testMatch: ["**/employee/*.spec.ts"],
     },
 
-    /* ── 3. Operator (storageState 캐싱) ───────────── */
+    /* ── 3. Platform/Operator (storageState 캐싱, e2e/platform/) */
     {
       name: "operator",
       dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"], storageState: OPERATOR_STATE },
-      testMatch: ["**/operator.*.spec.ts"],
+      testMatch: ["**/platform/*.spec.ts"],
     },
 
-    /* ── 4. Logged-out (인증 불필요 테스트) ─────────── */
+    /* ── 4. Logged-out (인증 불필요, e2e/ 루트) ────── */
     {
       name: "logged-out",
       use: { ...devices["Desktop Chrome"] },
-      testMatch: ["**/smoke.spec.ts", "**/core-flow.spec.ts"],
+      testMatch: ["smoke.spec.ts", "core-flow.spec.ts"],
     },
 
-    /* ── 5. Cross-role (역할 전환 테스트, 자체 인증) ── */
+    /* ── 5. Cross-role (역할 전환, 자체 인증) ────────── */
     {
       name: "cross-role",
       dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"] },
-      testMatch: ["**/cross-role.*.spec.ts", "**/auth.spec.ts"],
+      testMatch: ["cross-role.*.spec.ts", "auth.spec.ts"],
     },
   ],
   webServer: process.env.CI
