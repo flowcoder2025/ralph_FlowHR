@@ -586,41 +586,55 @@ async function main(): Promise<void> {
     });
   }
 
-  // ─── Attendance Records (Acme, this week sample) ───────
+  // ─── Attendance Records (Acme, 30일 분량) ──────────────
 
   const activeEmployeeNumbers = [
     "EMP-20200101", "EMP-20210301", "EMP-20210601", "EMP-20220415",
     "EMP-20220901", "EMP-20230201", "EMP-20230601", "EMP-20240101",
   ];
 
-  const attendanceSamples: {
-    dayOffset: number;
+  // 30일치 출결 패턴 (주말 제외, 다양한 상태 반복)
+  const attendancePatterns: {
     status: AttendanceStatus;
-    checkInOffset: string;
-    checkOutOffset: string;
+    checkIn: string;
+    checkOut: string;
     workMinutes: number;
     overtime: number;
   }[] = [
-    { dayOffset: -4, status: AttendanceStatus.PRESENT, checkInOffset: "08:55", checkOutOffset: "18:05", workMinutes: 480, overtime: 0 },
-    { dayOffset: -3, status: AttendanceStatus.PRESENT, checkInOffset: "08:58", checkOutOffset: "19:00", workMinutes: 540, overtime: 60 },
-    { dayOffset: -2, status: AttendanceStatus.LATE, checkInOffset: "09:32", checkOutOffset: "18:30", workMinutes: 450, overtime: 0 },
-    { dayOffset: -1, status: AttendanceStatus.PRESENT, checkInOffset: "08:50", checkOutOffset: "18:00", workMinutes: 480, overtime: 0 },
-    { dayOffset: 0, status: AttendanceStatus.PRESENT, checkInOffset: "09:00", checkOutOffset: "18:00", workMinutes: 480, overtime: 0 },
+    { status: AttendanceStatus.PRESENT, checkIn: "08:55", checkOut: "18:05", workMinutes: 480, overtime: 0 },
+    { status: AttendanceStatus.PRESENT, checkIn: "08:58", checkOut: "19:00", workMinutes: 540, overtime: 60 },
+    { status: AttendanceStatus.LATE, checkIn: "09:32", checkOut: "18:30", workMinutes: 450, overtime: 0 },
+    { status: AttendanceStatus.PRESENT, checkIn: "08:50", checkOut: "18:00", workMinutes: 480, overtime: 0 },
+    { status: AttendanceStatus.PRESENT, checkIn: "09:00", checkOut: "18:00", workMinutes: 480, overtime: 0 },
+    { status: AttendanceStatus.PRESENT, checkIn: "08:45", checkOut: "18:10", workMinutes: 485, overtime: 0 },
+    { status: AttendanceStatus.EARLY_LEAVE, checkIn: "09:00", checkOut: "16:00", workMinutes: 360, overtime: 0 },
+    { status: AttendanceStatus.PRESENT, checkIn: "08:55", checkOut: "20:00", workMinutes: 600, overtime: 120 },
+    { status: AttendanceStatus.HALF_DAY, checkIn: "09:00", checkOut: "13:00", workMinutes: 240, overtime: 0 },
+    { status: AttendanceStatus.PRESENT, checkIn: "08:48", checkOut: "18:15", workMinutes: 487, overtime: 0 },
   ];
 
   for (const empNum of activeEmployeeNumbers) {
     const empId = employeeIds[empNum];
-    for (const sample of attendanceSamples) {
+    let patternIdx = 0;
+
+    for (let dayOffset = -29; dayOffset <= 0; dayOffset++) {
       const date = new Date();
-      date.setDate(date.getDate() + sample.dayOffset);
+      date.setDate(date.getDate() + dayOffset);
       date.setHours(0, 0, 0, 0);
 
+      // 주말(토, 일) 건너뛰기
+      const dow = date.getDay();
+      if (dow === 0 || dow === 6) continue;
+
+      const pattern = attendancePatterns[patternIdx % attendancePatterns.length];
+      patternIdx++;
+
       const checkIn = new Date(date);
-      const [ciH, ciM] = sample.checkInOffset.split(":");
+      const [ciH, ciM] = pattern.checkIn.split(":");
       checkIn.setHours(parseInt(ciH, 10), parseInt(ciM, 10), 0, 0);
 
       const checkOut = new Date(date);
-      const [coH, coM] = sample.checkOutOffset.split(":");
+      const [coH, coM] = pattern.checkOut.split(":");
       checkOut.setHours(parseInt(coH, 10), parseInt(coM, 10), 0, 0);
 
       await prisma.attendanceRecord.upsert({
@@ -632,11 +646,11 @@ async function main(): Promise<void> {
           tenantId: acme.id,
           employeeId: empId,
           date,
-          status: sample.status,
+          status: pattern.status,
           checkIn,
           checkOut,
-          workMinutes: sample.workMinutes,
-          overtime: sample.overtime,
+          workMinutes: pattern.workMinutes,
+          overtime: pattern.overtime,
         },
       });
     }
