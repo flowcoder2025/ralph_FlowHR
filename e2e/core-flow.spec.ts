@@ -49,3 +49,65 @@ test.describe("핵심 플로우: 로그인 + 인증 불필요 시나리오", () 
     await expect(page.locator("h1")).toContainText("로그인");
   });
 });
+
+// ─── WI-096: 미인증 Permission 경계 ─────────────────────────
+
+test.describe("WI-096: 미인증 → 보호 경로 리다이렉트", () => {
+  test("미인증 → /admin 접근 시 /login으로 리다이렉트된다", async ({
+    page,
+  }) => {
+    await page.goto("/admin");
+    await page.waitForURL("**/login**", { timeout: 10_000 });
+
+    await expect(page).toHaveURL(/\/login/);
+
+    // callbackUrl 파라미터가 보존됨
+    const url = new URL(page.url());
+    const callbackUrl = url.searchParams.get("callbackUrl");
+    expect(callbackUrl).toContain("/admin");
+  });
+
+  test("미인증 → /employee 접근 시 /login으로 리다이렉트된다", async ({
+    page,
+  }) => {
+    await page.goto("/employee");
+    await page.waitForURL("**/login**", { timeout: 10_000 });
+
+    await expect(page).toHaveURL(/\/login/);
+
+    const url = new URL(page.url());
+    const callbackUrl = url.searchParams.get("callbackUrl");
+    expect(callbackUrl).toContain("/employee");
+  });
+
+  test("미인증 → /platform 접근 시 /login으로 리다이렉트된다", async ({
+    page,
+  }) => {
+    await page.goto("/platform");
+    await page.waitForURL("**/login**", { timeout: 10_000 });
+
+    await expect(page).toHaveURL(/\/login/);
+  });
+
+  test("미인증 → /admin/people 접근 시 callbackUrl이 보존된다", async ({
+    page,
+  }) => {
+    await page.goto("/admin/people");
+    await page.waitForURL("**/login**", { timeout: 10_000 });
+
+    const url = new URL(page.url());
+    const callbackUrl = url.searchParams.get("callbackUrl");
+    expect(callbackUrl).toContain("/admin/people");
+  });
+
+  test("미인증 → /employee/schedule 접근 시 callbackUrl이 보존된다", async ({
+    page,
+  }) => {
+    await page.goto("/employee/schedule");
+    await page.waitForURL("**/login**", { timeout: 10_000 });
+
+    const url = new URL(page.url());
+    const callbackUrl = url.searchParams.get("callbackUrl");
+    expect(callbackUrl).toContain("/employee/schedule");
+  });
+});
