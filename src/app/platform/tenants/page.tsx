@@ -369,8 +369,23 @@ function TenantsContent() {
           </p>
         </div>
         <div className="flex items-center gap-sp-3">
-          <Button variant="secondary" size="sm">CSV 내보내기</Button>
-          <Button variant="primary" size="sm">테넌트 추가</Button>
+          <Button variant="secondary" size="sm" onClick={() => {
+            import("@/lib/export").then(({ exportToCSV }) => {
+              exportToCSV(
+                [
+                  { key: "name", label: "회사명" },
+                  { key: "domain", label: "도메인" },
+                  { key: "plan", label: "플랜" },
+                  { key: "status", label: "상태" },
+                  { key: "seats", label: "좌석" },
+                  { key: "mrr", label: "MRR" },
+                ],
+                tenants.map((t) => ({ name: t.name, domain: t.domain, plan: t.plan, status: t.status, seats: t.seats, mrr: t.mrr })),
+                "tenants-export",
+              );
+            });
+          }}>CSV 내보내기</Button>
+          <Button variant="primary" size="sm" onClick={() => alert("테넌트 추가 기능 준비 중입니다.")}>테넌트 추가</Button>
         </div>
       </div>
 
