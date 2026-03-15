@@ -55,7 +55,55 @@ async function upsertSystemRole(
   return role.id;
 }
 
+async function cleanDatabase(): Promise<void> {
+  // FK 제약 역순으로 삭제 (자식 → 부모)
+  await prisma.platformAuditLog.deleteMany();
+  await prisma.supportTicket.deleteMany();
+  await prisma.invoice.deleteMany();
+  await prisma.billingAccount.deleteMany();
+  await prisma.plan.deleteMany();
+  await prisma.offboardingTask.deleteMany();
+  await prisma.onboardingTask.deleteMany();
+  await prisma.application.deleteMany();
+  await prisma.jobPosting.deleteMany();
+  await prisma.oneOnOne.deleteMany();
+  await prisma.evaluation.deleteMany();
+  await prisma.goal.deleteMany();
+  await prisma.evalCycle.deleteMany();
+  await prisma.payslip.deleteMany();
+  await prisma.payrollRun.deleteMany();
+  await prisma.payrollRule.deleteMany();
+  await prisma.signature.deleteMany();
+  await prisma.document.deleteMany();
+  await prisma.documentTemplate.deleteMany();
+  await prisma.approvalStep.deleteMany();
+  await prisma.approvalRequest.deleteMany();
+  await prisma.workflow.deleteMany();
+  await prisma.leaveRequest.deleteMany();
+  await prisma.leaveBalance.deleteMany();
+  await prisma.leavePolicy.deleteMany();
+  await prisma.attendanceClosing.deleteMany();
+  await prisma.attendanceException.deleteMany();
+  await prisma.attendanceRecord.deleteMany();
+  await prisma.shiftAssignment.deleteMany();
+  await prisma.shift.deleteMany();
+  await prisma.employeeChange.deleteMany();
+  await prisma.employee.deleteMany();
+  await prisma.position.deleteMany();
+  await prisma.department.deleteMany();
+  await prisma.verificationToken.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.role.deleteMany();
+  await prisma.tenant.deleteMany();
+}
+
 async function main(): Promise<void> {
+  // ─── Cleanup (멱등성 보장) ──────────────────────────────
+  console.log("Cleaning database...");
+  await cleanDatabase();
+
   // ─── Tenants ──────────────────────────────────────────
 
   const acme = await prisma.tenant.upsert({
