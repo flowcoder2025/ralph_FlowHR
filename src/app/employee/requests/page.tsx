@@ -239,17 +239,68 @@ export default function RequestsPage() {
     setCorrectionSubmitted(false);
   }
 
-  function handleSubmit() {
-    setSubmitted(true);
-    setShowLeaveForm(false);
-    setFormStep(1);
-    setFormData(DEFAULT_FORM_DATA);
+  async function handleSubmit() {
+    try {
+      const res = await fetch("/api/leave/requests", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, action: "submit" }),
+      });
+      if (!res.ok) throw new Error("신청 실패");
+      setSubmitted(true);
+      setShowLeaveForm(false);
+      setFormStep(1);
+      setFormData(DEFAULT_FORM_DATA);
+      fetchHistory();
+    } catch {
+      alert("휴가 신청에 실패했습니다. 다시 시도해주세요.");
+    }
   }
 
-  function handleCorrectionSubmit() {
-    setCorrectionSubmitted(true);
-    setShowCorrectionForm(false);
-    setCorrectionData(DEFAULT_CORRECTION_DATA);
+  function handleDraftSave() {
+    // 임시 저장: localStorage에 폼 데이터 저장
+    localStorage.setItem("leave-draft", JSON.stringify(formData));
+    alert("임시 저장되었습니다.");
+  }
+
+  async function handleCorrectionSubmit() {
+    try {
+      const res = await fetch("/api/employee/requests/correction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(correctionData),
+      });
+      if (!res.ok) throw new Error("정정 요청 실패");
+      setCorrectionSubmitted(true);
+      setShowCorrectionForm(false);
+      setCorrectionData(DEFAULT_CORRECTION_DATA);
+      fetchHistory();
+    } catch {
+      alert("근태 정정 요청에 실패했습니다. 다시 시도해주세요.");
+    }
+  }
+
+  async function handleHistoryAction(item: RequestHistoryItem) {
+    if (item.status === "pending") {
+      // 취소
+      if (!confirm("신청을 취소하시겠습니까?")) return;
+      try {
+        const res = await fetch(`/api/employee/requests/history?id=${item.id}&action=cancel`, {
+          method: "PATCH",
+        });
+        if (!res.ok) throw new Error("취소 실패");
+        fetchHistory();
+      } catch {
+        alert("취소에 실패했습니다.");
+      }
+    } else if (item.status === "rejected") {
+      // 재신청: 해당 유형 폼을 다시 오픈
+      setShowLeaveForm(true);
+      setFormStep(1);
+    } else if (item.status === "approved") {
+      // 상세: alert로 상세 정보 표시 (향후 드로어로 개선)
+      alert(`신청 상세\n유형: ${item.type}\n내용: ${item.content}\n승인자: ${item.approver}\n상태: ${item.status}`);
+    }
   }
 
   function handleFilterChange(filter: HistoryFilter) {
@@ -588,7 +639,7 @@ export default function RequestsPage() {
                       <Button variant="ghost" onClick={handleCancel}>
                         취소
                       </Button>
-                      <Button variant="secondary" onClick={handleCancel}>
+                      <Button variant="secondary" onClick={handleDraftSave}>
                         임시 저장
                       </Button>
                       <Button variant="primary" onClick={handleSubmit}>
@@ -783,7 +834,7 @@ export default function RequestsPage() {
                       </Badge>
                     </td>
                     <td className="px-sp-4 py-sp-3 text-right">
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => handleHistoryAction(item)}>
                         {getActionLabel(item.status)}
                       </Button>
                     </td>

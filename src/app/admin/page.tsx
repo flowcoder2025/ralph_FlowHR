@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   KPICard,
   KPIGrid,
@@ -128,6 +129,7 @@ export default function AdminHomePage() {
 }
 
 function AdminDashboardContent() {
+  const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -186,8 +188,16 @@ function AdminDashboardContent() {
           </p>
         </div>
         <div className="flex items-center gap-sp-3">
-          <Button variant="secondary">내보내기</Button>
-          <Button variant="primary">빠른 등록</Button>
+          <Button variant="secondary" onClick={() => {
+            import("@/lib/export").then(({ exportToCSV }) => {
+              exportToCSV(
+                [{ key: "metric", label: "지표" }, { key: "value", label: "값" }],
+                Object.entries(data.kpi).map(([k, v]) => ({ metric: k, value: (v as { value: number }).value })),
+                `admin-dashboard-${todayStr}`,
+              );
+            });
+          }}>내보내기</Button>
+          <Button variant="primary" onClick={() => router.push("/admin/people?action=create")}>빠른 등록</Button>
         </div>
       </div>
 
@@ -266,7 +276,7 @@ function AdminDashboardContent() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>오늘의 대기열</CardTitle>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => router.push("/admin/workflow")}>
               전체 보기 →
             </Button>
           </CardHeader>
@@ -394,7 +404,7 @@ function AdminDashboardContent() {
         <Card>
           <CardHeader>
             <CardTitle>예외 모니터</CardTitle>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => router.push("/admin/attendance?tab=exceptions")}>
               상세 →
             </Button>
           </CardHeader>
@@ -440,7 +450,7 @@ function AdminDashboardContent() {
         <Card>
           <CardHeader>
             <CardTitle>문서 현황</CardTitle>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => router.push("/admin/documents")}>
               문서함 →
             </Button>
           </CardHeader>
@@ -470,7 +480,7 @@ function AdminDashboardContent() {
         <Card>
           <CardHeader>
             <CardTitle>급여 현황</CardTitle>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={() => router.push("/admin/payroll")}>
               급여 관리 →
             </Button>
           </CardHeader>

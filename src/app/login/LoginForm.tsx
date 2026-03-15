@@ -65,7 +65,20 @@ export function LoginForm() {
       return;
     }
 
-    router.push(callbackUrl);
+    if (!searchParams.get("callbackUrl")) {
+      const session = await fetch("/api/auth/session").then(r => r.json());
+      const role = session?.user?.role;
+      const roleRedirects: Record<string, string> = {
+        PLATFORM_OPERATOR: "/platform",
+        SUPER_ADMIN: "/admin",
+        HR_ADMIN: "/admin",
+        MANAGER: "/admin",
+        EMPLOYEE: "/employee",
+      };
+      router.push(roleRedirects[role] ?? "/");
+    } else {
+      router.push(callbackUrl);
+    }
     router.refresh();
   }
 
@@ -87,7 +100,20 @@ export function LoginForm() {
       return;
     }
 
-    router.push(callbackUrl);
+    if (!searchParams.get("callbackUrl")) {
+      const session = await fetch("/api/auth/session").then(r => r.json());
+      const role = session?.user?.role;
+      const roleRedirects: Record<string, string> = {
+        PLATFORM_OPERATOR: "/platform",
+        SUPER_ADMIN: "/admin",
+        HR_ADMIN: "/admin",
+        MANAGER: "/admin",
+        EMPLOYEE: "/employee",
+      };
+      router.push(roleRedirects[role] ?? "/");
+    } else {
+      router.push(callbackUrl);
+    }
     router.refresh();
   }
 
