@@ -171,10 +171,10 @@
 ## Phase 18: Refactoring (리팩토링)
 
 ### L1: Infra > L2: 환경구성
-- [ ] WI-079-fix Prisma directUrl 추가 + Supabase 연결 검증 | L1:Infra > L2:DB > L3:directUrl
+- [x] WI-079-fix Prisma directUrl 추가 + Supabase 연결 검증 | L1:Infra > L2:DB > L3:directUrl
 
 ### L1: Public > L2: 랜딩 복원
-- [ ] WI-080-fix 랜딩 페이지 복원 + 네비게이션 허브 통합 (/ = 마케팅 랜딩 + 하단 허브 섹션, 원본 landing.html 기반 히어로+6기능카드+3역할카드+CTA+푸터, 기존 page.tsx 허브 코드를 하단 섹션으로 통합) | L1:Public > L2:랜딩 > L3:복원
+- [x] WI-080-fix 랜딩 페이지 복원 + 네비게이션 허브 통합 (/ = 마케팅 랜딩 + 하단 허브 섹션, 원본 landing.html 기반 히어로+6기능카드+3역할카드+CTA+푸터, 기존 page.tsx 허브 코드를 하단 섹션으로 통합) | L1:Public > L2:랜딩 > L3:복원
 
 ### L1: Employee > L2: mock → API 연결
 - [ ] WI-081-refactor Employee Profile mock 데이터 → API 연결 (PROFILE, LEAVE_BALANCES, GOALS, EVALUATION, ONE_ON_ONES 상수 제거 → /api 호출) | L1:Employee > L2:프로필 > L3:API연결
@@ -189,7 +189,7 @@
 - [ ] WI-086-test E2E DB 시딩 + globalSetup (globalSetup에서 prisma db push + prisma db seed 자동 실행, 테스트용 시드 데이터 보강: 10명 직원 3부서 출결30일 휴가요청 급여런, 테스트 종료 후 cleanup) | L1:QA > L2:E2E > L3:시딩
 
 ### L1: QA > L2: E2E Auth Flow
-- [ ] WI-086-1-test Auth E2E (로그인 폼 렌더링+유효성검증, Admin/Employee/Operator 자격증명 로그인→역할별 리다이렉트, 잘못된 자격증명→에러메시지, SSO 버튼 Google/Microsoft 존재확인, 데모 퀵액세스 3버튼 클릭→역할전환, 로그아웃→세션해제→/login 리다이렉트, 세션만료 후 재접근→/login) | L1:QA > L2:E2E > L3:Auth
+- [ ] WI-098-test Auth E2E (로그인 폼 렌더링+유효성검증, Admin/Employee/Operator 자격증명 로그인→역할별 리다이렉트, 잘못된 자격증명→에러메시지, SSO 버튼 Google/Microsoft 존재확인, 데모 퀵액세스 3버튼 클릭→역할전환, 로그아웃→세션해제→/login 리다이렉트, 세션만료 후 재접근→/login) | L1:QA > L2:E2E > L3:Auth
 
 ### L1: QA > L2: E2E 구조
 - [ ] WI-087-test E2E 구조 개편 + POM (e2e/admin/ e2e/employee/ e2e/platform/ 디렉토리 분리, 도메인별 Page Object 생성, Fixture 결합, 기존 smoke/core-flow를 도메인별로 분할 이관) | L1:QA > L2:E2E > L3:POM
@@ -213,3 +213,6 @@
 
 ### L1: QA > L2: CI 강화
 - [ ] WI-097-chore CI E2E 파이프라인 개선 (PR+merge_group 트리거, Playwright 브라우저 캐싱, production 빌드 테스트, playwright-report artifact 업로드, HTML reporter, 50+테스트 대비 shard 설정) | L1:QA > L2:CI > L3:E2E파이프라인
+
+### L1: Infra > L2: DB 시드
+- [ ] WI-099-fix prisma seed 에러 수정 (department.update P2025 에러 — tenantId_code 복합키로 조회 시 레코드 미존재, 시드 순서 조정 또는 upsert로 변경, 전체 시드 정상 완료 검증) | L1:Infra > L2:DB > L3:시드수정
