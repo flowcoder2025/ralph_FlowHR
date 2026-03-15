@@ -30,7 +30,23 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
     console.log("[globalSetup] prisma db seed (시드 데이터 주입)...");
     execSync("npx prisma db seed", execOpts);
 
-    console.log("[globalSetup] DB 준비 완료\n");
+    console.log("[globalSetup] DB 준비 완료");
+
+    // 서버 워밍업: /login 페이지를 미리 컴파일하여 auth.setup cold start 방지
+    const baseURL = process.env.BASE_URL ?? "http://localhost:3000";
+    console.log(`[globalSetup] 서버 워밍업 (${baseURL}/login)...`);
+    for (let i = 0; i < 10; i++) {
+      try {
+        const res = await fetch(`${baseURL}/login`);
+        if (res.ok) {
+          console.log("[globalSetup] 워밍업 완료\n");
+          break;
+        }
+      } catch {
+        // 서버 아직 준비 안 됨
+      }
+      await new Promise((r) => setTimeout(r, 2000));
+    }
   } catch (error) {
     console.error("[globalSetup] DB 준비 실패:", error);
     throw error;
