@@ -35,6 +35,9 @@ out/
 Thumbs.db
 desktop.ini
 
+# Claude Code local memory (RAG, logs, session data)
+.claude/memory/
+
 # Ralph Loop logs (local only)
 .ralph/logs/
 .ralph/.claude_session_id
