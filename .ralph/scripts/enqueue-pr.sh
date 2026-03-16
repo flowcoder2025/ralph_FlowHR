@@ -23,18 +23,37 @@ if [[ -z "${PR_NODE_ID:-}" ]]; then
   exit 1
 fi
 
+# merge queue 존재 여부 확인 (리스팅 API에 rules 미포함 → 개별 조회)
+HAS_MERGE_QUEUE=0
+for _rid in $(gh api repos/"$OWNER"/"$REPO"/rulesets --jq '.[].id' 2>/dev/null); do
+  if gh api repos/"$OWNER"/"$REPO"/rulesets/"$_rid" --jq '.rules[].type' 2>/dev/null | grep -q "merge_queue"; then
+    HAS_MERGE_QUEUE=1
+    break
+  fi
+done
+
 # merge queue에 등록 시도
 RESULT=$(gh api graphql -f query="mutation { enqueuePullRequest(input: { pullRequestId: \"$PR_NODE_ID\" }) { mergeQueueEntry { position } } }" 2>&1 || true)
 
 if echo "$RESULT" | grep -q '"position"'; then
   POSITION=$(echo "$RESULT" | grep -oE '"position":[0-9]+' | grep -oE '[0-9]+')
   echo "✅ PR #$PR_NUMBER → merge queue position $POSITION"
+elif echo "$RESULT" | grep -qi "already.*queue"; then
+  echo "✅ PR #$PR_NUMBER → 이미 큐에 등록됨"
+elif [[ "$HAS_MERGE_QUEUE" -gt 0 ]]; then
+  # merge queue 있지만 enqueue 실패 (CI 미통과, 충돌 등)
+  echo "⏳ enqueue 실패 (CI 대기 또는 충돌) — auto-merge 설정"
+  echo "   에러: $(echo "$RESULT" | grep -oE '"message":"[^"]*"' | head -1)"
+  # merge queue repo: --squash 금지 (queue가 method 관리)
+  gh pr merge "$PR_NUMBER" --auto 2>/dev/null || {
+    echo "⚠️ auto-merge 설정 실패"
+  }
+  echo "✅ PR #$PR_NUMBER → auto-merge 설정 완료 (CI 통과 후 자동 큐 등록)"
 else
-  # merge queue 미지원 → fallback
-  echo "⚠️ merge queue 미지원 — gh pr merge --auto --squash fallback"
+  # merge queue 없음 → fallback
+  echo "ℹ️ merge queue 미설정 — gh pr merge --auto --squash fallback"
   gh pr merge "$PR_NUMBER" --auto --squash 2>/dev/null || {
-    echo "ERROR: auto-merge 설정 실패"
-    exit 1
+    echo "⚠️ auto-merge 설정 실패"
   }
   echo "✅ PR #$PR_NUMBER → auto-merge 설정 완료"
 fi

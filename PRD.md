@@ -997,13 +997,125 @@ src/
 
 ---
 
+## Phase 18: Refactoring (리팩토링) — 완료
+
+### L1: 인프라 + 환경구성
+- **WI-079~080**: Prisma directUrl + 랜딩 페이지 복원 + 네비게이션 허브 통합
+- **WI-081~083**: Employee 3페이지 mock → API 연결
+
+### L1: E2E 테스트 재구축
+- **WI-085~098**: storageState 3역할 캐싱, DB 시딩, POM 구조, Auth E2E, 도메인별 Core Flow, Permission 경계, Cross-Role 워크플로우, CI 파이프라인
+- E2E 31 테스트 전체 통과 (실제 UI 기반 재작성)
+
+### L1: 코드 품질
+- **WI-099**: Prisma seed 에러 수정
+
+---
+
+## Phase 19: 비즈니스 로직 구현 — 완료
+
+### L1: 버튼 동작 + CRUD
+- **WI-100~114**: 모든 페이지 미동작 버튼 핸들러 구현 (내보내기, 라우팅, 승인/반려, 임시저장 버그 수정)
+- **WI-115**: CRUD 전수 구현 (15개 API 신규/확장 + UI 연동)
+  - Employee: 출퇴근 체크인/아웃, 휴가 신청, 근태 정정, 프로필 수정
+  - Admin: 직원 등록/수정/삭제, 부서 CRUD, 목표 CRUD, 1:1 예약
+  - Platform: 테넌트 생성/수정, 감사 로그, 알림 규칙
+
+### L1: 로그아웃 + 세션
+- **WI-116**: 3개 레이아웃 로그아웃 버튼, 직원 상세 드로어 액션, 출퇴근 체크
+- **WI-116-1~2**: token.employeeId 전수 제거, settings/company API 부분 업데이트
+
+---
+
+## Phase 20: 코드 품질 강화 — 완료
+
+### L1: API 표준화
+- **WI-117**: API 응답 형식 17개 표준화 (`{data: ...}` 패턴 통일 + 10개 페이지 업데이트)
+
+### L1: 직원 CRUD UI
+- **WI-118**: 직원 관리 페이지 등록 모달 + 드로어 수정/퇴사처리 버튼
+
+### L1: 성능 최적화
+- **WI-119**: 대시보드 API Promise.all 병렬화
+  - admin/dashboard: 786ms → 133ms (83% 감소)
+  - performance/dashboard: 935ms → 199ms (79% 감소)
+
+### L1: 조직도 편집
+- **WI-120**: 부서 CRUD API (POST/PATCH/DELETE) + 조직도 페이지 부서 추가/수정/삭제 UI
+
+### L1: 세션 무효화
+- **WI-121**: 3개 레이아웃에서 tenantId 없으면 자동 로그아웃
+
+### L1: Employee 페이지 보강
+- **WI-122**: Employee 홈 (인사말+출퇴근+통계+퀵액션) + 인박스 (알림 목록) 페이지 추가 (404 수정)
+- **WI-122-1**: unit test 수정 (token.employeeId→userId, 91 tests passed)
+
+### L1: 서버 안정성
+- **WI-123**: API try-catch 보강 (64파일 106함수, 서버 크래시 방지)
+- **WI-124**: Error boundary 3개 포탈 + 공통 API fetch 래퍼 (401 자동 로그아웃)
+
+### L1: 코드 구조
+- **WI-125**: 대형 파일 5개 탭별 분할 (attendance, documents, leave, recruiting, settings → 24개 탭 컴포넌트 추출, 메인 97~346줄)
+
+---
+
+## Phase 21: GPS 출퇴근 시스템 (예정)
+
+### L1: GPS 기반 위치 검증 출퇴근
+
+#### L2: 회사 위치 등록
+- Admin 설정에서 회사 위치(위도, 경도) + 허용 반경(오차율) 등록
+- 복수 사업장 지원
+
+#### L2: GPS 출퇴근 API
+- Employee 모바일/웹에서 Geolocation API로 현재 위치 취득
+- 서버에서 회사 위치와 거리 계산 (Haversine formula)
+- 허용 반경 내 → 출근 승인, 반경 외 → 거부 또는 외근 처리
+- POST /api/employee/schedule/checkin에 위치 정보 추가
+
+#### L2: 출퇴근 UI 개선
+- 출근 버튼 클릭 → GPS 위치 획득 → 서버 검증 → 결과 표시
+- 위치 정보 거부 시 수동 출근 (관리자 승인 필요)
+- 출퇴근 이력에 위치 정보 표시
+
+#### L2: 모바일 최적화
+- Employee 포탈 모바일 반응형 강화
+- PWA 지원 (오프라인 출퇴근 → 온라인 시 동기화)
+
+---
+
+## 인프라 환경
+
+### 데이터베이스
+- **Supabase**: PostgreSQL (서울 리전, ap-northeast-2)
+- **Prisma ORM**: directUrl (Session pooler) + pgbouncer (Transaction pooler)
+- **시드 데이터**: 2 tenants, 9 roles, 7 users, 10 employees, 40개 모델 전체
+
+### 배포
+- **Vercel**: 서울 리전 (icn1), 자동 배포 (GitHub 연동)
+- **Production URL**: https://wi-test-lake.vercel.app
+
+### 인증
+- **NextAuth.js**: Email/Password + Google/Microsoft SSO
+- **RBAC**: Platform Operator / Admin (Super Admin, HR Admin, Manager) / Employee
+- **세션**: JWT, 24시간 만료
+
+### CI/CD
+- **GitHub Actions**: lint → build → test (merge queue 연동)
+- **커밋 체크**: WI-NNN-[type] 형식 강제
+- **E2E**: 로컬 대화형 실행 (31 tests, Playwright)
+
+---
+
 ## 비기능 요구사항
-- **멀티테넌트**: 테넌트 간 데이터 격리 (Row-Level Security 또는 tenantId 필터)
-- **성능**: 페이지 로드 < 2초, API 응답 < 500ms
-- **보안**: CSRF 방지, XSS 방지, SQL 인젝션 방지, HTTPS 필수
+- **멀티테넌트**: 테넌트 간 데이터 격리 (tenantId 필터, 모든 API에 적용)
+- **성능**: 대시보드 API < 200ms (Promise.all 병렬화), 페이지 로드 < 2초
+- **보안**: CSRF 방지, XSS 방지 (React JSX), SQL 인젝션 방지 (Prisma ORM), HTTPS 필수
+- **안정성**: 전 API try-catch (106함수), Error boundary (3개 포탈), 공통 fetch 래퍼 (401 자동 로그아웃)
 - **인코딩**: 모든 파일 UTF-8 (BOM 없음), `<meta charset="UTF-8">`
 - **반응형**: 데스크톱 + 태블릿 + 모바일 (Employee 포탈)
 - **접근성**: 기본 aria-label, 키보드 네비게이션
+- **API 표준**: `{data: T}` 응답 형식 통일 (17개 API 표준화 완료)
 
 ## 외부 연동
 - **Google OAuth**: SSO 로그인
@@ -1011,6 +1123,8 @@ src/
 - **Slack**: 알림 연동 (설정에서 토글)
 - **Google Workspace**: 캘린더 연동
 - **Jira**: 이슈 트래커 연동
+- **Supabase**: PostgreSQL DB (서울 리전)
+- **Vercel**: 배포 + 서버리스 (서울 리전)
 
 ## WI 요약
 
@@ -1033,4 +1147,8 @@ src/
 | 15. Platform Console | 플랫폼 운영 | 6 |
 | 16. Landing | 랜딩 | 2 |
 | 17. Testing | 테스트/폴리시 | 3 |
-| **총계** | | **78** |
+| 18. Refactoring | 리팩토링 + E2E 재구축 | 21 |
+| 19. Business Logic | 비즈니스 로직 + CRUD | 16 |
+| 20. Quality | 코드 품질 강화 | 9 |
+| 21. GPS 출퇴근 | 위치 기반 출퇴근 (예정) | TBD |
+| **총계** | | **124+** |
