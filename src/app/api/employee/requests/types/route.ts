@@ -92,11 +92,14 @@ export async function GET(request: NextRequest) {
     }));
 
   let remainingLeave = 0;
-  if (token.employeeId) {
+  const employee = await prisma.employee.findFirst({
+    where: { userId: token.id as string, tenantId: tenantId as string },
+  });
+  if (employee) {
     const balances = await prisma.leaveBalance.findMany({
       where: {
         tenantId,
-        employeeId: token.employeeId as string,
+        employeeId: employee.id,
         year: new Date().getFullYear(),
       },
     });
