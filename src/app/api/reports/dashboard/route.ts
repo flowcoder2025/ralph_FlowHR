@@ -76,5 +76,5 @@ export async function GET(request: NextRequest) {
     },
   ];
 
-  return NextResponse.json({ reports });
+  return NextResponse.json({ data: reports });
 }

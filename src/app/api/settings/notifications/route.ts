@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     return saved ? { ...defaultRule, ...saved } : defaultRule;
   });
 
-  return NextResponse.json({ rules });
+  return NextResponse.json({ data: rules });
 }
 
 // ─── PATCH: 알림 규칙 수정 ──────────────────────────────
@@ -127,5 +127,5 @@ export async function PATCH(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ rule: updatedRule });
+  return NextResponse.json({ data: updatedRule });
 }

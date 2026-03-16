@@ -281,7 +281,7 @@ function TemplatesTab() {
       const res = await fetch("/api/documents/templates");
       if (res.ok) {
         const json = await res.json();
-        setTemplates(json.templates);
+        setTemplates(json.data);
       }
     } finally {
       setLoading(false);
@@ -554,7 +554,7 @@ function SendTab() {
         const res = await fetch("/api/documents/templates");
         if (res.ok) {
           const json = await res.json();
-          setTemplates(json.templates.filter((t: DocumentTemplate) => t.isActive));
+          setTemplates(json.data.filter((t: DocumentTemplate) => t.isActive));
         }
       } finally {
         setLoadingTemplates(false);

@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return NextResponse.json({ schedules: scheduledReports });
+  return NextResponse.json({ data: scheduledReports });
 }
 
 // ─── POST: create ───────────────────────────────────────────
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
 
   scheduledReports.push(newReport);
 
-  return NextResponse.json({ schedule: newReport }, { status: 201 });
+  return NextResponse.json({ data: newReport }, { status: 201 });
 }
 
 // ─── PUT: update ────────────────────────────────────────────
@@ -147,7 +147,7 @@ export async function PUT(request: NextRequest) {
   if (recipients !== undefined) scheduledReports[idx].recipients = recipients;
   if (active !== undefined) scheduledReports[idx].active = active;
 
-  return NextResponse.json({ schedule: scheduledReports[idx] });
+  return NextResponse.json({ data: scheduledReports[idx] });
 }
 
 // ─── DELETE ─────────────────────────────────────────────────

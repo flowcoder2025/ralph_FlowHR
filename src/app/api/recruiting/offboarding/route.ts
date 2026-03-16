@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
 
   const employees = Object.values(grouped);
 
-  return NextResponse.json({ employees });
+  return NextResponse.json({ data: employees });
 }
 
 // ─── PATCH: 오프보딩 태스크 상태 변경 ──────────────────────────
@@ -140,5 +140,5 @@ export async function PATCH(request: NextRequest) {
     data: updateData,
   });
 
-  return NextResponse.json({ task: updated });
+  return NextResponse.json({ data: updated });
 }

@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     logoUrl: (stored.logoUrl as string) || "",
   };
 
-  return NextResponse.json({ company });
+  return NextResponse.json({ data: company });
 }
 
 // ─── PATCH: 회사 설정 수정 ──────────────────────────────
@@ -126,5 +126,5 @@ export async function PATCH(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ success: true, company: updatedSettings });
+  return NextResponse.json({ data: updatedSettings });
 }

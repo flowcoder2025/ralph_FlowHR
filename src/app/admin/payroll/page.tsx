@@ -283,7 +283,7 @@ function RulesTab() {
       const res = await fetch("/api/payroll/rules");
       if (res.ok) {
         const json = await res.json();
-        setRules(json.rules);
+        setRules(json.data);
       }
     } finally {
       setLoading(false);
@@ -798,7 +798,7 @@ function PayslipsTab() {
       );
       if (res.ok) {
         const json = await res.json();
-        setPayslips(json.payslips);
+        setPayslips(json.data);
         setTotal(json.total);
       }
     } finally {

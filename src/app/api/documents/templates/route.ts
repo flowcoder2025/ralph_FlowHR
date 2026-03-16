@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ templates });
+  return NextResponse.json({ data: templates });
 }
 
 // ─── POST: 문서 템플릿 생성 ─────────────────────────────
@@ -80,5 +80,5 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ template }, { status: 201 });
+  return NextResponse.json({ data: template }, { status: 201 });
 }

@@ -22,7 +22,7 @@ interface ReportCard {
 }
 
 interface DashboardData {
-  reports: ReportCard[];
+  data: ReportCard[];
 }
 
 // ─── Helpers ────────────────────────────────────────────────
@@ -119,7 +119,7 @@ function ReportsContent() {
 
       {/* 7-Card Grid */}
       <div className="grid grid-cols-1 gap-sp-4 sm:grid-cols-2 lg:grid-cols-3">
-        {data.reports.map((report) => (
+        {data.data.map((report) => (
           <Card key={report.id}>
             <CardBody className="text-center" style={{ padding: "var(--sp-6)" }}>
               <div

@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   if (!payrollRun) {
     return NextResponse.json({
-      payslips: [],
+      data: [],
       total: 0,
       page,
       pageSize,
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
   }));
 
   return NextResponse.json({
-    payslips: mapped,
+    data: mapped,
     total,
     page,
     pageSize,
