@@ -32,12 +32,12 @@ export default function EmployeeHomePage() {
 
         if (scheduleRes.ok) {
           const scheduleData = await scheduleRes.json();
-          const today = scheduleData.data?.todayRecord;
+          const today = scheduleData.data?.today;
           if (today) {
             setTodayStatus({
-              checkIn: today.checkIn ? new Date(today.checkIn).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }) : null,
-              checkOut: today.checkOut ? new Date(today.checkOut).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }) : null,
-              status: today.status || "NOT_STARTED",
+              checkIn: today.checkIn ?? null,
+              checkOut: today.checkOut ?? null,
+              status: today.status || "not_started",
             });
           }
         }
@@ -46,9 +46,14 @@ export default function EmployeeHomePage() {
           const profileData = await profileRes.json();
           const p = profileData.data;
           const quickStats: QuickStat[] = [];
-          if (p?.leaveBalances) {
-            const total = p.leaveBalances.reduce((s: number, b: { totalDays: number; usedDays: number }) => s + (b.totalDays - b.usedDays), 0);
-            quickStats.push({ label: "잔여 휴가", value: total + "일" });
+          if (p?.leaveBalances && Array.isArray(p.leaveBalances) && p.leaveBalances.length > 0) {
+            const total = p.leaveBalances.reduce(
+              (s: number, b: { total: number; used: number }) => s + ((b.total ?? 0) - (b.used ?? 0)),
+              0,
+            );
+            quickStats.push({ label: "잔여 휴가", value: (isNaN(total) ? 0 : total) + "일" });
+          } else {
+            quickStats.push({ label: "잔여 휴가", value: "0일" });
           }
           if (p?.goals) {
             quickStats.push({ label: "진행 목표", value: p.goals.length + "개" });

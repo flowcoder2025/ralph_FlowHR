@@ -11,9 +11,9 @@ const EMPLOYEE_NAV: NavSection[] = [
     items: [
       { id: "home", label: "홈", href: "/employee" },
       { id: "schedule", label: "일정", href: "/employee/schedule" },
-      { id: "requests", label: "요청", href: "/employee/requests", badge: 2 },
-      { id: "inbox", label: "인박스", href: "/employee/inbox", badge: 3 },
-      { id: "documents", label: "문서", href: "/employee/documents", badge: 1 },
+      { id: "requests", label: "요청", href: "/employee/requests" },
+      { id: "inbox", label: "인박스", href: "/employee/inbox" },
+      { id: "documents", label: "문서", href: "/employee/documents" },
       { id: "profile", label: "내 정보", href: "/employee/profile" },
     ],
   },
