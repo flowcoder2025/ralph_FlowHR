@@ -30,7 +30,6 @@ export function createMockToken(overrides?: Record<string, unknown>) {
     role: "SUPER_ADMIN",
     tenantId: "tenant-1",
     tenantSlug: "demo",
-    employeeId: "emp-1",
     employeeNumber: "EMP001",
     ...overrides,
   };
