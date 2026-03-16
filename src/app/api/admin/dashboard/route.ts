@@ -17,49 +17,113 @@ export async function GET(request: NextRequest) {
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
 
-  // ─── KPI 1: 승인 필요 ────────────────────────────────────
-  const pendingApprovals = await prisma.approvalRequest.count({
-    where: { tenantId, status: "PENDING" },
-  });
-  const yesterdayApprovals = await prisma.approvalRequest.count({
-    where: {
-      tenantId,
-      status: "PENDING",
-      createdAt: { lt: today },
-    },
-  });
-  const approvalDelta = pendingApprovals - yesterdayApprovals;
+  // ─── KPI + 대기열 병렬 조회 ──────────────────────────────
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
 
-  // ─── KPI 2: 근태 이상 (체크아웃 누락) ───────────────────
-  const checkoutMissing = await prisma.attendanceRecord.count({
-    where: {
-      tenantId,
-      date: { gte: today, lt: tomorrow },
-      checkIn: { not: null },
-      checkOut: null,
-    },
-  });
-  const yesterdayMissing = await prisma.attendanceRecord.count({
-    where: {
-      tenantId,
-      date: { gte: yesterday, lt: today },
-      checkIn: { not: null },
-      checkOut: null,
-    },
-  });
-  const missingDelta = checkoutMissing - yesterdayMissing;
-
-  // ─── KPI 3: 근로 시간 (52h 임박) ────────────────────────
   const weekStart = new Date(today);
   weekStart.setDate(weekStart.getDate() - 6);
 
-  const weekRecords = await prisma.attendanceRecord.findMany({
-    where: {
-      tenantId,
-      date: { gte: weekStart, lt: tomorrow },
-    },
-    select: { employeeId: true, workMinutes: true },
-  });
+  const [
+    pendingApprovals,
+    yesterdayApprovals,
+    checkoutMissing,
+    yesterdayMissing,
+    weekRecords,
+    unsignedDocs,
+    yesterdayUnsigned,
+    openClosings,
+    openPayrolls,
+    todayExceptions,
+    pendingLeaves,
+    pendingDocsSent,
+  ] = await Promise.all([
+    // KPI 1: 승인 필요
+    prisma.approvalRequest.count({
+      where: { tenantId, status: "PENDING" },
+    }),
+    prisma.approvalRequest.count({
+      where: {
+        tenantId,
+        status: "PENDING",
+        createdAt: { lt: today },
+      },
+    }),
+    // KPI 2: 근태 이상 (체크아웃 누락)
+    prisma.attendanceRecord.count({
+      where: {
+        tenantId,
+        date: { gte: today, lt: tomorrow },
+        checkIn: { not: null },
+        checkOut: null,
+      },
+    }),
+    prisma.attendanceRecord.count({
+      where: {
+        tenantId,
+        date: { gte: yesterday, lt: today },
+        checkIn: { not: null },
+        checkOut: null,
+      },
+    }),
+    // KPI 3: 근로 시간 (52h 임박)
+    prisma.attendanceRecord.findMany({
+      where: {
+        tenantId,
+        date: { gte: weekStart, lt: tomorrow },
+      },
+      select: { employeeId: true, workMinutes: true },
+    }),
+    // KPI 4: 문서 (서명 대기)
+    prisma.document.count({
+      where: { tenantId, status: "SENT" },
+    }),
+    prisma.document.count({
+      where: {
+        tenantId,
+        status: "SENT",
+        createdAt: { lt: today },
+      },
+    }),
+    // KPI 5: 마감 병목
+    prisma.attendanceClosing.count({
+      where: {
+        tenantId,
+        year: currentYear,
+        month: currentMonth,
+        status: { not: "CLOSED" },
+      },
+    }),
+    prisma.payrollRun.count({
+      where: {
+        tenantId,
+        year: currentYear,
+        month: currentMonth,
+        status: { notIn: ["CONFIRMED", "CANCELLED"] },
+      },
+    }),
+    // 오늘의 대기열
+    prisma.attendanceException.findMany({
+      where: { tenantId, status: "PENDING" },
+      include: {
+        employee: { select: { name: true, department: { select: { name: true } } } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    }),
+    prisma.leaveRequest.count({
+      where: { tenantId, status: "PENDING" },
+    }),
+    prisma.document.count({
+      where: { tenantId, status: "SENT" },
+    }),
+  ]);
+
+  const approvalDelta = pendingApprovals - yesterdayApprovals;
+  const missingDelta = checkoutMissing - yesterdayMissing;
+  const docsDelta = unsignedDocs - yesterdayUnsigned;
+  const closingBottleneck = openClosings + openPayrolls;
 
   const weeklyByEmployee = new Map<string, number>();
   for (const r of weekRecords) {
@@ -69,60 +133,6 @@ export async function GET(request: NextRequest) {
   const overtimeNear = Array.from(weeklyByEmployee.values()).filter(
     (mins) => mins >= 2880, // 48h+
   ).length;
-
-  // ─── KPI 4: 문서 (서명 대기) ─────────────────────────────
-  const unsignedDocs = await prisma.document.count({
-    where: { tenantId, status: "SENT" },
-  });
-  const yesterdayUnsigned = await prisma.document.count({
-    where: {
-      tenantId,
-      status: "SENT",
-      createdAt: { lt: today },
-    },
-  });
-  const docsDelta = unsignedDocs - yesterdayUnsigned;
-
-  // ─── KPI 5: 마감 병목 ────────────────────────────────────
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
-
-  const openClosings = await prisma.attendanceClosing.count({
-    where: {
-      tenantId,
-      year: currentYear,
-      month: currentMonth,
-      status: { not: "CLOSED" },
-    },
-  });
-  const openPayrolls = await prisma.payrollRun.count({
-    where: {
-      tenantId,
-      year: currentYear,
-      month: currentMonth,
-      status: { notIn: ["CONFIRMED", "CANCELLED"] },
-    },
-  });
-  const closingBottleneck = openClosings + openPayrolls;
-
-  // ─── 오늘의 대기열 ───────────────────────────────────────
-  const todayExceptions = await prisma.attendanceException.findMany({
-    where: { tenantId, status: "PENDING" },
-    include: {
-      employee: { select: { name: true, department: { select: { name: true } } } },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 10,
-  });
-
-  const pendingLeaves = await prisma.leaveRequest.count({
-    where: { tenantId, status: "PENDING" },
-  });
-
-  const pendingDocsSent = await prisma.document.count({
-    where: { tenantId, status: "SENT" },
-  });
 
   interface QueueItemData {
     priority: "critical" | "high" | "medium" | "low";
@@ -186,27 +196,112 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  // ─── 조직 스냅샷 ─────────────────────────────────────────
-  const departments = await prisma.department.findMany({
-    where: { tenantId },
-    select: {
-      id: true,
-      name: true,
-      employees: {
-        where: { status: "ACTIVE" },
-        select: { id: true },
+  // ─── 조직 스냅샷 + 승인 퍼널 + 예외 + 문서 + 급여 병렬 조회 ───
+  const [
+    departments,
+    todayRecords,
+    approvalsByStatus,
+    completedRequests,
+    slaOverdue,
+    todayAllExceptions,
+    unsignedTotal,
+    urgentDocs,
+    expiringContracts,
+    currentPayroll,
+    reissueRequests,
+  ] = await Promise.all([
+    // 조직 스냅샷
+    prisma.department.findMany({
+      where: { tenantId },
+      select: {
+        id: true,
+        name: true,
+        employees: {
+          where: { status: "ACTIVE" },
+          select: { id: true },
+        },
       },
-    },
-  });
+    }),
+    prisma.attendanceRecord.findMany({
+      where: {
+        tenantId,
+        date: { gte: today, lt: tomorrow },
+      },
+      select: { employeeId: true },
+    }),
+    // 승인 퍼널
+    prisma.approvalRequest.groupBy({
+      by: ["status"],
+      where: { tenantId },
+      _count: true,
+    }),
+    prisma.approvalRequest.findMany({
+      where: {
+        tenantId,
+        status: { in: ["APPROVED", "REJECTED"] },
+        completedAt: { not: null },
+      },
+      select: { createdAt: true, completedAt: true },
+      take: 50,
+      orderBy: { completedAt: "desc" },
+    }),
+    prisma.approvalRequest.count({
+      where: {
+        tenantId,
+        status: { in: ["PENDING", "IN_PROGRESS"] },
+        createdAt: {
+          lt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days
+        },
+      },
+    }),
+    // 예외 모니터
+    prisma.attendanceException.groupBy({
+      by: ["type"],
+      where: {
+        tenantId,
+        date: { gte: today, lt: tomorrow },
+      },
+      _count: true,
+    }),
+    // 문서 현황
+    prisma.document.count({
+      where: { tenantId, status: "SENT" },
+    }),
+    prisma.document.count({
+      where: {
+        tenantId,
+        status: "SENT",
+        deadline: {
+          lte: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+          gte: today,
+        },
+      },
+    }),
+    prisma.document.count({
+      where: {
+        tenantId,
+        status: { in: ["SIGNED"] },
+        deadline: {
+          lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          gte: today,
+        },
+      },
+    }),
+    // 급여 현황
+    prisma.payrollRun.findFirst({
+      where: {
+        tenantId,
+        year: currentYear,
+        month: currentMonth,
+      },
+      select: { status: true, currentStep: true },
+    }),
+    prisma.payslip.count({
+      where: { tenantId, status: "REISSUE_REQUESTED" },
+    }),
+  ]);
 
-  const todayRecords = await prisma.attendanceRecord.findMany({
-    where: {
-      tenantId,
-      date: { gte: today, lt: tomorrow },
-    },
-    select: { employeeId: true },
-  });
-
+  // 조직 스냅샷 계산
   const presentSet = new Set(todayRecords.map((r) => r.employeeId));
 
   const orgSnapshot = departments
@@ -219,17 +314,10 @@ export async function GET(request: NextRequest) {
     })
     .sort((a, b) => b.rate - a.rate);
 
-  // Signals
   const dangerDepts = orgSnapshot.filter((d) => d.rate < 85);
   const warningDepts = orgSnapshot.filter((d) => d.rate >= 85 && d.rate < 95);
 
-  // ─── 승인 퍼널 ───────────────────────────────────────────
-  const approvalsByStatus = await prisma.approvalRequest.groupBy({
-    by: ["status"],
-    where: { tenantId },
-    _count: true,
-  });
-
+  // 승인 퍼널 계산
   const funnelMap: Record<string, number> = {};
   for (const g of approvalsByStatus) {
     funnelMap[g.status] = g._count;
@@ -244,18 +332,6 @@ export async function GET(request: NextRequest) {
 
   const totalFunnel = funnelData.reduce((s, f) => s + f.count, 0);
 
-  // Average processing time (completed requests)
-  const completedRequests = await prisma.approvalRequest.findMany({
-    where: {
-      tenantId,
-      status: { in: ["APPROVED", "REJECTED"] },
-      completedAt: { not: null },
-    },
-    select: { createdAt: true, completedAt: true },
-    take: 50,
-    orderBy: { completedAt: "desc" },
-  });
-
   let avgProcessDays = 0;
   if (completedRequests.length > 0) {
     const totalDays = completedRequests.reduce((sum, r) => {
@@ -266,26 +342,7 @@ export async function GET(request: NextRequest) {
     avgProcessDays = Math.round((totalDays / completedRequests.length) * 10) / 10;
   }
 
-  const slaOverdue = await prisma.approvalRequest.count({
-    where: {
-      tenantId,
-      status: { in: ["PENDING", "IN_PROGRESS"] },
-      createdAt: {
-        lt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days
-      },
-    },
-  });
-
-  // ─── 예외 모니터 ─────────────────────────────────────────
-  const todayAllExceptions = await prisma.attendanceException.groupBy({
-    by: ["type"],
-    where: {
-      tenantId,
-      date: { gte: today, lt: tomorrow },
-    },
-    _count: true,
-  });
-
+  // 예외 모니터 계산
   interface ExceptionMonitorItem {
     type: string;
     label: string;
@@ -340,47 +397,7 @@ export async function GET(request: NextRequest) {
       return order[a.priority] - order[b.priority];
     });
 
-  // ─── 문서 현황 ───────────────────────────────────────────
-  const unsignedTotal = await prisma.document.count({
-    where: { tenantId, status: "SENT" },
-  });
-
-  const urgentDocs = await prisma.document.count({
-    where: {
-      tenantId,
-      status: "SENT",
-      deadline: {
-        lte: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-        gte: today,
-      },
-    },
-  });
-
-  const expiringContracts = await prisma.document.count({
-    where: {
-      tenantId,
-      status: { in: ["SIGNED"] },
-      deadline: {
-        lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        gte: today,
-      },
-    },
-  });
-
-  // ─── 급여 현황 ───────────────────────────────────────────
-  const currentPayroll = await prisma.payrollRun.findFirst({
-    where: {
-      tenantId,
-      year: currentYear,
-      month: currentMonth,
-    },
-    select: { status: true, currentStep: true },
-  });
-
-  const reissueRequests = await prisma.payslip.count({
-    where: { tenantId, status: "REISSUE_REQUESTED" },
-  });
-
+  // 급여 현황 계산
   const payrollChanges = currentPayroll
     ? currentPayroll.status !== "CONFIRMED"
       ? 1
