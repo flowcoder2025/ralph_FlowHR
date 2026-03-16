@@ -235,7 +235,26 @@ export default function SchedulePage() {
                 disabled={attendanceStatus === "working" || attendanceStatus === "done"}
                 className="min-w-[140px]"
                 onClick={async () => {
-                  const res = await fetch("/api/employee/schedule/checkin", { method: "POST" });
+                  let body: string | undefined;
+                  if (navigator.geolocation) {
+                    try {
+                      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                          enableHighAccuracy: true, timeout: 5000, maximumAge: 0,
+                        })
+                      );
+                      body = JSON.stringify({
+                        latitude: pos.coords.latitude,
+                        longitude: pos.coords.longitude,
+                      });
+                    } catch {
+                      // 위치 권한 거부 시 좌표 없이 진행
+                    }
+                  }
+                  const res = await fetch("/api/employee/schedule/checkin", {
+                    method: "POST",
+                    ...(body ? { headers: { "Content-Type": "application/json" }, body } : {}),
+                  });
                   if (res.ok) {
                     alert("출근 처리되었습니다.");
                     window.location.reload();
@@ -258,7 +277,26 @@ export default function SchedulePage() {
                 disabled={attendanceStatus !== "working"}
                 className="min-w-[140px]"
                 onClick={async () => {
-                  const res = await fetch("/api/employee/schedule/checkin", { method: "PATCH" });
+                  let body: string | undefined;
+                  if (navigator.geolocation) {
+                    try {
+                      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                          enableHighAccuracy: true, timeout: 5000, maximumAge: 0,
+                        })
+                      );
+                      body = JSON.stringify({
+                        latitude: pos.coords.latitude,
+                        longitude: pos.coords.longitude,
+                      });
+                    } catch {
+                      // 위치 권한 거부 시 좌표 없이 진행
+                    }
+                  }
+                  const res = await fetch("/api/employee/schedule/checkin", {
+                    method: "PATCH",
+                    ...(body ? { headers: { "Content-Type": "application/json" }, body } : {}),
+                  });
                   if (res.ok) {
                     alert("퇴근 처리되었습니다.");
                     window.location.reload();

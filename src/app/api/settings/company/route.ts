@@ -13,6 +13,9 @@ interface CompanySettings {
   workStartTime: string;
   workEndTime: string;
   logoUrl: string;
+  officeLatitude: string;
+  officeLongitude: string;
+  allowedRadius: string;
 }
 
 const DEFAULT_SETTINGS: CompanySettings = {
@@ -25,6 +28,9 @@ const DEFAULT_SETTINGS: CompanySettings = {
   workStartTime: "09:00",
   workEndTime: "18:00",
   logoUrl: "",
+  officeLatitude: "",
+  officeLongitude: "",
+  allowedRadius: "500",
 };
 
 // ─── GET: 회사 설정 조회 ────────────────────────────────
@@ -62,6 +68,9 @@ export async function GET(request: NextRequest) {
     workStartTime: (stored.workStartTime as string) || "09:00",
     workEndTime: (stored.workEndTime as string) || "18:00",
     logoUrl: (stored.logoUrl as string) || "",
+    officeLatitude: stored.officeLatitude !== undefined ? String(stored.officeLatitude) : "",
+    officeLongitude: stored.officeLongitude !== undefined ? String(stored.officeLongitude) : "",
+    allowedRadius: stored.allowedRadius !== undefined ? String(stored.allowedRadius) : "500",
   };
 
   return NextResponse.json({ data: company });
@@ -96,6 +105,9 @@ export async function PATCH(request: NextRequest) {
     workStartTime,
     workEndTime,
     logoUrl,
+    officeLatitude,
+    officeLongitude,
+    allowedRadius,
   } = body as Partial<CompanySettings & { name: string }>;
 
   const resolvedName = companyName || name;
@@ -125,6 +137,9 @@ export async function PATCH(request: NextRequest) {
     ...(workStartTime !== undefined && { workStartTime }),
     ...(workEndTime !== undefined && { workEndTime }),
     ...(logoUrl !== undefined && { logoUrl }),
+    ...(officeLatitude !== undefined && { officeLatitude: officeLatitude ? parseFloat(officeLatitude) : null }),
+    ...(officeLongitude !== undefined && { officeLongitude: officeLongitude ? parseFloat(officeLongitude) : null }),
+    ...(allowedRadius !== undefined && { allowedRadius: allowedRadius ? parseInt(allowedRadius, 10) : 500 }),
   };
 
   await prisma.tenant.update({

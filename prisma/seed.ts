@@ -125,6 +125,9 @@ async function main(): Promise<void> {
         fiscalYearStart: 1,
         defaultWorkHours: { start: "09:00", end: "18:00" },
         locale: "ko-KR",
+        officeLatitude: 37.4979,
+        officeLongitude: 127.0276,
+        allowedRadius: 500,
       },
     },
   });

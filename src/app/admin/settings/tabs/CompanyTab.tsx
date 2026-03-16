@@ -23,6 +23,9 @@ interface CompanyFormData {
   workStartTime: string;
   workEndTime: string;
   logoUrl: string;
+  officeLatitude: string;
+  officeLongitude: string;
+  allowedRadius: string;
 }
 
 const EMPTY_FORM: CompanyFormData = {
@@ -35,6 +38,9 @@ const EMPTY_FORM: CompanyFormData = {
   workStartTime: "09:00",
   workEndTime: "18:00",
   logoUrl: "",
+  officeLatitude: "",
+  officeLongitude: "",
+  allowedRadius: "500",
 };
 
 // ─── Constants ──────────────────────────────────────────────
@@ -90,6 +96,9 @@ export function CompanyTab() {
           workStartTime: json.data.workStartTime || "09:00",
           workEndTime: json.data.workEndTime || "18:00",
           logoUrl: json.data.logoUrl || "",
+          officeLatitude: json.data.officeLatitude || "",
+          officeLongitude: json.data.officeLongitude || "",
+          allowedRadius: json.data.allowedRadius || "500",
         });
       }
     } finally {
@@ -279,6 +288,35 @@ export function CompanyTab() {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+          {/* GPS 출퇴근 설정 — 전체 너비 */}
+          <div className="lg:col-span-2 border-t border-border pt-sp-6 mt-sp-2">
+            <h3 className="text-sm font-semibold text-text-primary mb-sp-4">
+              GPS 출퇴근 위치 설정
+            </h3>
+            <p className="text-xs text-text-tertiary mb-sp-4">
+              사무실 좌표와 허용 반경을 설정하면 출퇴근 시 위치를 검증합니다. 비워두면 위치 검증 없이 출퇴근됩니다.
+            </p>
+            <div className="grid grid-cols-1 gap-sp-4 sm:grid-cols-3">
+              <Input
+                label="사무실 위도"
+                value={form.officeLatitude}
+                onChange={(e) => setForm({ ...form, officeLatitude: e.target.value })}
+                placeholder="37.4979"
+              />
+              <Input
+                label="사무실 경도"
+                value={form.officeLongitude}
+                onChange={(e) => setForm({ ...form, officeLongitude: e.target.value })}
+                placeholder="127.0276"
+              />
+              <Input
+                label="허용 반경 (미터)"
+                value={form.allowedRadius}
+                onChange={(e) => setForm({ ...form, allowedRadius: e.target.value })}
+                placeholder="500"
+              />
             </div>
           </div>
         </div>
