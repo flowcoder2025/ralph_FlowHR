@@ -9,6 +9,7 @@ interface RouteContext {
 
 // ─── PATCH: 급여 규칙 수정 ──────────────────────────────
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -44,4 +45,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   });
 
   return NextResponse.json({ rule: updated });
+  } catch (error) {
+    console.error("[payroll/rules/[id] PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

@@ -7,6 +7,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -40,6 +41,13 @@ export async function GET(
   }
 
   return NextResponse.json({ data: employee });
+  } catch (error) {
+    console.error("[employees/[id] GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PATCH: 직원 정보 수정 ──────────────────────────────
@@ -47,6 +55,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -94,6 +103,13 @@ export async function PATCH(
   });
 
   return NextResponse.json({ data: updated });
+  } catch (error) {
+    console.error("[employees/[id] PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── DELETE: 직원 소프트 삭제 (퇴직 처리) ──────────────
@@ -101,6 +117,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -130,4 +147,11 @@ export async function DELETE(
   });
 
   return NextResponse.json({ data: updated });
+  } catch (error) {
+    console.error("[employees/[id] DELETE] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

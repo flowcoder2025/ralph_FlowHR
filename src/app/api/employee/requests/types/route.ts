@@ -70,6 +70,7 @@ const STATIC_REQUEST_TYPES = [
 ];
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -113,4 +114,11 @@ export async function GET(request: NextRequest) {
     types: [...leaveTypes, ...STATIC_REQUEST_TYPES],
     remainingLeave,
   });
+  } catch (error) {
+    console.error("[employee/requests/types GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

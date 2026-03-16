@@ -9,6 +9,7 @@ interface RouteContext {
 
 // ─── PATCH: 채용 공고 수정 ──────────────────────────────
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -64,10 +65,18 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   });
 
   return NextResponse.json({ posting: updated });
+  } catch (error) {
+    console.error("[recruiting/postings/[id] PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── DELETE: 채용 공고 삭제 (CANCELLED 상태로 변경) ──────
 export async function DELETE(request: NextRequest, context: RouteContext) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -93,4 +102,11 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   });
 
   return NextResponse.json({ posting: updated });
+  } catch (error) {
+    console.error("[recruiting/postings/[id] DELETE] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

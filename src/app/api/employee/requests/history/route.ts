@@ -18,6 +18,7 @@ const STATUS_MAP: Record<string, string> = {
 };
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -159,10 +160,18 @@ export async function GET(request: NextRequest) {
     page,
     pageSize,
   });
+  } catch (error) {
+    console.error("[employee/requests/history GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PATCH: 신청 취소 ──────────────────────────────────
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -255,4 +264,11 @@ export async function PATCH(request: NextRequest) {
   }
 
   return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[employee/requests/history PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

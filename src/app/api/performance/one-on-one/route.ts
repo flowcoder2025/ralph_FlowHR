@@ -4,6 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -75,10 +76,18 @@ export async function GET(request: NextRequest) {
       cancelledThisMonth,
     },
   });
+  } catch (error) {
+    console.error("[performance/one-on-one GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── POST: 1:1 미팅 생성 ───────────────────────────────
 export async function POST(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -136,4 +145,11 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ data: meeting }, { status: 201 });
+  } catch (error) {
+    console.error("[performance/one-on-one POST] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

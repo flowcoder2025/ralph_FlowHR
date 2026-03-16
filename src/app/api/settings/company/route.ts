@@ -29,6 +29,7 @@ const DEFAULT_SETTINGS: CompanySettings = {
 
 // ─── GET: 회사 설정 조회 ────────────────────────────────
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -64,10 +65,18 @@ export async function GET(request: NextRequest) {
   };
 
   return NextResponse.json({ data: company });
+  } catch (error) {
+    console.error("[settings/company GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PATCH: 회사 설정 수정 ──────────────────────────────
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -127,4 +136,11 @@ export async function PATCH(request: NextRequest) {
   });
 
   return NextResponse.json({ data: updatedSettings });
+  } catch (error) {
+    console.error("[settings/company PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
