@@ -14,6 +14,7 @@ const VALID_TYPES: ExceptionType[] = [
 const VALID_STATUSES: ExceptionStatus[] = ["PENDING", "APPROVED", "REJECTED"];
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -115,9 +116,17 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({ groups: Object.values(grouped) });
+  } catch (error) {
+    console.error("[attendance/exceptions GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId || !token.employeeNumber) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -159,4 +168,11 @@ export async function PATCH(request: NextRequest) {
     id: updated.id,
     status: updated.status,
   });
+  } catch (error) {
+    console.error("[attendance/exceptions PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

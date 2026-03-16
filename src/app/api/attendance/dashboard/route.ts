@@ -4,6 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -184,11 +185,11 @@ export async function GET(request: NextRequest) {
     (mins) => mins >= 2880,
   ).length; // 48h+
 
-  function formatTime(totalMinutes: number): string {
+  const formatTime = (totalMinutes: number): string => {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-  }
+  };
 
   return NextResponse.json({
     kpi: {
@@ -217,4 +218,11 @@ export async function GET(request: NextRequest) {
       near52hLimit: near52hCount,
     },
   });
+  } catch (error) {
+    console.error("[attendance/dashboard GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

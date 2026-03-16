@@ -13,6 +13,7 @@ const VALID_STATUSES: EmployeeStatus[] = [
 ];
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -70,10 +71,18 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil(total / pageSize),
     },
   });
+  } catch (error) {
+    console.error("[employees GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── POST: 직원 생성 ───────────────────────────────────
 export async function POST(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -123,4 +132,11 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ data: employee }, { status: 201 });
+  } catch (error) {
+    console.error("[employees POST] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

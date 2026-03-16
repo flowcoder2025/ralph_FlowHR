@@ -21,6 +21,7 @@ const VALID_STATUSES = [
 
 // ─── PATCH: 지원자 상태/스테이지 변경 (파이프라인 드래그앤드롭) ──
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -79,4 +80,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   });
 
   return NextResponse.json({ application: updated });
+  } catch (error) {
+    console.error("[recruiting/applications/[id] PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

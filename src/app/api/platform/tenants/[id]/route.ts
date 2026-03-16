@@ -7,6 +7,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  try {
   const token = await getToken({ req: request });
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -101,6 +102,13 @@ export async function GET(
     createdAt: tenant.createdAt.toISOString(),
     updatedAt: tenant.updatedAt.toISOString(),
   });
+  } catch (error) {
+    console.error("[platform/tenants/[id] GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PATCH: 테넌트 수정 ─────────────────────────────────
@@ -108,6 +116,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  try {
   const token = await getToken({ req: request });
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -146,4 +155,11 @@ export async function PATCH(
   });
 
   return NextResponse.json({ data: updated });
+  } catch (error) {
+    console.error("[platform/tenants/[id] PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

@@ -9,6 +9,7 @@ interface RouteContext {
 
 // ─── PATCH: 역할 수정 ──────────────────────────────────
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -62,10 +63,18 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   });
 
   return NextResponse.json({ role: updated });
+  } catch (error) {
+    console.error("[settings/roles/[id] PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── DELETE: 역할 삭제 ──────────────────────────────────
 export async function DELETE(request: NextRequest, context: RouteContext) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -108,4 +117,11 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   });
 
   return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[settings/roles/[id] DELETE] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

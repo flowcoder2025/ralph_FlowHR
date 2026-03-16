@@ -4,6 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -226,4 +227,11 @@ export async function GET(request: NextRequest) {
     cautionCount,
     lastUpdated: now.toISOString(),
   });
+  } catch (error) {
+    console.error("[platform/dashboard GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

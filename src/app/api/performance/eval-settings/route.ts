@@ -21,6 +21,7 @@ interface UpdateBody {
 }
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -58,9 +59,17 @@ export async function GET(request: NextRequest) {
   }));
 
   return NextResponse.json({ data: formatted });
+  } catch (error) {
+    console.error("[performance/eval-settings GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PUT(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -143,4 +152,11 @@ export async function PUT(request: NextRequest) {
     },
     { status: 201 },
   );
+  } catch (error) {
+    console.error("[performance/eval-settings PUT] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

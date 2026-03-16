@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 // ─── POST: 근태 정정 신청 ──────────────────────────────
 export async function POST(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -62,4 +63,11 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ data: exception }, { status: 201 });
+  } catch (error) {
+    console.error("[employee/requests/correction POST] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
