@@ -231,6 +231,25 @@ export function EmployeeDetailDrawer({ employeeId, onClose }: EmployeeDetailDraw
                 <Button size="sm" variant="secondary" onClick={() => { onClose(); router.push("/admin/attendance"); }}>근태 기록</Button>
                 <Button size="sm" variant="secondary" onClick={() => { onClose(); router.push("/admin/leave"); }}>휴가 이력</Button>
                 <Button size="sm" variant="secondary" onClick={() => { onClose(); router.push("/admin/payroll"); }}>급여 명세</Button>
+                <Button size="sm" variant="secondary" onClick={async () => {
+                  if (!employee) return;
+                  const newName = prompt("이름 수정", employee.name);
+                  if (!newName || newName === employee.name) return;
+                  const res = await fetch("/api/employees/" + employee.id, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: newName }),
+                  });
+                  if (res.ok) { alert("수정되었습니다."); window.location.reload(); }
+                  else alert("수정에 실패했습니다.");
+                }}>수정</Button>
+                <Button size="sm" variant="danger" onClick={async () => {
+                  if (!employee) return;
+                  if (!confirm(employee.name + " 직원을 퇴사 처리하시겠습니까?")) return;
+                  const res = await fetch("/api/employees/" + employee.id, { method: "DELETE" });
+                  if (res.ok) { alert("퇴사 처리되었습니다."); onClose(); window.location.reload(); }
+                  else alert("처리에 실패했습니다.");
+                }}>퇴사 처리</Button>
                 <Button size="sm" variant="primary" onClick={async () => {
                   if (!employee) return;
                   const date = prompt("1:1 일정 (예: 2026-03-20 14:00)");
