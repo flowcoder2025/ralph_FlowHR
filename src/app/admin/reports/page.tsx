@@ -110,9 +110,11 @@ function ReportsContent() {
                 예약 보고서
               </Button>
             </Link>
-            <Button variant="primary" size="sm" onClick={() => alert("커스텀 리포트 기능 준비 중입니다.")}>
-              커스텀 리포트
-            </Button>
+            <Link href="/admin/reports/custom">
+              <Button variant="primary" size="sm">
+                커스텀 리포트
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
