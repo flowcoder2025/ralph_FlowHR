@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { utcToday, utcTomorrow, utcMonday } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,16 +13,11 @@ export async function GET(request: NextRequest) {
 
   const tenantId = token.tenantId;
   const now = new Date();
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const today = utcToday();
+  const tomorrow = utcTomorrow();
 
   // Week start (Monday)
-  const weekStart = new Date(today);
-  const dayOfWeek = weekStart.getDay();
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  weekStart.setDate(weekStart.getDate() + mondayOffset);
+  const weekStart = utcMonday();
 
   // SLA threshold: 48 hours ago
   const slaThreshold = new Date(now);

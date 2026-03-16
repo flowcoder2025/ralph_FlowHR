@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { utcMonday } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,19 +12,15 @@ export async function GET(request: NextRequest) {
   }
 
   const tenantId = token.tenantId as string;
-  const now = new Date();
 
   // ── Week boundaries ─────────────────────────────────────
-  const dayOfWeek = now.getDay(); // 0=Sun
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - ((dayOfWeek + 6) % 7)); // Monday
-  startOfWeek.setHours(0, 0, 0, 0);
+  const startOfWeek = utcMonday();
 
   const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 7);
+  endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 7);
 
   const startOfPrevWeek = new Date(startOfWeek);
-  startOfPrevWeek.setDate(startOfWeek.getDate() - 7);
+  startOfPrevWeek.setUTCDate(startOfWeek.getUTCDate() - 7);
 
   // ── KPI 1: 진행 중 채용 (Active open postings) ──────────
   const openPostings = await prisma.jobPosting.count({

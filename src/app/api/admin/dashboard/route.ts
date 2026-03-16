@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { utcToday, utcTomorrow, utcYesterday, utcDaysOffset } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,20 +12,16 @@ export async function GET(request: NextRequest) {
   }
 
   const tenantId = token.tenantId;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+  const today = utcToday();
+  const tomorrow = utcTomorrow();
+  const yesterday = utcYesterday();
 
   // ─── KPI + 대기열 병렬 조회 ──────────────────────────────
   const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getUTCFullYear();
+  const currentMonth = now.getUTCMonth() + 1;
 
-  const weekStart = new Date(today);
-  weekStart.setDate(weekStart.getDate() - 6);
+  const weekStart = utcDaysOffset(-6);
 
   const [
     pendingApprovals,
@@ -38,7 +35,6 @@ export async function GET(request: NextRequest) {
     openPayrolls,
     todayExceptions,
     pendingLeaves,
-    pendingDocsSent,
   ] = await Promise.all([
     // KPI 1: 승인 필요
     prisma.approvalRequest.count({
@@ -116,9 +112,6 @@ export async function GET(request: NextRequest) {
     prisma.leaveRequest.count({
       where: { tenantId, status: "PENDING" },
     }),
-    prisma.document.count({
-      where: { tenantId, status: "SENT" },
-    }),
   ]);
 
   const approvalDelta = pendingApprovals - yesterdayApprovals;
@@ -187,11 +180,11 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  // Unsigned documents
-  if (pendingDocsSent > 0) {
+  // Unsigned documents (reuse unsignedDocs instead of duplicate query)
+  if (unsignedDocs > 0) {
     queueItems.push({
       priority: "medium",
-      title: `미서명 문서 ${pendingDocsSent}건`,
+      title: `미서명 문서 ${unsignedDocs}건`,
       meta: "서명 대기 중인 문서",
       actionLabel: "알림 발송",
     });

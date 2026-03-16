@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { utcToday } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,11 +16,11 @@ export async function GET(request: NextRequest) {
 
   // Parse month from query: ?year=2026&month=3 (1-indexed)
   const now = new Date();
-  const year = parseInt(url.searchParams.get("year") || String(now.getFullYear()), 10);
-  const month = parseInt(url.searchParams.get("month") || String(now.getMonth() + 1), 10);
+  const year = parseInt(url.searchParams.get("year") || String(now.getUTCFullYear()), 10);
+  const month = parseInt(url.searchParams.get("month") || String(now.getUTCMonth() + 1), 10);
 
-  const monthStart = new Date(year, month - 1, 1);
-  const monthEnd = new Date(year, month, 1);
+  const monthStart = new Date(Date.UTC(year, month - 1, 1));
+  const monthEnd = new Date(Date.UTC(year, month, 1));
 
   // ── Leave events for the month ─────────────────────────────
   const leaveRequests = await prisma.leaveRequest.findMany({
@@ -42,18 +43,17 @@ export async function GET(request: NextRequest) {
     const start = new Date(Math.max(req.startDate.getTime(), monthStart.getTime()));
     const end = new Date(Math.min(req.endDate.getTime(), monthEnd.getTime() - 1));
     const cursor = new Date(start);
-    cursor.setHours(0, 0, 0, 0);
+    cursor.setUTCHours(0, 0, 0, 0);
     while (cursor <= end) {
-      if (cursor.getMonth() === month - 1 && cursor.getFullYear() === year) {
-        eventDays.add(cursor.getDate());
+      if (cursor.getUTCMonth() === month - 1 && cursor.getUTCFullYear() === year) {
+        eventDays.add(cursor.getUTCDate());
       }
-      cursor.setDate(cursor.getDate() + 1);
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
     }
   }
 
   // ── Today's absences ───────────────────────────────────────
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
+  const today = utcToday();
 
   const todayAbsences = await prisma.leaveRequest.findMany({
     where: {

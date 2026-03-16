@@ -207,6 +207,34 @@ async function main(): Promise<void> {
       password: DEMO_PASSWORD_HASH,
     },
     {
+      email: "senior.designer@acme.example.com",
+      name: "정시니어",
+      roleId: acmeRoles.EMPLOYEE,
+      tenantId: acme.id,
+      password: DEMO_PASSWORD_HASH,
+    },
+    {
+      email: "frontend.lead@acme.example.com",
+      name: "한프론트",
+      roleId: acmeRoles.MANAGER,
+      tenantId: acme.id,
+      password: DEMO_PASSWORD_HASH,
+    },
+    {
+      email: "sales.mgr@acme.example.com",
+      name: "윤영업",
+      roleId: acmeRoles.EMPLOYEE,
+      tenantId: acme.id,
+      password: DEMO_PASSWORD_HASH,
+    },
+    {
+      email: "planner@acme.example.com",
+      name: "조기획",
+      roleId: acmeRoles.EMPLOYEE,
+      tenantId: acme.id,
+      password: DEMO_PASSWORD_HASH,
+    },
+    {
       email: "admin@techstart.example.com",
       name: "정대표",
       roleId: techRoles.SUPER_ADMIN,
@@ -237,7 +265,7 @@ async function main(): Promise<void> {
     });
   }
 
-  console.log("Seed completed: 2 tenants, 9 roles, 7 users");
+  console.log("Seed completed: 2 tenants, 9 roles, 11 users");
 
   // ─── Positions (Acme) ────────────────────────────────
 
@@ -288,6 +316,10 @@ async function main(): Promise<void> {
   const userHr = await prisma.user.findUnique({ where: { email: "hr@acme.example.com" } });
   const userManager = await prisma.user.findUnique({ where: { email: "manager@acme.example.com" } });
   const userEmployee = await prisma.user.findUnique({ where: { email: "employee@acme.example.com" } });
+  const userSenior = await prisma.user.findUnique({ where: { email: "senior.designer@acme.example.com" } });
+  const userFrontend = await prisma.user.findUnique({ where: { email: "frontend.lead@acme.example.com" } });
+  const userSales = await prisma.user.findUnique({ where: { email: "sales.mgr@acme.example.com" } });
+  const userPlanner = await prisma.user.findUnique({ where: { email: "planner@acme.example.com" } });
 
   const empDefs: {
     employeeNumber: string;
@@ -359,6 +391,7 @@ async function main(): Promise<void> {
       hireDate: "2022-09-01",
       status: EmployeeStatus.ACTIVE,
       type: EmploymentType.FULL_TIME,
+      userId: userSenior?.id,
     },
     {
       employeeNumber: "EMP-20230201",
@@ -370,6 +403,7 @@ async function main(): Promise<void> {
       hireDate: "2023-02-01",
       status: EmployeeStatus.ACTIVE,
       type: EmploymentType.FULL_TIME,
+      userId: userFrontend?.id,
     },
     {
       employeeNumber: "EMP-20230601",
@@ -381,6 +415,7 @@ async function main(): Promise<void> {
       hireDate: "2023-06-01",
       status: EmployeeStatus.ACTIVE,
       type: EmploymentType.FULL_TIME,
+      userId: userSales?.id,
     },
     {
       employeeNumber: "EMP-20240101",
@@ -392,6 +427,7 @@ async function main(): Promise<void> {
       hireDate: "2024-01-01",
       status: EmployeeStatus.ACTIVE,
       type: EmploymentType.FULL_TIME,
+      userId: userPlanner?.id,
     },
     {
       employeeNumber: "EMP-20240301",
@@ -672,12 +708,11 @@ async function main(): Promise<void> {
     let patternIdx = 0;
 
     for (let dayOffset = -29; dayOffset <= 0; dayOffset++) {
-      const date = new Date();
-      date.setDate(date.getDate() + dayOffset);
-      date.setHours(0, 0, 0, 0);
+      const now = new Date();
+      const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + dayOffset));
 
       // 주말(토, 일) 건너뛰기
-      const dow = date.getDay();
+      const dow = date.getUTCDay();
       if (dow === 0 || dow === 6) continue;
 
       const pattern = attendancePatterns[patternIdx % attendancePatterns.length];
@@ -685,11 +720,11 @@ async function main(): Promise<void> {
 
       const checkIn = new Date(date);
       const [ciH, ciM] = pattern.checkIn.split(":");
-      checkIn.setHours(parseInt(ciH, 10), parseInt(ciM, 10), 0, 0);
+      checkIn.setUTCHours(parseInt(ciH, 10), parseInt(ciM, 10), 0, 0);
 
       const checkOut = new Date(date);
       const [coH, coM] = pattern.checkOut.split(":");
-      checkOut.setHours(parseInt(coH, 10), parseInt(coM, 10), 0, 0);
+      checkOut.setUTCHours(parseInt(coH, 10), parseInt(coM, 10), 0, 0);
 
       await prisma.attendanceRecord.upsert({
         where: {
@@ -748,9 +783,8 @@ async function main(): Promise<void> {
 
   for (const def of exceptionDefs) {
     const empId = employeeIds[def.employeeNumber];
-    const date = new Date();
-    date.setDate(date.getDate() + def.dayOffset);
-    date.setHours(0, 0, 0, 0);
+    const nowEx = new Date();
+    const date = new Date(Date.UTC(nowEx.getUTCFullYear(), nowEx.getUTCMonth(), nowEx.getUTCDate() + def.dayOffset));
 
     await prisma.attendanceException.create({
       data: {
@@ -1236,8 +1270,8 @@ async function main(): Promise<void> {
   for (const def of approvalRequestDefs) {
     const wfId = workflowIds[def.workflowName];
     const requesterId = employeeIds[def.requesterNumber];
-    const createdAt = new Date();
-    createdAt.setDate(createdAt.getDate() + def.createdAtOffset);
+    const nowAr = new Date();
+    const createdAt = new Date(Date.UTC(nowAr.getUTCFullYear(), nowAr.getUTCMonth(), nowAr.getUTCDate() + def.createdAtOffset));
 
     const request = await prisma.approvalRequest.create({
       data: {

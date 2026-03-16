@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { utcToday, utcTodayEnd, utcMonday, utcDaysOffset, utcMonthStart, utcLastMonthStart, utcLastMonthEnd, isSameUTCDay } from "@/lib/date-utils";
 
 const SHIFT_TYPE_LABEL: Record<string, string> = {
   REGULAR: "일반 근무",
@@ -27,21 +28,8 @@ function formatWorkMinutes(minutes: number | null | undefined): string | null {
   return `${hours}시간 ${mins.toString().padStart(2, "0")}분`;
 }
 
-function getMonday(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
 function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
+  return isSameUTCDay(a, b);
 }
 
 function mapHistoryStatus(
@@ -84,7 +72,7 @@ export async function GET(request: NextRequest) {
   const pageSize = 10;
 
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const today = utcToday();
 
   // Shift assignment
   const shiftAssignment = await prisma.shiftAssignment.findFirst({
@@ -123,17 +111,17 @@ export async function GET(request: NextRequest) {
   };
 
   // Weekly schedule
-  const monday = getMonday(today);
+  const monday = utcMonday();
   const weekDays: Array<{ date: Date; dayLabel: string }> = [];
   for (let i = 0; i < 5; i++) {
     const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    weekDays.push({ date: d, dayLabel: DAY_LABELS[d.getDay()] });
+    d.setUTCDate(monday.getUTCDate() + i);
+    weekDays.push({ date: d, dayLabel: DAY_LABELS[d.getUTCDay()] });
   }
 
   const friday = weekDays[4].date;
   const weekEnd = new Date(friday);
-  weekEnd.setHours(23, 59, 59, 999);
+  weekEnd.setUTCHours(23, 59, 59, 999);
 
   const weekRecords = await prisma.attendanceRecord.findMany({
     where: {
@@ -143,7 +131,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const weekLabel = `${monday.getFullYear()}년 ${monday.getMonth() + 1}월 (${monday.getMonth() + 1}/${monday.getDate()} ~ ${friday.getMonth() + 1}/${friday.getDate()})`;
+  const weekLabel = `${monday.getUTCFullYear()}년 ${monday.getUTCMonth() + 1}월 (${monday.getUTCMonth() + 1}/${monday.getUTCDate()} ~ ${friday.getUTCMonth() + 1}/${friday.getUTCDate()})`;
 
   const weeklySchedule = weekDays.map((wd) => {
     const record = weekRecords.find((r) => isSameDay(new Date(r.date), wd.date));
@@ -161,7 +149,7 @@ export async function GET(request: NextRequest) {
     }
     return {
       dayLabel: wd.dayLabel,
-      date: `${wd.date.getMonth() + 1}월 ${wd.date.getDate()}일`,
+      date: `${wd.date.getUTCMonth() + 1}월 ${wd.date.getUTCDate()}일`,
       shiftType: shiftName,
       startTime: shiftStart,
       endTime: shiftEnd,
@@ -172,18 +160,15 @@ export async function GET(request: NextRequest) {
 
   // History
   let historyStart: Date;
-  let historyEnd: Date = new Date(today);
-  historyEnd.setHours(23, 59, 59, 999);
+  let historyEnd: Date = utcTodayEnd();
 
   if (filter === "lastMonth") {
-    historyStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-    historyEnd = new Date(today.getFullYear(), today.getMonth(), 0);
-    historyEnd.setHours(23, 59, 59, 999);
+    historyStart = utcLastMonthStart();
+    historyEnd = utcLastMonthEnd();
   } else if (filter === "thisMonth") {
-    historyStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    historyStart = utcMonthStart();
   } else {
-    historyStart = new Date(today);
-    historyStart.setDate(today.getDate() - 13);
+    historyStart = utcDaysOffset(-13);
   }
 
   const historyRecords = await prisma.attendanceRecord.findMany({
@@ -201,7 +186,7 @@ export async function GET(request: NextRequest) {
     return {
       id: r.id,
       date: r.date.toISOString().slice(0, 10),
-      dayLabel: DAY_LABELS[recordDate.getDay()],
+      dayLabel: DAY_LABELS[recordDate.getUTCDay()],
       checkIn: formatTime(r.checkIn),
       checkOut: formatTime(r.checkOut),
       totalWork: formatWorkMinutes(r.workMinutes),
