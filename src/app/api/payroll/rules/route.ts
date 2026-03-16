@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 // ─── GET: 급여 규칙 목록 조회 ────────────────────────────
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -29,11 +30,19 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ rules });
+  return NextResponse.json({ data: rules });
+  } catch (error) {
+    console.error("[payroll/rules GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── POST: 급여 규칙 생성 ───────────────────────────────
 export async function POST(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -89,5 +98,12 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ rule }, { status: 201 });
+  return NextResponse.json({ data: rule }, { status: 201 });
+  } catch (error) {
+    console.error("[payroll/rules POST] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

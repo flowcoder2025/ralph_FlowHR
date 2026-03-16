@@ -136,7 +136,7 @@ function WorkflowBuilder() {
       const res = await fetch("/api/workflow/workflows");
       if (res.ok) {
         const json = await res.json();
-        setWorkflows(json.workflows ?? []);
+        setWorkflows(json.data ?? []);
       }
     } finally {
       setLoading(false);

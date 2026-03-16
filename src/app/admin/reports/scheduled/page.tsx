@@ -78,7 +78,7 @@ export default function ScheduledReportsPage() {
       const res = await fetch("/api/reports/scheduled");
       if (res.ok) {
         const json = await res.json();
-        setSchedules(json.schedules);
+        setSchedules(json.data);
       }
     } finally {
       setLoading(false);

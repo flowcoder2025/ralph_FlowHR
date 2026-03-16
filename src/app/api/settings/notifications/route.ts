@@ -25,6 +25,7 @@ const DEFAULT_RULES: NotificationRule[] = [
 
 // ─── GET: 알림 규칙 목록 조회 ────────────────────────────
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -54,11 +55,19 @@ export async function GET(request: NextRequest) {
     return saved ? { ...defaultRule, ...saved } : defaultRule;
   });
 
-  return NextResponse.json({ rules });
+  return NextResponse.json({ data: rules });
+  } catch (error) {
+    console.error("[settings/notifications GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PATCH: 알림 규칙 수정 ──────────────────────────────
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -127,5 +136,12 @@ export async function PATCH(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ rule: updatedRule });
+  return NextResponse.json({ data: updatedRule });
+  } catch (error) {
+    console.error("[settings/notifications PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

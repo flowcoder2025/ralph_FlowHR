@@ -29,6 +29,7 @@ const DEFAULT_SETTINGS: CompanySettings = {
 
 // ─── GET: 회사 설정 조회 ────────────────────────────────
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -63,11 +64,19 @@ export async function GET(request: NextRequest) {
     logoUrl: (stored.logoUrl as string) || "",
   };
 
-  return NextResponse.json({ company });
+  return NextResponse.json({ data: company });
+  } catch (error) {
+    console.error("[settings/company GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PATCH: 회사 설정 수정 ──────────────────────────────
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -78,6 +87,7 @@ export async function PATCH(request: NextRequest) {
 
   const {
     companyName,
+    name,
     businessNumber,
     industry,
     representative,
@@ -86,14 +96,9 @@ export async function PATCH(request: NextRequest) {
     workStartTime,
     workEndTime,
     logoUrl,
-  } = body as Partial<CompanySettings>;
+  } = body as Partial<CompanySettings & { name: string }>;
 
-  if (!companyName || !companyName.trim()) {
-    return NextResponse.json(
-      { error: "회사명은 필수입니다" },
-      { status: 400 },
-    );
-  }
+  const resolvedName = companyName || name;
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },
@@ -111,24 +116,31 @@ export async function PATCH(request: NextRequest) {
 
   const updatedSettings = {
     ...existing,
-    companyName: companyName.trim(),
-    businessNumber: businessNumber?.trim() ?? "",
-    industry: industry ?? "",
-    representative: representative?.trim() ?? "",
-    fiscalYearStart: fiscalYearStart ?? "1",
-    timezone: timezone ?? "Asia/Seoul",
-    workStartTime: workStartTime ?? "09:00",
-    workEndTime: workEndTime ?? "18:00",
-    logoUrl: logoUrl ?? "",
+    ...(resolvedName && { companyName: resolvedName.trim() }),
+    ...(businessNumber !== undefined && { businessNumber: businessNumber.trim() }),
+    ...(industry !== undefined && { industry }),
+    ...(representative !== undefined && { representative: representative.trim() }),
+    ...(fiscalYearStart !== undefined && { fiscalYearStart }),
+    ...(timezone !== undefined && { timezone }),
+    ...(workStartTime !== undefined && { workStartTime }),
+    ...(workEndTime !== undefined && { workEndTime }),
+    ...(logoUrl !== undefined && { logoUrl }),
   };
 
   await prisma.tenant.update({
     where: { id: tenantId },
     data: {
-      name: companyName.trim(),
+      ...(resolvedName && { name: resolvedName.trim() }),
       settings: updatedSettings,
     },
   });
 
-  return NextResponse.json({ success: true, company: updatedSettings });
+  return NextResponse.json({ data: updatedSettings });
+  } catch (error) {
+    console.error("[settings/company PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

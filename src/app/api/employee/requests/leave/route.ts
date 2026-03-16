@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 // ─── POST: 휴가 신청 ───────────────────────────────────
 export async function POST(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -109,4 +110,11 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ data: leaveRequest }, { status: 201 });
+  } catch (error) {
+    console.error("[employee/requests/leave POST] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

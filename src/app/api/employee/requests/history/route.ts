@@ -18,13 +18,21 @@ const STATUS_MAP: Record<string, string> = {
 };
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
-  if (!token || !token.tenantId || !token.employeeId) {
+  if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const tenantId = token.tenantId;
-  const employeeId = token.employeeId as string;
+
+  const currentEmployee = await prisma.employee.findFirst({
+    where: { userId: token.id as string, tenantId: tenantId as string },
+  });
+  if (!currentEmployee) {
+    return NextResponse.json({ error: "Employee not found" }, { status: 404 });
+  }
+  const employeeId = currentEmployee.id;
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status") || "all";
   const page = parseInt(searchParams.get("page") || "1", 10);
@@ -152,17 +160,32 @@ export async function GET(request: NextRequest) {
     page,
     pageSize,
   });
+  } catch (error) {
+    console.error("[employee/requests/history GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PATCH: 신청 취소 ──────────────────────────────────
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
-  if (!token || !token.tenantId || !token.employeeId) {
+  if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const tenantId = token.tenantId as string;
-  const employeeId = token.employeeId as string;
+
+  const currentEmployee = await prisma.employee.findFirst({
+    where: { userId: token.id as string, tenantId },
+  });
+  if (!currentEmployee) {
+    return NextResponse.json({ error: "Employee not found" }, { status: 404 });
+  }
+  const employeeId = currentEmployee.id;
 
   const body = await request.json();
   const { id, type } = body as { id: string; type: "leave" | "correction" | "approval" };
@@ -241,4 +264,11 @@ export async function PATCH(request: NextRequest) {
   }
 
   return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[employee/requests/history PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

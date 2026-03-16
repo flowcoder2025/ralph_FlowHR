@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 // ─── GET: 오프보딩 태스크 목록 (직원별 그룹핑) ──────────────────
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -91,11 +92,19 @@ export async function GET(request: NextRequest) {
 
   const employees = Object.values(grouped);
 
-  return NextResponse.json({ employees });
+  return NextResponse.json({ data: employees });
+  } catch (error) {
+    console.error("[recruiting/offboarding GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PATCH: 오프보딩 태스크 상태 변경 ──────────────────────────
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -140,5 +149,12 @@ export async function PATCH(request: NextRequest) {
     data: updateData,
   });
 
-  return NextResponse.json({ task: updated });
+  return NextResponse.json({ data: updated });
+  } catch (error) {
+    console.error("[recruiting/offboarding PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

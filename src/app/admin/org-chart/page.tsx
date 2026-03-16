@@ -97,6 +97,30 @@ export default function OrgChartPage() {
           >
             전체 접기
           </button>
+          <button
+            type="button"
+            onClick={async () => {
+              const name = prompt("부서명을 입력하세요");
+              if (!name) return;
+              const code = prompt("부서 코드를 입력하세요 (예: SALES)");
+              if (!code) return;
+              const res = await fetch("/api/departments", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, code }),
+              });
+              if (res.ok) {
+                alert("부서가 추가되었습니다.");
+                window.location.reload();
+              } else {
+                const err = await res.json().catch(() => ({}));
+                alert(err.error || "부서 추가에 실패했습니다.");
+              }
+            }}
+            className="rounded-md bg-brand px-sp-3 py-sp-1 text-xs font-medium text-white transition-colors hover:bg-brand-hover"
+          >
+            + 부서 추가
+          </button>
         </div>
       </div>
 
@@ -197,6 +221,44 @@ function TreeNode({
               (전체 {totalCount}명)
             </span>
           )}
+        </div>
+
+        {/* Edit/Delete */}
+        <div className="hidden group-hover:flex shrink-0 items-center gap-sp-1">
+          <button
+            type="button"
+            onClick={async (e) => {
+              e.stopPropagation();
+              const newName = prompt("부서명 수정", node.name);
+              if (!newName || newName === node.name) return;
+              const res = await fetch("/api/departments", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: node.id, name: newName }),
+              });
+              if (res.ok) window.location.reload();
+              else alert("수정에 실패했습니다.");
+            }}
+            className="rounded px-sp-2 py-sp-1 text-xs text-text-secondary hover:bg-surface-tertiary"
+          >
+            수정
+          </button>
+          <button
+            type="button"
+            onClick={async (e) => {
+              e.stopPropagation();
+              if (!confirm(`"${node.name}" 부서를 삭제하시겠습니까?`)) return;
+              const res = await fetch(`/api/departments?id=${node.id}`, { method: "DELETE" });
+              if (res.ok) window.location.reload();
+              else {
+                const err = await res.json().catch(() => ({}));
+                alert(err.error || "삭제에 실패했습니다.");
+              }
+            }}
+            className="rounded px-sp-2 py-sp-1 text-xs text-status-danger-solid hover:bg-red-50"
+          >
+            삭제
+          </button>
         </div>
       </div>
 

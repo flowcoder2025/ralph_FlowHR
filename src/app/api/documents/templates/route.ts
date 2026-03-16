@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 // ─── GET: 문서 템플릿 목록 조회 ──────────────────────────
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -28,11 +29,19 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ templates });
+  return NextResponse.json({ data: templates });
+  } catch (error) {
+    console.error("[documents/templates GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── POST: 문서 템플릿 생성 ─────────────────────────────
 export async function POST(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -80,5 +89,12 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ template }, { status: 201 });
+  return NextResponse.json({ data: template }, { status: 201 });
+  } catch (error) {
+    console.error("[documents/templates POST] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

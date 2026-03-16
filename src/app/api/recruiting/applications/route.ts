@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 // ─── GET: 지원자 목록 조회 (공고별, 파이프라인 스테이지별) ────
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,5 +42,12 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ applications });
+  return NextResponse.json({ data: applications });
+  } catch (error) {
+    console.error("[recruiting/applications GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

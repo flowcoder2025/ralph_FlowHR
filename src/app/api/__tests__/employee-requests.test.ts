@@ -24,6 +24,11 @@ describe("GET /api/employee/requests/types", () => {
   it("활성 휴가 정책 기반 요청 유형과 잔여 연차 반환", async () => {
     mockGetToken.mockResolvedValue(createMockToken());
 
+    prismaMock.employee.findFirst.mockResolvedValue({
+      id: "emp-1",
+      tenantId: "tenant-1",
+    });
+
     prismaMock.leavePolicy.findMany.mockResolvedValue([
       { id: "p1", type: "ANNUAL", name: "연차", isActive: true },
       { id: "p2", type: "HALF_DAY", name: "반차", isActive: true },
@@ -78,19 +83,29 @@ describe("GET /api/employee/requests/history", () => {
     expect(response.status).toBe(401);
   });
 
-  it("employeeId 없으면 401 반환", async () => {
-    mockGetToken.mockResolvedValue({
-      id: "user-1",
-      tenantId: "tenant-1",
-      employeeId: null,
-    });
+  it("직원 레코드가 없으면 404 반환", async () => {
+    mockGetToken.mockResolvedValue(createMockToken());
+    prismaMock.employee.findFirst.mockResolvedValue(null);
+
     const request = createMockRequest("/api/employee/requests/history");
     const response = await getHistory(request);
-    expect(response.status).toBe(401);
+    const body = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(body.error).toBe("Employee not found");
   });
 
   it("요청 이력과 페이지네이션 반환", async () => {
     mockGetToken.mockResolvedValue(createMockToken());
+
+    // First call: user→employee lookup, Second call: manager info
+    prismaMock.employee.findFirst
+      .mockResolvedValueOnce({ id: "emp-1", tenantId: "tenant-1" })
+      .mockResolvedValueOnce({
+        department: {
+          manager: { name: "박서준" },
+        },
+      });
 
     prismaMock.leaveRequest.findMany.mockResolvedValue([
       {
@@ -105,11 +120,6 @@ describe("GET /api/employee/requests/history", () => {
     ]);
     prismaMock.attendanceException.findMany.mockResolvedValue([]);
     prismaMock.approvalRequest.findMany.mockResolvedValue([]);
-    prismaMock.employee.findFirst.mockResolvedValue({
-      department: {
-        manager: { name: "박서준" },
-      },
-    });
 
     const request = createMockRequest("/api/employee/requests/history");
     const response = await getHistory(request);
@@ -132,6 +142,13 @@ describe("GET /api/employee/requests/history", () => {
 
   it("여러 유형의 이력 통합 반환", async () => {
     mockGetToken.mockResolvedValue(createMockToken());
+
+    // First call: user→employee lookup, Second call: manager info
+    prismaMock.employee.findFirst
+      .mockResolvedValueOnce({ id: "emp-1", tenantId: "tenant-1" })
+      .mockResolvedValueOnce({
+        department: { manager: { name: "박서준" } },
+      });
 
     prismaMock.leaveRequest.findMany.mockResolvedValue([
       {
@@ -162,9 +179,6 @@ describe("GET /api/employee/requests/history", () => {
         createdAt: new Date("2026-02-25"),
       },
     ]);
-    prismaMock.employee.findFirst.mockResolvedValue({
-      department: { manager: { name: "박서준" } },
-    });
 
     const request = createMockRequest("/api/employee/requests/history");
     const response = await getHistory(request);
@@ -180,10 +194,15 @@ describe("GET /api/employee/requests/history", () => {
 
   it("상태 필터 적용", async () => {
     mockGetToken.mockResolvedValue(createMockToken());
+
+    // First call: user→employee lookup, Second call: manager info
+    prismaMock.employee.findFirst
+      .mockResolvedValueOnce({ id: "emp-1", tenantId: "tenant-1" })
+      .mockResolvedValueOnce(null);
+
     prismaMock.leaveRequest.findMany.mockResolvedValue([]);
     prismaMock.attendanceException.findMany.mockResolvedValue([]);
     prismaMock.approvalRequest.findMany.mockResolvedValue([]);
-    prismaMock.employee.findFirst.mockResolvedValue(null);
 
     const request = createMockRequest(
       "/api/employee/requests/history?status=pending",

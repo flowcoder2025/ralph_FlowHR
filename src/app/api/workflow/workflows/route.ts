@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 // ─── GET: 워크플로우 목록 조회 ─────────────────────────────
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -29,11 +30,19 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ workflows });
+  return NextResponse.json({ data: workflows });
+  } catch (error) {
+    console.error("[workflow/workflows GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── POST: 워크플로우 생성 ──────────────────────────────────
 export async function POST(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -81,5 +90,12 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ workflow }, { status: 201 });
+  return NextResponse.json({ data: workflow }, { status: 201 });
+  } catch (error) {
+    console.error("[workflow/workflows POST] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

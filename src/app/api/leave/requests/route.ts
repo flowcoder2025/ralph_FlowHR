@@ -4,6 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -74,16 +75,31 @@ export async function GET(request: NextRequest) {
     rejected: items.filter((i) => i.status === "REJECTED").length,
   };
 
-  return NextResponse.json({ items, summary });
+  return NextResponse.json({ data: items, summary });
+  } catch (error) {
+    console.error("[leave/requests GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
-  if (!token || !token.tenantId || !token.employeeId) {
+  if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const tenantId = token.tenantId;
+
+  const currentEmployee = await prisma.employee.findFirst({
+    where: { userId: token.id as string, tenantId: tenantId as string },
+  });
+  if (!currentEmployee) {
+    return NextResponse.json({ error: "Employee not found" }, { status: 404 });
+  }
   const body = await request.json();
   const { id, action } = body as { id: string; action: "approve" | "reject"; rejectReason?: string };
 
@@ -111,7 +127,7 @@ export async function PATCH(request: NextRequest) {
         where: { id },
         data: {
           status: "APPROVED",
-          approvedBy: token.employeeId as string,
+          approvedBy: currentEmployee.id,
           approvedAt: now,
         },
       }),
@@ -134,7 +150,7 @@ export async function PATCH(request: NextRequest) {
         where: { id },
         data: {
           status: "REJECTED",
-          rejectedBy: token.employeeId as string,
+          rejectedBy: currentEmployee.id,
           rejectedAt: now,
           rejectReason: body.rejectReason || null,
         },
@@ -154,4 +170,11 @@ export async function PATCH(request: NextRequest) {
   }
 
   return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[leave/requests PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
