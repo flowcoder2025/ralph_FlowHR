@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 // ─── POST: 출근 기록 생성 ──────────────────────────────
 export async function POST(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -47,10 +48,18 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ data: record }, { status: 201 });
+  } catch (error) {
+    console.error("[employee/schedule/checkin POST] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PATCH: 퇴근 기록 업데이트 ─────────────────────────
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -108,4 +117,11 @@ export async function PATCH(request: NextRequest) {
   });
 
   return NextResponse.json({ data: record });
+  } catch (error) {
+    console.error("[employee/schedule/checkin PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

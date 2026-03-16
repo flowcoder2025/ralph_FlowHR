@@ -69,17 +69,26 @@ let nextId = 6;
 // ─── GET: list ──────────────────────────────────────────────
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   return NextResponse.json({ data: scheduledReports });
+  } catch (error) {
+    console.error("[reports/scheduled GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── POST: create ───────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -113,11 +122,19 @@ export async function POST(request: NextRequest) {
   scheduledReports.push(newReport);
 
   return NextResponse.json({ data: newReport }, { status: 201 });
+  } catch (error) {
+    console.error("[reports/scheduled POST] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PUT: update ────────────────────────────────────────────
 
 export async function PUT(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -148,11 +165,19 @@ export async function PUT(request: NextRequest) {
   if (active !== undefined) scheduledReports[idx].active = active;
 
   return NextResponse.json({ data: scheduledReports[idx] });
+  } catch (error) {
+    console.error("[reports/scheduled PUT] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── DELETE ─────────────────────────────────────────────────
 
 export async function DELETE(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -176,4 +201,11 @@ export async function DELETE(request: NextRequest) {
   scheduledReports.splice(idx, 1);
 
   return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[reports/scheduled DELETE] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

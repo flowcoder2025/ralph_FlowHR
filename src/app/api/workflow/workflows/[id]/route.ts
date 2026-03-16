@@ -9,6 +9,7 @@ interface RouteContext {
 
 // ─── GET: 워크플로우 상세 조회 ──────────────────────────────
 export async function GET(request: NextRequest, context: RouteContext) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -32,10 +33,18 @@ export async function GET(request: NextRequest, context: RouteContext) {
   }
 
   return NextResponse.json({ workflow });
+  } catch (error) {
+    console.error("[workflow/workflows/[id] GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PATCH: 워크플로우 수정 ─────────────────────────────────
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -84,10 +93,18 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   });
 
   return NextResponse.json({ workflow });
+  } catch (error) {
+    console.error("[workflow/workflows/[id] PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── DELETE: 워크플로우 삭제 ────────────────────────────────
 export async function DELETE(request: NextRequest, context: RouteContext) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -118,4 +135,11 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   await prisma.workflow.delete({ where: { id } });
 
   return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[workflow/workflows/[id] DELETE] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

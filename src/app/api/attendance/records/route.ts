@@ -13,6 +13,7 @@ const VALID_STATUSES: AttendanceStatus[] = [
 ];
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -141,10 +142,18 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil(total / pageSize),
     },
   });
+  } catch (error) {
+    console.error("[attendance/records GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PATCH: 출퇴근 기록 수정 ────────────────────────────
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -227,4 +236,11 @@ export async function PATCH(request: NextRequest) {
   });
 
   return NextResponse.json({ data: updated });
+  } catch (error) {
+    console.error("[attendance/records PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

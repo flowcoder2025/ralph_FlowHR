@@ -4,6 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -161,10 +162,18 @@ export async function GET(request: NextRequest) {
     weekDays: formattedDays,
     departments,
   });
+  } catch (error) {
+    console.error("[attendance/shifts GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── POST: 근무 시프트 배정 생성 ────────────────────────
 export async function POST(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -221,10 +230,18 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ data: assignment }, { status: 201 });
+  } catch (error) {
+    console.error("[attendance/shifts POST] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PATCH: 근무 시프트 배정 수정 ───────────────────────
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -293,4 +310,11 @@ export async function PATCH(request: NextRequest) {
   });
 
   return NextResponse.json({ data: updated });
+  } catch (error) {
+    console.error("[attendance/shifts PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

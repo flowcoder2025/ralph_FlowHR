@@ -11,6 +11,7 @@ const VALID_TRANSITIONS: Record<ClosingStatus, ClosingStatus | null> = {
 };
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -161,9 +162,17 @@ export async function GET(request: NextRequest) {
     totalHours: totalHoursComputed,
     checklist,
   });
+  } catch (error) {
+    console.error("[attendance/closing GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId || !token.employeeNumber) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -218,4 +227,11 @@ export async function PATCH(request: NextRequest) {
     closedBy: updated.closedBy,
     closedAt: updated.closedAt,
   });
+  } catch (error) {
+    console.error("[attendance/closing PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

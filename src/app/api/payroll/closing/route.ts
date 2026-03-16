@@ -25,6 +25,7 @@ const VALID_TRANSITIONS: Record<PayrollRunStatus, PayrollRunStatus | null> = {
 };
 
 export async function GET(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -206,9 +207,17 @@ export async function GET(request: NextRequest) {
       : null,
     checklist,
   });
+  } catch (error) {
+    console.error("[payroll/closing GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId || !token.employeeNumber) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -267,4 +276,11 @@ export async function PATCH(request: NextRequest) {
     confirmedBy: updated.confirmedBy,
     confirmedAt: updated.confirmedAt,
   });
+  } catch (error) {
+    console.error("[payroll/closing PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }

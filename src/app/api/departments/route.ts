@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 // ─── POST: 부서 생성 ──────────────────────────────────
 export async function POST(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -37,10 +38,18 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ data: dept }, { status: 201 });
+  } catch (error) {
+    console.error("[departments POST] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── PATCH: 부서 수정 ──────────────────────────────────
 export async function PATCH(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -78,10 +87,18 @@ export async function PATCH(request: NextRequest) {
   });
 
   return NextResponse.json({ data: updated });
+  } catch (error) {
+    console.error("[departments PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
 
 // ─── DELETE: 부서 삭제 ──────────────────────────────────
 export async function DELETE(request: NextRequest) {
+  try {
   const token = await getToken({ req: request });
   if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -115,4 +132,11 @@ export async function DELETE(request: NextRequest) {
   await prisma.department.delete({ where: { id } });
 
   return NextResponse.json({ data: { id } });
+  } catch (error) {
+    console.error("[departments DELETE] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
 }
