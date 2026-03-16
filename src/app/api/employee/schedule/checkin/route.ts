@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { utcToday } from "@/lib/date-utils";
 
 // ─── POST: 출근 기록 생성 ──────────────────────────────
 export async function POST(request: NextRequest) {
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
   const employeeId = employee.id;
 
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const today = utcToday();
 
   // 오늘 이미 출근 기록이 있는지 확인
   const existing = await prisma.attendanceRecord.findUnique({
@@ -75,7 +76,7 @@ export async function PATCH(request: NextRequest) {
   const employeeId = employee.id;
 
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const today = utcToday();
 
   const existing = await prisma.attendanceRecord.findUnique({
     where: {

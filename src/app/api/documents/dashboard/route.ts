@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { utcMonday } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,20 +13,15 @@ export async function GET(request: NextRequest) {
 
   const tenantId = token.tenantId;
   const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-  const monthStart = new Date(currentYear, currentMonth, 1);
-  const monthEnd = new Date(currentYear, currentMonth + 1, 1);
+  const currentMonth = now.getUTCMonth();
+  const currentYear = now.getUTCFullYear();
+  const monthStart = new Date(Date.UTC(currentYear, currentMonth, 1));
+  const monthEnd = new Date(Date.UTC(currentYear, currentMonth + 1, 1));
 
   // Week boundaries (Monday-based)
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
-  const dayOfWeek = today.getDay();
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  const weekStart = new Date(today);
-  weekStart.setDate(weekStart.getDate() + mondayOffset);
+  const weekStart = utcMonday();
   const prevWeekStart = new Date(weekStart);
-  prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+  prevWeekStart.setUTCDate(prevWeekStart.getUTCDate() - 7);
 
   // 7 days from now for expiring
   const sevenDaysLater = new Date(now);

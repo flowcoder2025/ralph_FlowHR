@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { utcToday } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,12 +13,9 @@ export async function GET(request: NextRequest) {
 
   const tenantId = token.tenantId;
   const now = new Date();
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth(); // 0-indexed
+  const today = utcToday();
+  const currentYear = now.getUTCFullYear();
+  const currentMonth = now.getUTCMonth(); // 0-indexed
 
   // ── KPI 1: 오늘 휴가 (Today's absences) ─────────────────────
   const todayAbsences = await prisma.leaveRequest.count({
@@ -35,8 +33,6 @@ export async function GET(request: NextRequest) {
   });
 
   // Yesterday's pending for delta
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
   const pendingCreatedYesterday = await prisma.leaveRequest.count({
     where: {
       tenantId,
@@ -70,8 +66,8 @@ export async function GET(request: NextRequest) {
       : 0;
 
   // ── KPI 4: 이번 달 사용 (This month's usage) ────────────────
-  const monthStart = new Date(currentYear, currentMonth, 1);
-  const monthEnd = new Date(currentYear, currentMonth + 1, 1);
+  const monthStart = new Date(Date.UTC(currentYear, currentMonth, 1));
+  const monthEnd = new Date(Date.UTC(currentYear, currentMonth + 1, 1));
 
   const monthRequests = await prisma.leaveRequest.findMany({
     where: {
@@ -86,7 +82,7 @@ export async function GET(request: NextRequest) {
   const monthUsedDays = monthRequests.reduce((sum, r) => sum + r.days, 0);
 
   // Previous month for delta
-  const prevMonthStart = new Date(currentYear, currentMonth - 1, 1);
+  const prevMonthStart = new Date(Date.UTC(currentYear, currentMonth - 1, 1));
   const prevMonthEnd = monthStart;
 
   const prevMonthRequests = await prisma.leaveRequest.findMany({

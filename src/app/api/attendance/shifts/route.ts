@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { utcMonday } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,14 +20,9 @@ export async function GET(request: NextRequest) {
 
   if (weekParam) {
     weekStart = new Date(weekParam);
-    weekStart.setHours(0, 0, 0, 0);
+    weekStart.setUTCHours(0, 0, 0, 0);
   } else {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dayOfWeek = today.getDay();
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    weekStart = new Date(today);
-    weekStart.setDate(today.getDate() + mondayOffset);
+    weekStart = utcMonday();
   }
 
   const weekEnd = new Date(weekStart);
@@ -122,11 +118,11 @@ export async function GET(request: NextRequest) {
     for (let i = 0; i < weekDays.length; i++) {
       const dayDate = new Date(weekDays[i]);
       const assignStart = new Date(assignment.startDate);
-      assignStart.setHours(0, 0, 0, 0);
+      assignStart.setUTCHours(0, 0, 0, 0);
       const assignEnd = assignment.endDate
         ? new Date(assignment.endDate)
         : null;
-      if (assignEnd) assignEnd.setHours(23, 59, 59, 999);
+      if (assignEnd) assignEnd.setUTCHours(23, 59, 59, 999);
 
       if (
         dayDate >= assignStart &&
@@ -151,9 +147,9 @@ export async function GET(request: NextRequest) {
   const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
   const formattedDays = weekDays.map((dateStr) => {
     const d = new Date(dateStr);
-    const month = d.getMonth() + 1;
-    const day = d.getDate();
-    const dayName = DAY_NAMES[d.getDay()];
+    const month = d.getUTCMonth() + 1;
+    const day = d.getUTCDate();
+    const dayName = DAY_NAMES[d.getUTCDay()];
     return { date: dateStr, label: `${dayName} (${month}/${day})` };
   });
 

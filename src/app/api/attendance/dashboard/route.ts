@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { utcToday, utcTomorrow, utcYesterday, utcDaysOffset } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,12 +12,9 @@ export async function GET(request: NextRequest) {
   }
 
   const tenantId = token.tenantId;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+  const today = utcToday();
+  const tomorrow = utcTomorrow();
+  const yesterday = utcYesterday();
 
   // Total active employees
   const totalEmployees = await prisma.employee.count({
@@ -124,8 +122,7 @@ export async function GET(request: NextRequest) {
     .sort((a, b) => b.value - a.value);
 
   // Weekly summary (last 7 days)
-  const weekStart = new Date(today);
-  weekStart.setDate(weekStart.getDate() - 6);
+  const weekStart = utcDaysOffset(-6);
 
   const weekRecords = await prisma.attendanceRecord.findMany({
     where: {
