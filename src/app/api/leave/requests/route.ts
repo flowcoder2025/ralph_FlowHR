@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     rejected: items.filter((i) => i.status === "REJECTED").length,
   };
 
-  return NextResponse.json({ items, summary });
+  return NextResponse.json({ data: items, summary });
 }
 
 export async function PATCH(request: NextRequest) {

@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ workflows });
+  return NextResponse.json({ data: workflows });
 }
 
 // ─── POST: 워크플로우 생성 ──────────────────────────────────
@@ -81,5 +81,5 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ workflow }, { status: 201 });
+  return NextResponse.json({ data: workflow }, { status: 201 });
 }

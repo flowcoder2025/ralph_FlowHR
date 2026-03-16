@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ policies });
+  return NextResponse.json({ data: policies });
 }
 
 // ─── POST: 휴가 정책 생성 ───────────────────────────────
@@ -82,5 +82,5 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ policy }, { status: 201 });
+  return NextResponse.json({ data: policy }, { status: 201 });
 }

@@ -374,7 +374,7 @@ function EvaluationSettings() {
       const res = await fetch("/api/performance/eval-settings");
       if (res.ok) {
         const json = await res.json();
-        const list: EvalCycleData[] = json.cycles ?? [];
+        const list: EvalCycleData[] = json.data ?? [];
         setCycles(list);
 
         // Pre-fill form from the most recent ACTIVE cycle (or first cycle)
@@ -865,7 +865,7 @@ interface OneOnOneMeeting {
 }
 
 interface OneOnOneData {
-  meetings: OneOnOneMeeting[];
+  data: OneOnOneMeeting[];
   stats: {
     completedThisMonth: number;
     cancelledThisMonth: number;
@@ -941,7 +941,8 @@ function OneOnOneHub() {
     );
   }
 
-  const { meetings, stats } = data;
+  const meetings = data.data;
+  const { stats } = data;
   const selectedMeeting = meetings.find((m) => m.id === selectedMeetingId);
 
   return (

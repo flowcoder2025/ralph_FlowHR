@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ rules });
+  return NextResponse.json({ data: rules });
 }
 
 // ─── POST: 급여 규칙 생성 ───────────────────────────────
@@ -89,5 +89,5 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ rule }, { status: 201 });
+  return NextResponse.json({ data: rule }, { status: 201 });
 }

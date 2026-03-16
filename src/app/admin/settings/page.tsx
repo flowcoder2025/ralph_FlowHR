@@ -223,15 +223,15 @@ function CompanyTab() {
       if (res.ok) {
         const json = await res.json();
         setForm({
-          companyName: json.company.companyName || "",
-          businessNumber: json.company.businessNumber || "",
-          industry: json.company.industry || "",
-          representative: json.company.representative || "",
-          fiscalYearStart: json.company.fiscalYearStart || "1",
-          timezone: json.company.timezone || "Asia/Seoul",
-          workStartTime: json.company.workStartTime || "09:00",
-          workEndTime: json.company.workEndTime || "18:00",
-          logoUrl: json.company.logoUrl || "",
+          companyName: json.data.companyName || "",
+          businessNumber: json.data.businessNumber || "",
+          industry: json.data.industry || "",
+          representative: json.data.representative || "",
+          fiscalYearStart: json.data.fiscalYearStart || "1",
+          timezone: json.data.timezone || "Asia/Seoul",
+          workStartTime: json.data.workStartTime || "09:00",
+          workEndTime: json.data.workEndTime || "18:00",
+          logoUrl: json.data.logoUrl || "",
         });
       }
     } finally {
@@ -468,7 +468,7 @@ function RolesTab() {
       const res = await fetch("/api/settings/roles");
       if (res.ok) {
         const json = await res.json();
-        setRoles(json.roles);
+        setRoles(json.data);
       }
     } finally {
       setLoading(false);
@@ -715,9 +715,9 @@ function PermissionsMatrix() {
       const res = await fetch("/api/settings/roles");
       if (res.ok) {
         const json = await res.json();
-        setRoles(json.roles);
+        setRoles(json.data);
         const initial: Record<string, PermissionMap> = {};
-        for (const role of json.roles as RoleData[]) {
+        for (const role of json.data as RoleData[]) {
           initial[role.id] = parseRolePermissions(role.permissions);
         }
         setPermissionState(initial);

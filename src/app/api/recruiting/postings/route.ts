@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ postings });
+  return NextResponse.json({ data: postings });
 }
 
 // ─── POST: 채용 공고 생성 ───────────────────────────────
@@ -117,5 +117,5 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ posting }, { status: 201 });
+  return NextResponse.json({ data: posting }, { status: 201 });
 }

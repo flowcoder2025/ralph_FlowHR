@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     },
   }));
 
-  return NextResponse.json({ cycles: formatted });
+  return NextResponse.json({ data: formatted });
 }
 
 export async function PUT(request: NextRequest) {
@@ -105,13 +105,15 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json({
-      id: updated.id,
-      name: updated.name,
-      startDate: updated.startDate.toISOString().slice(0, 10),
-      endDate: updated.endDate.toISOString().slice(0, 10),
-      type: updated.type,
-      status: updated.status,
-      weights,
+      data: {
+        id: updated.id,
+        name: updated.name,
+        startDate: updated.startDate.toISOString().slice(0, 10),
+        endDate: updated.endDate.toISOString().slice(0, 10),
+        type: updated.type,
+        status: updated.status,
+        weights,
+      },
     });
   }
 
@@ -129,13 +131,15 @@ export async function PUT(request: NextRequest) {
 
   return NextResponse.json(
     {
-      id: created.id,
-      name: created.name,
-      startDate: created.startDate.toISOString().slice(0, 10),
-      endDate: created.endDate.toISOString().slice(0, 10),
-      type: created.type,
-      status: created.status,
-      weights,
+      data: {
+        id: created.id,
+        name: created.name,
+        startDate: created.startDate.toISOString().slice(0, 10),
+        endDate: created.endDate.toISOString().slice(0, 10),
+        type: created.type,
+        status: created.status,
+        weights,
+      },
     },
     { status: 201 },
   );

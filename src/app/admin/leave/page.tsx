@@ -495,7 +495,7 @@ function PolicyTab() {
       const res = await fetch("/api/leave/policies");
       if (res.ok) {
         const json = await res.json();
-        setPolicies(json.policies);
+        setPolicies(json.data);
       }
     } finally {
       setLoading(false);
@@ -850,7 +850,7 @@ function RequestsTab() {
       const res = await fetch(`/api/leave/requests?${params.toString()}`);
       if (res.ok) {
         const json = await res.json();
-        setItems(json.items);
+        setItems(json.data);
         setSummary(json.summary);
       }
     } finally {

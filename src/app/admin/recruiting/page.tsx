@@ -315,7 +315,7 @@ function PostingsTab() {
       const res = await fetch("/api/recruiting/postings");
       if (res.ok) {
         const json = await res.json();
-        setPostings(json.postings);
+        setPostings(json.data);
       }
     } finally {
       setLoading(false);
@@ -693,7 +693,7 @@ function PipelineTab() {
     const res = await fetch("/api/recruiting/postings");
     if (res.ok) {
       const json = await res.json();
-      const openPostings = (json.postings as PipelinePostingOption[]).filter(
+      const openPostings = (json.data as PipelinePostingOption[]).filter(
         (p) => p.status === "OPEN",
       );
       setPostings(openPostings);
@@ -716,7 +716,7 @@ function PipelineTab() {
       );
       if (res.ok) {
         const json = await res.json();
-        setApplications(json.applications);
+        setApplications(json.data);
       }
     } finally {
       setLoading(false);
@@ -1045,7 +1045,7 @@ function OnboardingTab() {
       const res = await fetch("/api/recruiting/onboarding");
       if (res.ok) {
         const json = await res.json();
-        setEmployees(json.employees);
+        setEmployees(json.data);
       }
     } finally {
       setLoading(false);
@@ -1269,7 +1269,7 @@ function OffboardingTab() {
       const res = await fetch("/api/recruiting/offboarding");
       if (res.ok) {
         const json = await res.json();
-        setEmployees(json.employees);
+        setEmployees(json.data);
       }
     } finally {
       setLoading(false);

@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     userCount: r._count.users,
   }));
 
-  return NextResponse.json({ roles: mapped });
+  return NextResponse.json({ data: mapped });
 }
 
 // ─── POST: 역할 생성 ───────────────────────────────────
@@ -83,5 +83,5 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ role }, { status: 201 });
+  return NextResponse.json({ data: role }, { status: 201 });
 }
