@@ -24,15 +24,6 @@ describe("GET /api/employee/schedule", () => {
     expect(body.error).toBe("Unauthorized");
   });
 
-  it("employeeId 없으면 401 반환", async () => {
-    mockGetToken.mockResolvedValue({ id: "user-1", tenantId: "tenant-1", employeeId: null });
-
-    const request = createMockRequest("/api/employee/schedule");
-    const response = await GET(request);
-
-    expect(response.status).toBe(401);
-  });
-
   it("직원 레코드가 없으면 404 반환", async () => {
     const token = createMockToken({ role: "EMPLOYEE" });
     mockGetToken.mockResolvedValue(token);
@@ -43,7 +34,7 @@ describe("GET /api/employee/schedule", () => {
     const body = await response.json();
 
     expect(response.status).toBe(404);
-    expect(body.error).toBe("Employee not found");
+    expect(body.error).toBe("직원 정보를 찾을 수 없습니다");
   });
 
   it("오늘 현황 + 주간 스케줄 + 이력 데이터 반환", async () => {

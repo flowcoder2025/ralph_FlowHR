@@ -77,7 +77,7 @@ describe("GET /api/leave/requests", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.items).toHaveLength(2);
+    expect(body.data).toHaveLength(2);
     expect(body.summary).toEqual({
       total: 2,
       pending: 1,
@@ -142,24 +142,27 @@ describe("PATCH /api/leave/requests", () => {
     expect(response.status).toBe(401);
   });
 
-  it("employeeId 없으면 401 반환", async () => {
-    mockGetToken.mockResolvedValue({
-      id: "user-1",
-      tenantId: "tenant-1",
-      employeeId: null,
-    });
+  it("직원 레코드가 없으면 404 반환", async () => {
+    mockGetToken.mockResolvedValue(createMockToken());
+    prismaMock.employee.findFirst.mockResolvedValue(null);
 
     const request = createMockRequest("/api/leave/requests", {
       method: "PATCH",
       body: { id: "lr-1", action: "approve" },
     });
     const response = await PATCH(request);
+    const body = await response.json();
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(404);
+    expect(body.error).toBe("Employee not found");
   });
 
   it("id 또는 action 없으면 400 반환", async () => {
     mockGetToken.mockResolvedValue(createMockToken());
+    prismaMock.employee.findFirst.mockResolvedValue({
+      id: "emp-1",
+      tenantId: "tenant-1",
+    });
 
     const request = createMockRequest("/api/leave/requests", {
       method: "PATCH",
@@ -172,6 +175,10 @@ describe("PATCH /api/leave/requests", () => {
 
   it("존재하지 않는 요청이면 404 반환", async () => {
     mockGetToken.mockResolvedValue(createMockToken());
+    prismaMock.employee.findFirst.mockResolvedValue({
+      id: "emp-1",
+      tenantId: "tenant-1",
+    });
     prismaMock.leaveRequest.findFirst.mockResolvedValue(null);
 
     const request = createMockRequest("/api/leave/requests", {
@@ -185,6 +192,10 @@ describe("PATCH /api/leave/requests", () => {
 
   it("승인 시 트랜잭션으로 상태 변경 + 잔여일수 업데이트", async () => {
     mockGetToken.mockResolvedValue(createMockToken());
+    prismaMock.employee.findFirst.mockResolvedValue({
+      id: "emp-1",
+      tenantId: "tenant-1",
+    });
     prismaMock.leaveRequest.findFirst.mockResolvedValue({
       id: "lr-1",
       tenantId: "tenant-1",
@@ -214,6 +225,10 @@ describe("PATCH /api/leave/requests", () => {
 
   it("반려 시 트랜잭션으로 상태 변경 + 보류일수 감소", async () => {
     mockGetToken.mockResolvedValue(createMockToken());
+    prismaMock.employee.findFirst.mockResolvedValue({
+      id: "emp-1",
+      tenantId: "tenant-1",
+    });
     prismaMock.leaveRequest.findFirst.mockResolvedValue({
       id: "lr-1",
       tenantId: "tenant-1",
