@@ -39,6 +39,7 @@ docs/                   → 문서 계층구조 (L0~L4)
 5. **머지 확인 후 다음**: PR 머지 완료 확인 → `git checkout main && git pull` → 그 다음 브랜치 생성
 6. **순서 준수**: 이전 PR 머지 전에 다음 브랜치 작업하면 충돌 발생
 7. **짜잘한 변경 단독 PR 금지**: .gitignore, CLAUDE.md, rules 등 설정 변경은 다음 기능 작업 브랜치에 함께 포함 — 설정만으로 PR 만들지 않음
+8. **PR push 후 즉시 다음 브랜치로 이동**: main에서 reset --hard 하면 uncommitted 변경 유실 — PR push 직후 main pull → 다음 브랜치 생성
 
 ## 구현 원칙 (모든 작업에 적용)
 1. **코드 숙지 먼저**: 수정 대상 + 관련 파일을 전문 읽고 기존 패턴/로직 파악 후 작업

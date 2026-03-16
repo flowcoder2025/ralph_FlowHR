@@ -126,6 +126,7 @@ function BillingContent() {
   const [data, setData] = useState<BillingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"accounts" | "invoices">("accounts");
+  const [showSettings, setShowSettings] = useState(false);
 
   const fetchBilling = useCallback(async () => {
     setLoading(true);
@@ -201,7 +202,7 @@ function BillingContent() {
               );
             });
           }}>청구서 내보내기</Button>
-          <Button variant="primary" onClick={() => alert("결제 설정 기능 준비 중입니다.")}>결제 설정</Button>
+          <Button variant="primary" onClick={() => setShowSettings(true)}>결제 설정</Button>
         </div>
       </div>
 
@@ -340,6 +341,19 @@ function BillingContent() {
           <InvoicesTable invoices={data.invoices} />
         )}
       </div>
+
+      {/* 결제 설정 모달 */}
+      {showSettings && (
+        <PaymentSettingsModal
+          accounts={data.billingAccounts}
+          plans={data.planCatalog}
+          onClose={() => setShowSettings(false)}
+          onSaved={() => {
+            setShowSettings(false);
+            fetchBilling();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -407,6 +421,135 @@ function BillingAccountsTable({
         />
       </CardBody>
     </Card>
+  );
+}
+
+// ─── Payment Settings Modal ─────────────────────────────────
+
+function PaymentSettingsModal({
+  accounts,
+  plans,
+  onClose,
+  onSaved,
+}: {
+  accounts: BillingAccountItem[];
+  plans: PlanItem[];
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [selectedAccount, setSelectedAccount] = useState(accounts[0]?.id ?? "");
+  const [selectedPlan, setSelectedPlan] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const account = accounts.find((a) => a.id === selectedAccount);
+
+  useEffect(() => {
+    if (account) {
+      setPaymentMethod(account.paymentMethod);
+      const plan = plans.find((p) => p.name === account.planName);
+      setSelectedPlan(plan?.id ?? "");
+    }
+  }, [account, plans]);
+
+  async function handleSave() {
+    if (!selectedAccount) return;
+    setSaving(true);
+    setMessage("");
+    try {
+      const res = await fetch("/api/platform/billing/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          billingAccountId: selectedAccount,
+          planId: selectedPlan || undefined,
+          paymentMethod: paymentMethod || undefined,
+        }),
+      });
+      if (res.ok) {
+        setMessage("결제 설정이 저장되었습니다.");
+        setTimeout(onSaved, 1000);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setMessage(err.error || "저장에 실패했습니다.");
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div className="bg-surface-primary rounded-lg shadow-xl w-full max-w-lg mx-sp-4 p-sp-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-sp-6">
+          <h2 className="text-lg font-bold text-text-primary">결제 설정</h2>
+          <button onClick={onClose} className="text-text-tertiary hover:text-text-primary text-xl">&times;</button>
+        </div>
+
+        {accounts.length > 1 && (
+          <div className="mb-sp-4">
+            <label className="block text-sm font-medium text-text-secondary mb-sp-1">결제 계정</label>
+            <select
+              value={selectedAccount}
+              onChange={(e) => setSelectedAccount(e.target.value)}
+              className="w-full px-sp-3 py-sp-2 border rounded-sm text-md bg-surface-primary text-text-primary border-border focus:outline-none focus:border-border-focus"
+            >
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>{a.tenantName} ({a.planName})</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {account && (
+          <div className="mb-sp-4 p-sp-3 bg-surface-secondary rounded-sm">
+            <div className="text-sm text-text-secondary">현재 플랜: <span className="font-semibold text-text-primary">{account.planName}</span></div>
+            <div className="text-sm text-text-secondary">월 청구액: <span className="font-semibold text-text-primary">{formatAmount(account.monthlyAmount)}</span></div>
+            <div className="text-sm text-text-secondary">다음 청구일: <span className="font-semibold text-text-primary">{new Date(account.nextBillingDate).toLocaleDateString("ko-KR")}</span></div>
+          </div>
+        )}
+
+        <div className="mb-sp-4">
+          <label className="block text-sm font-medium text-text-secondary mb-sp-1">플랜 변경</label>
+          <select
+            value={selectedPlan}
+            onChange={(e) => setSelectedPlan(e.target.value)}
+            className="w-full px-sp-3 py-sp-2 border rounded-sm text-md bg-surface-primary text-text-primary border-border focus:outline-none focus:border-border-focus"
+          >
+            <option value="">변경 안 함</option>
+            {plans.map((p) => (
+              <option key={p.id} value={p.id}>{p.name} ({formatAmount(p.pricePerSeat)}/좌석·월)</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mb-sp-6">
+          <label className="block text-sm font-medium text-text-secondary mb-sp-1">결제수단</label>
+          <input
+            type="text"
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+            placeholder="법인카드 ****-1234 또는 계좌이체"
+            className="w-full px-sp-3 py-sp-2 border rounded-sm text-md bg-surface-primary text-text-primary border-border focus:outline-none focus:border-border-focus"
+          />
+          <p className="mt-sp-1 text-xs text-text-tertiary">결제수단 변경은 다음 청구일부터 적용됩니다</p>
+        </div>
+
+        {message && (
+          <p className={`mb-sp-4 text-sm ${message.includes("실패") ? "text-status-danger-text" : "text-status-success-text"}`}>
+            {message}
+          </p>
+        )}
+
+        <div className="flex justify-end gap-sp-2">
+          <Button variant="secondary" onClick={onClose}>취소</Button>
+          <Button variant="primary" onClick={handleSave} disabled={saving}>
+            {saving ? "저장 중..." : "저장"}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 
