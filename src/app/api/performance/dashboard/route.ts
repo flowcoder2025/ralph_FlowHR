@@ -12,120 +12,133 @@ export async function GET(request: NextRequest) {
   const tenantId = token.tenantId as string;
   const now = new Date();
 
-  // ── Active evaluation cycle ────────────────────────────
+  // ── Active evaluation cycle (다른 쿼리들이 의존) ──────
   const activeCycle = await prisma.evalCycle.findFirst({
     where: { tenantId, status: "ACTIVE" },
     orderBy: { startDate: "desc" },
   });
 
-  // ── KPI 1: 목표 설정 완료율 (emphasis) ─────────────────
-  const totalEmployees = await prisma.employee.count({
-    where: { tenantId, status: "ACTIVE" },
-  });
-
-  let employeesWithGoals = 0;
-  if (activeCycle) {
-    const result = await prisma.goal.groupBy({
-      by: ["employeeId"],
-      where: { tenantId, cycleId: activeCycle.id },
-    });
-    employeesWithGoals = result.length;
-  }
-
-  const goalCompletionRate =
-    totalEmployees > 0
-      ? Math.round((employeesWithGoals / totalEmployees) * 100)
-      : 0;
-
-  // ── KPI 2: 평가 중 (진행 중인 평가 건수) ──────────────
-  const evaluationsInProgress = activeCycle
-    ? await prisma.evaluation.count({
-        where: {
-          tenantId,
-          cycleId: activeCycle.id,
-          status: { in: ["SELF_REVIEW", "PEER_REVIEW", "MANAGER_REVIEW"] },
-        },
-      })
-    : 0;
-
-  // ── KPI 3: 1:1 예정 (이번 주 예정) ────────────────────
+  // ── 독립 쿼리 + activeCycle 의존 쿼리 병렬 조회 ───────
   const weekStart = new Date(now);
   weekStart.setDate(now.getDate() - now.getDay());
   weekStart.setHours(0, 0, 0, 0);
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekStart.getDate() + 7);
 
-  const scheduledOneOnOnes = await prisma.oneOnOne.count({
-    where: {
-      tenantId,
-      status: "SCHEDULED",
-      scheduledAt: { gte: weekStart, lt: weekEnd },
-    },
-  });
+  const [
+    totalEmployees,
+    employeesWithGoalsResult,
+    evaluationsInProgress,
+    scheduledOneOnOnes,
+    notStartedGoals,
+    departments,
+    completedEvals,
+    totalEvals,
+  ] = await Promise.all([
+    // KPI 1: 목표 설정 완료율
+    prisma.employee.count({
+      where: { tenantId, status: "ACTIVE" },
+    }),
+    activeCycle
+      ? prisma.goal.groupBy({
+          by: ["employeeId"],
+          where: { tenantId, cycleId: activeCycle.id },
+        })
+      : Promise.resolve([]),
+    // KPI 2: 평가 중
+    activeCycle
+      ? prisma.evaluation.count({
+          where: {
+            tenantId,
+            cycleId: activeCycle.id,
+            status: { in: ["SELF_REVIEW", "PEER_REVIEW", "MANAGER_REVIEW"] },
+          },
+        })
+      : Promise.resolve(0),
+    // KPI 3: 1:1 예정
+    prisma.oneOnOne.count({
+      where: {
+        tenantId,
+        status: "SCHEDULED",
+        scheduledAt: { gte: weekStart, lt: weekEnd },
+      },
+    }),
+    // KPI 4: 미설정
+    activeCycle
+      ? prisma.goal.count({
+          where: {
+            tenantId,
+            cycleId: activeCycle.id,
+            status: "NOT_STARTED",
+          },
+        })
+      : Promise.resolve(0),
+    // 부서별 목표 설정률
+    prisma.department.findMany({
+      where: { tenantId, parentId: { not: null } },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    // Active Cycle info
+    activeCycle
+      ? prisma.evaluation.count({
+          where: {
+            tenantId,
+            cycleId: activeCycle.id,
+            status: "COMPLETED",
+          },
+        })
+      : Promise.resolve(0),
+    activeCycle
+      ? prisma.evaluation.count({
+          where: { tenantId, cycleId: activeCycle.id },
+        })
+      : Promise.resolve(0),
+  ]);
 
-  // ── KPI 4: 미설정 (목표 미입력 인원) ──────────────────
-  const notStartedGoals = activeCycle
-    ? await prisma.goal.count({
-        where: {
-          tenantId,
-          cycleId: activeCycle.id,
-          status: "NOT_STARTED",
-        },
-      })
-    : 0;
+  const employeesWithGoals = employeesWithGoalsResult.length;
+  const goalCompletionRate =
+    totalEmployees > 0
+      ? Math.round((employeesWithGoals / totalEmployees) * 100)
+      : 0;
 
-  // ── 부서별 목표 설정률 ────────────────────────────────
-  const departments = await prisma.department.findMany({
-    where: { tenantId, parentId: { not: null } },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
+  // ── 부서별 목표 설정률 (N부서 병렬 조회) ────────────────
+  let deptGoalRates: { name: string; value: number }[] = [];
 
-  const deptGoalRates: { name: string; value: number }[] = [];
+  if (activeCycle && departments.length > 0) {
+    const deptResults = await Promise.all(
+      departments.map(async (dept) => {
+        const [deptEmployeeCount, deptEmployeesWithGoals] = await Promise.all([
+          prisma.employee.count({
+            where: { tenantId, departmentId: dept.id, status: "ACTIVE" },
+          }),
+          prisma.goal.groupBy({
+            by: ["employeeId"],
+            where: {
+              tenantId,
+              cycleId: activeCycle.id,
+              employee: { departmentId: dept.id },
+            },
+          }),
+        ]);
 
-  if (activeCycle) {
-    for (const dept of departments) {
-      const deptEmployeeCount = await prisma.employee.count({
-        where: { tenantId, departmentId: dept.id, status: "ACTIVE" },
-      });
+        if (deptEmployeeCount === 0) return null;
 
-      if (deptEmployeeCount === 0) continue;
+        const rate = Math.round(
+          (deptEmployeesWithGoals.length / deptEmployeeCount) * 100,
+        );
+        return { name: dept.name, value: rate };
+      }),
+    );
 
-      const deptEmployeesWithGoals = await prisma.goal.groupBy({
-        by: ["employeeId"],
-        where: {
-          tenantId,
-          cycleId: activeCycle.id,
-          employee: { departmentId: dept.id },
-        },
-      });
-
-      const rate =
-        deptEmployeeCount > 0
-          ? Math.round(
-              (deptEmployeesWithGoals.length / deptEmployeeCount) * 100
-            )
-          : 0;
-
-      deptGoalRates.push({ name: dept.name, value: rate });
-    }
+    deptGoalRates = deptResults
+      .filter((r): r is { name: string; value: number } => r !== null)
+      .sort((a, b) => b.value - a.value);
   }
-
-  deptGoalRates.sort((a, b) => b.value - a.value);
 
   // ── Active Cycle info ─────────────────────────────────
   let activeCycleInfo = null;
   if (activeCycle) {
-    const completedEvals = await prisma.evaluation.count({
-      where: {
-        tenantId,
-        cycleId: activeCycle.id,
-        status: "COMPLETED",
-      },
-    });
-    const totalEvals = await prisma.evaluation.count({
-      where: { tenantId, cycleId: activeCycle.id },
-    });
     const completionRate =
       totalEvals > 0 ? Math.round((completedEvals / totalEvals) * 100) : 0;
 
