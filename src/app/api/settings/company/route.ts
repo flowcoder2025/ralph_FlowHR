@@ -78,6 +78,7 @@ export async function PATCH(request: NextRequest) {
 
   const {
     companyName,
+    name,
     businessNumber,
     industry,
     representative,
@@ -86,14 +87,9 @@ export async function PATCH(request: NextRequest) {
     workStartTime,
     workEndTime,
     logoUrl,
-  } = body as Partial<CompanySettings>;
+  } = body as Partial<CompanySettings & { name: string }>;
 
-  if (!companyName || !companyName.trim()) {
-    return NextResponse.json(
-      { error: "회사명은 필수입니다" },
-      { status: 400 },
-    );
-  }
+  const resolvedName = companyName || name;
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },
@@ -111,21 +107,21 @@ export async function PATCH(request: NextRequest) {
 
   const updatedSettings = {
     ...existing,
-    companyName: companyName.trim(),
-    businessNumber: businessNumber?.trim() ?? "",
-    industry: industry ?? "",
-    representative: representative?.trim() ?? "",
-    fiscalYearStart: fiscalYearStart ?? "1",
-    timezone: timezone ?? "Asia/Seoul",
-    workStartTime: workStartTime ?? "09:00",
-    workEndTime: workEndTime ?? "18:00",
-    logoUrl: logoUrl ?? "",
+    ...(resolvedName && { companyName: resolvedName.trim() }),
+    ...(businessNumber !== undefined && { businessNumber: businessNumber.trim() }),
+    ...(industry !== undefined && { industry }),
+    ...(representative !== undefined && { representative: representative.trim() }),
+    ...(fiscalYearStart !== undefined && { fiscalYearStart }),
+    ...(timezone !== undefined && { timezone }),
+    ...(workStartTime !== undefined && { workStartTime }),
+    ...(workEndTime !== undefined && { workEndTime }),
+    ...(logoUrl !== undefined && { logoUrl }),
   };
 
   await prisma.tenant.update({
     where: { id: tenantId },
     data: {
-      name: companyName.trim(),
+      ...(resolvedName && { name: resolvedName.trim() }),
       settings: updatedSettings,
     },
   });
