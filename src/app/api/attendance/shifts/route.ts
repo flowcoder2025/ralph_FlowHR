@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   }
 
   const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 5); // Monday to Friday (5 days)
+  weekEnd.setUTCDate(weekStart.getUTCDate() + 5); // Monday to Friday (5 days)
 
   // Fetch shift assignments for the week with employee and shift details
   const assignments = await prisma.shiftAssignment.findMany({
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
   const weekDays: string[] = [];
   for (let i = 0; i < 5; i++) {
     const d = new Date(weekStart);
-    d.setDate(weekStart.getDate() + i);
+    d.setUTCDate(weekStart.getUTCDate() + i);
     weekDays.push(d.toISOString().split("T")[0]);
   }
 
