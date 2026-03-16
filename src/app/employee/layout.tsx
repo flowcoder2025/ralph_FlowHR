@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import type { NavSection } from "@/components/layout/Sidebar";
 
@@ -31,7 +32,15 @@ export default function EmployeeLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session, status } = useSession();
   const activeId = getActiveId(pathname);
+
+  useEffect(() => {
+    if (status === "authenticated" && !session?.user?.tenantId) {
+      alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+      signOut({ callbackUrl: "/login" });
+    }
+  }, [status, session]);
 
   function handleNavigate(id: string) {
     const item = EMPLOYEE_NAV.flatMap((s) => s.items).find((i) => i.id === id);
