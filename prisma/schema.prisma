@@ -580,6 +580,10 @@ model AttendanceRecord {
   workMinutes Int?
   overtime    Int              @default(0)
   note        String?
+  checkInLat  Float?
+  checkInLon  Float?
+  checkOutLat Float?
+  checkOutLon Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
