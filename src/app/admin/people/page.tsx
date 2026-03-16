@@ -64,6 +64,7 @@ export default function PeoplePage() {
   });
   const [loading, setLoading] = useState(true);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const fetchEmployees = useCallback(async () => {
     setLoading(true);
@@ -181,12 +182,90 @@ export default function PeoplePage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-sp-6">
-        <h1 className="text-3xl font-bold text-text-primary">직원 관리</h1>
-        <p className="mt-sp-1 text-md text-text-secondary">
-          전체 직원 목록을 검색하고 관리합니다
-        </p>
+      <div className="mb-sp-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary">직원 관리</h1>
+          <p className="mt-sp-1 text-md text-text-secondary">
+            전체 직원 목록을 검색하고 관리합니다
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowCreateModal(true)}
+          className="rounded-md bg-brand px-sp-4 py-sp-2 text-sm font-medium text-white hover:bg-brand-hover transition-colors"
+        >
+          + 직원 등록
+        </button>
       </div>
+
+      {/* 직원 등록 모달 */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-lg rounded-lg bg-surface-primary p-sp-6 shadow-lg">
+            <h2 className="text-lg font-semibold text-text-primary mb-sp-4">직원 등록</h2>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const form = e.target as HTMLFormElement;
+              const fd = new FormData(form);
+              const res = await fetch("/api/employees", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  name: fd.get("name"),
+                  email: fd.get("email"),
+                  phone: fd.get("phone") || undefined,
+                  employeeNumber: fd.get("employeeNumber"),
+                  hireDate: fd.get("hireDate"),
+                  type: fd.get("type") || "FULL_TIME",
+                }),
+              });
+              if (res.ok) {
+                setShowCreateModal(false);
+                fetchEmployees();
+              } else {
+                const err = await res.json().catch(() => ({}));
+                alert(err.error || "등록에 실패했습니다.");
+              }
+            }} className="space-y-sp-3">
+              <div className="grid grid-cols-2 gap-sp-3">
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-sp-1">이름 *</label>
+                  <input name="name" required className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-sp-1">사번 *</label>
+                  <input name="employeeNumber" required className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-sp-1">이메일 *</label>
+                  <input name="email" type="email" required className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-sp-1">전화번호</label>
+                  <input name="phone" className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-sp-1">입사일 *</label>
+                  <input name="hireDate" type="date" required className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-sp-1">고용형태</label>
+                  <select name="type" className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm">
+                    <option value="FULL_TIME">정규직</option>
+                    <option value="PART_TIME">파트타임</option>
+                    <option value="CONTRACT">계약직</option>
+                    <option value="INTERN">인턴</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex justify-end gap-sp-2 pt-sp-3">
+                <button type="button" onClick={() => setShowCreateModal(false)} className="rounded-md border border-border px-sp-4 py-sp-2 text-sm text-text-secondary hover:bg-surface-secondary">취소</button>
+                <button type="submit" className="rounded-md bg-brand px-sp-4 py-sp-2 text-sm font-medium text-white hover:bg-brand-hover">등록</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Filter bar */}
       <div className="mb-sp-6 flex flex-wrap items-center gap-sp-3">
