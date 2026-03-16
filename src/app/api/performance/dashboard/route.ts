@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
 
   // ── 독립 쿼리 + activeCycle 의존 쿼리 병렬 조회 ───────
   const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay());
-  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setUTCDate(now.getUTCDate() - now.getUTCDay());
+  weekStart.setUTCHours(0, 0, 0, 0);
   const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 7);
+  weekEnd.setUTCDate(weekStart.getUTCDate() + 7);
 
   const [
     totalEmployees,

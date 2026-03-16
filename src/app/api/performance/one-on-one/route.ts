@@ -15,10 +15,10 @@ export async function GET(request: NextRequest) {
 
   // ── 이번 주 범위 계산 ─────────────────────────────────
   const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay());
-  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setUTCDate(now.getUTCDate() - now.getUTCDay());
+  weekStart.setUTCHours(0, 0, 0, 0);
   const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 7);
+  weekEnd.setUTCDate(weekStart.getUTCDate() + 7);
 
   // ── 이번 주 예정된 1:1 미팅 목록 ──────────────────────
   const meetings = await prisma.oneOnOne.findMany({
@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
   });
 
   // ── 이번 달 통계 ──────────────────────────────────────
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
 
   const completedThisMonth = await prisma.oneOnOne.count({
     where: {
