@@ -65,12 +65,18 @@ function mapHistoryStatus(
 
 export async function GET(request: NextRequest) {
   const token = await getToken({ req: request });
-  if (!token || !token.tenantId || !token.employeeId) {
+  if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const tenantId = token.tenantId as string;
-  const employeeId = token.employeeId as string;
+  const employee = await prisma.employee.findFirst({
+    where: { userId: token.id, tenantId },
+  });
+  if (!employee) {
+    return NextResponse.json({ error: "직원 정보를 찾을 수 없습니다" }, { status: 404 });
+  }
+  const employeeId = employee.id;
   const { searchParams } = new URL(request.url);
   const filter = searchParams.get("filter") || "recent2w";
   const page = parseInt(searchParams.get("page") || "1", 10);
@@ -78,14 +84,6 @@ export async function GET(request: NextRequest) {
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  const employee = await prisma.employee.findFirst({
-    where: { id: employeeId, tenantId },
-  });
-
-  if (!employee) {
-    return NextResponse.json({ error: "Employee not found" }, { status: 404 });
-  }
 
   // Shift assignment
   const shiftAssignment = await prisma.shiftAssignment.findFirst({
