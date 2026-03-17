@@ -10,6 +10,9 @@ export async function GET(request: NextRequest) {
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  if (token.role !== "PLATFORM_OPERATOR") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const { searchParams } = new URL(request.url);
   const search = searchParams.get("search") ?? "";
@@ -161,6 +164,9 @@ export async function POST(request: NextRequest) {
   const token = await getToken({ req: request });
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (token.role !== "PLATFORM_OPERATOR") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const body = await request.json();

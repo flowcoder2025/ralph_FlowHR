@@ -9,6 +9,9 @@ export async function GET(request: NextRequest) {
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  if (token.role !== "PLATFORM_OPERATOR") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   // ─── Plans ────────────────────────────────────────────
   const plans = await prisma.plan.findMany({
