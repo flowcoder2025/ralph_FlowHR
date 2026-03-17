@@ -10,6 +10,8 @@ import {
 } from "@/components/ui";
 import type { BadgeVariant, Column, SortState, SortDirection } from "@/components/ui";
 import { Modal } from "@/components/layout/Modal";
+import { GpsMapModal } from "@/components/GpsMapModal";
+import type { GpsLocation, OfficeGps } from "@/components/GpsMapModal";
 import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
@@ -24,6 +26,10 @@ interface AttendanceRecordRow {
   workDisplay: string;
   status: string;
   overtime: number;
+  checkInLat: number | null;
+  checkInLon: number | null;
+  checkOutLat: number | null;
+  checkOutLon: number | null;
   checkInGpsStatus: string | null;
   checkOutGpsStatus: string | null;
 }
@@ -80,6 +86,22 @@ export function RecordsTab() {
   const [sort, setSort] = useState<SortState>({ key: "date", direction: "desc" });
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+
+  // ─── Office GPS State ────────────────────────────────────
+  const [officeGps, setOfficeGps] = useState<OfficeGps>({
+    officeLatitude: null,
+    officeLongitude: null,
+    gpsRadius: 500,
+  });
+
+  // ─── GPS Map Modal State ────────────────────────────────
+  const [mapModalOpen, setMapModalOpen] = useState(false);
+  const [mapRecord, setMapRecord] = useState<AttendanceRecordRow | null>(null);
+
+  function openMapModal(row: AttendanceRecordRow) {
+    setMapRecord(row);
+    setMapModalOpen(true);
+  }
 
   // ─── Edit Modal State ────────────────────────────────────
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -154,6 +176,9 @@ export function RecordsTab() {
         const json = await res.json();
         setRecords(json.data);
         setPagination(json.pagination);
+        if (json.officeGps) {
+          setOfficeGps(json.officeGps);
+        }
       }
     } finally {
       setLoading(false);
@@ -269,13 +294,44 @@ export function RecordsTab() {
 
         if (!status) return <span className="text-text-tertiary">—</span>;
 
-        const map: Record<string, { label: string; variant: BadgeVariant }> = {
+        const gpsMap: Record<string, { label: string; variant: BadgeVariant }> = {
           IN_OFFICE: { label: "사내", variant: "success" },
           OUT_OF_OFFICE: { label: "사외", variant: "warning" },
           NO_GPS: { label: "미확인", variant: "neutral" },
         };
-        const info = map[status];
-        return info ? <Badge variant={info.variant}>{info.label}</Badge> : status;
+        const info = gpsMap[status];
+        if (!info) return <>{status}</>;
+
+        // GPS 좌표가 있으면 클릭 가능한 배지로 표시
+        const hasCoords = row.checkInLat != null || row.checkOutLat != null;
+        return (
+          <button
+            type="button"
+            onClick={() => hasCoords && openMapModal(row)}
+            className={hasCoords ? "cursor-pointer" : "cursor-default"}
+            title={hasCoords ? "클릭하여 지도 보기" : "GPS 좌표 없음"}
+          >
+            <Badge variant={info.variant}>
+              {info.label}
+              {hasCoords && (
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="ml-0.5 inline-block"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              )}
+            </Badge>
+          </button>
+        );
       },
     },
     {
@@ -357,6 +413,35 @@ export function RecordsTab() {
           </div>
         )}
       </Modal>
+
+      {/* GPS Map Modal */}
+      <GpsMapModal
+        open={mapModalOpen}
+        onClose={() => setMapModalOpen(false)}
+        employeeName={mapRecord?.employeeName ?? ""}
+        date={mapRecord?.date ?? ""}
+        checkIn={
+          mapRecord?.checkInLat != null && mapRecord?.checkInLon != null
+            ? {
+                lat: mapRecord.checkInLat,
+                lon: mapRecord.checkInLon,
+                label: "출근",
+                time: mapRecord.checkIn,
+              } as GpsLocation
+            : null
+        }
+        checkOut={
+          mapRecord?.checkOutLat != null && mapRecord?.checkOutLon != null
+            ? {
+                lat: mapRecord.checkOutLat,
+                lon: mapRecord.checkOutLon,
+                label: "퇴근",
+                time: mapRecord.checkOut,
+              } as GpsLocation
+            : null
+        }
+        office={officeGps}
+      />
 
       {/* Filter bar */}
       <div className="mb-sp-4 flex flex-wrap items-center gap-sp-3">
