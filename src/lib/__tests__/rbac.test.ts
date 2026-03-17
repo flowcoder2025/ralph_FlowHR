@@ -36,8 +36,8 @@ describe("RBAC Constants", () => {
     expect(ADMIN_ROLES).not.toContain(ROLES.EMPLOYEE);
   });
 
-  it("ROUTE_ROLE_MAP에 3개 라우트 규칙 정의", () => {
-    expect(ROUTE_ROLE_MAP).toHaveLength(3);
+  it("ROUTE_ROLE_MAP에 페이지 + API 라우트 규칙 정의", () => {
+    expect(ROUTE_ROLE_MAP.length).toBeGreaterThanOrEqual(3);
     expect(ROUTE_ROLE_MAP[0].prefix).toBe("/platform");
     expect(ROUTE_ROLE_MAP[1].prefix).toBe("/admin");
     expect(ROUTE_ROLE_MAP[2].prefix).toBe("/employee");

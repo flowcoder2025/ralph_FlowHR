@@ -60,3 +60,7 @@ playwright/.auth/*.json
 .next/
 
 .vercel
+test-screenshots/
+e2e-manual.js
+e2e-visual.js
+e2e-full.js
