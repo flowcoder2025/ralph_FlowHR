@@ -13,6 +13,17 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 24 * 60 * 60, // 24 hours
   },
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" ? "__Secure-next-auth.session-token" : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -43,21 +54,6 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isPasswordValid) {
-          // Fallback: allow plain-text demo passwords during development
-          if (
-            process.env.NODE_ENV !== "production" &&
-            credentials.password === user.password
-          ) {
-            return {
-              id: user.id,
-              email: user.email,
-              name: user.name,
-              image: user.image,
-              role: user.role?.name ?? null,
-              tenantId: user.tenantId,
-              tenantSlug: user.tenant?.slug ?? null,
-            };
-          }
           return null;
         }
 

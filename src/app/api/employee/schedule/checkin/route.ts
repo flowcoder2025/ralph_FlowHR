@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { utcToday } from "@/lib/date-utils";
 import { calculateDistance } from "@/lib/geo";
 import { DEFAULT_TIMEZONE, DEFAULT_WORK_START_TIME, DEFAULT_WORK_END_TIME, DEFAULT_GPS_RADIUS, EARLY_LEAVE_THRESHOLD_MINUTES } from "@/lib/constants";
+import { gpsCheckinSchema } from "@/lib/validations";
 
 interface GpsBody {
   latitude?: number;
@@ -100,11 +101,12 @@ export async function POST(request: NextRequest) {
   }
   const employeeId = employee.id;
 
-  // 요청 바디 파싱 (optional — 기존 호출 호환)
+  // 요청 바디 파싱 + Zod 검증 (optional — 기존 호출 호환)
   let body: GpsBody = {};
   try {
     const raw = await request.json();
-    if (raw && typeof raw === "object") body = raw;
+    const parsed = gpsCheckinSchema.safeParse(raw);
+    if (parsed.success && parsed.data) body = parsed.data;
   } catch {
     // 바디 없이 호출해도 정상 진행
   }
@@ -182,11 +184,12 @@ export async function PATCH(request: NextRequest) {
   }
   const employeeId = employee.id;
 
-  // 요청 바디 파싱 (optional)
+  // 요청 바디 파싱 + Zod 검증 (optional)
   let body: GpsBody = {};
   try {
     const raw = await request.json();
-    if (raw && typeof raw === "object") body = raw;
+    const parsed = gpsCheckinSchema.safeParse(raw);
+    if (parsed.success && parsed.data) body = parsed.data;
   } catch {
     // 바디 없이 호출해도 정상 진행
   }
