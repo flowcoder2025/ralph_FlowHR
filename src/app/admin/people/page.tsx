@@ -68,6 +68,18 @@ export default function PeoplePage() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+  const [departments, setDepartments] = useState<{id: string; name: string}[]>([]);
+
+  useEffect(() => {
+    fetch("/api/departments/tree").then(r => r.ok ? r.json() : { data: [] }).then(j => {
+      const depts: {id: string; name: string}[] = [];
+      function flatten(nodes: Array<{id: string; name: string; children?: Array<{id: string; name: string}>}>) {
+        for (const n of nodes) { depts.push({ id: n.id, name: n.name }); if (n.children) flatten(n.children); }
+      }
+      flatten(j.data || j || []);
+      setDepartments(depts);
+    });
+  }, []);
 
   const fetchEmployees = useCallback(async () => {
     setLoading(true);
@@ -222,6 +234,7 @@ export default function PeoplePage() {
                     employeeNumber: fd.get("employeeNumber"),
                     hireDate: fd.get("hireDate"),
                     type: fd.get("type") || "FULL_TIME",
+                    departmentId: fd.get("departmentId") || undefined,
                   }),
                 });
                 if (res.ok) {
@@ -255,6 +268,13 @@ export default function PeoplePage() {
                 <div>
                   <label className="block text-xs font-medium text-text-secondary mb-sp-1">입사일 *</label>
                   <input name="hireDate" type="date" required className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-sp-1">부서</label>
+                  <select name="departmentId" className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm">
+                    <option value="">선택 안 함</option>
+                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-text-secondary mb-sp-1">고용형태</label>
