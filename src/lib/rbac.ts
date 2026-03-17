@@ -50,6 +50,7 @@ export const ROUTE_ROLE_MAP: { prefix: string; roles: readonly RoleName[] }[] =
     { prefix: "/api/attendance", roles: ADMIN_ROLES },
     { prefix: "/api/leave", roles: ADMIN_ROLES },
     { prefix: "/api/departments", roles: ADMIN_ROLES },
+    { prefix: "/api/positions", roles: ADMIN_ROLES },
     { prefix: "/api/documents/sign", roles: TENANT_ROLES },
     { prefix: "/api/documents", roles: ADMIN_ROLES },
     { prefix: "/api/payroll", roles: ADMIN_ROLES },

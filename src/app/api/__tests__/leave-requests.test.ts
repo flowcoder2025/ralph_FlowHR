@@ -142,9 +142,10 @@ describe("PATCH /api/leave/requests", () => {
     expect(response.status).toBe(401);
   });
 
-  it("직원 레코드가 없으면 404 반환", async () => {
+  it("직원 레코드가 없어도 userId로 대체하여 진행", async () => {
     mockGetToken.mockResolvedValue(createMockToken());
     prismaMock.employee.findFirst.mockResolvedValue(null);
+    prismaMock.leaveRequest.findFirst.mockResolvedValue(null);
 
     const request = createMockRequest("/api/leave/requests", {
       method: "PATCH",
@@ -153,8 +154,9 @@ describe("PATCH /api/leave/requests", () => {
     const response = await PATCH(request);
     const body = await response.json();
 
+    // Employee가 없어도 404가 아니라, leaveRequest 조회로 진행
     expect(response.status).toBe(404);
-    expect(body.error).toBe("Employee not found");
+    expect(body.error).toBe("대기 중인 요청을 찾을 수 없습니다");
   });
 
   it("id 또는 action 없으면 400 반환", async () => {
