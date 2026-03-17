@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { utcMonday } from "@/lib/date-utils";
+import { EXPIRING_WINDOW_DAYS } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,9 +24,9 @@ export async function GET(request: NextRequest) {
   const prevWeekStart = new Date(weekStart);
   prevWeekStart.setUTCDate(prevWeekStart.getUTCDate() - 7);
 
-  // 7 days from now for expiring
+  // Expiring window
   const sevenDaysLater = new Date(now);
-  sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+  sevenDaysLater.setDate(sevenDaysLater.getDate() + EXPIRING_WINDOW_DAYS);
 
   // ── KPI 1: 발송 완료 (Sent this month) ─────────────────────
   const sentCount = await prisma.document.count({
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest) {
 
   // Expiring delta (compare to previous 7-day window)
   const prevSevenDaysStart = new Date(now);
-  prevSevenDaysStart.setDate(prevSevenDaysStart.getDate() - 7);
+  prevSevenDaysStart.setDate(prevSevenDaysStart.getDate() - EXPIRING_WINDOW_DAYS);
   const expiringPrev = await prisma.document.count({
     where: {
       tenantId,

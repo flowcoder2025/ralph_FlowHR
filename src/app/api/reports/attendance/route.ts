@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { REPORT_LOOKBACK_WEEKS } from "@/lib/constants";
 
 interface WeeklyTrend {
   week: string;
@@ -63,7 +64,7 @@ export async function GET(request: NextRequest) {
   const tenantId = token.tenantId as string;
 
   const eightWeeksAgo = new Date();
-  eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56);
+  eightWeeksAgo.setDate(eightWeeksAgo.getDate() - REPORT_LOOKBACK_WEEKS * 7);
 
   const [records, exceptions] = await Promise.all([
     prisma.attendanceRecord.findMany({

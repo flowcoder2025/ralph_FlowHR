@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { utcToday, utcTomorrow, utcMonday } from "@/lib/date-utils";
+import { SLA_OVERDUE_HOURS } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,9 +20,9 @@ export async function GET(request: NextRequest) {
   // Week start (Monday)
   const weekStart = utcMonday();
 
-  // SLA threshold: 48 hours ago
+  // SLA threshold
   const slaThreshold = new Date(now);
-  slaThreshold.setHours(slaThreshold.getHours() - 48);
+  slaThreshold.setHours(slaThreshold.getHours() - SLA_OVERDUE_HOURS);
 
   // ── KPI 1: 승인 대기 (Pending approvals) ─────────────────
   const pendingCount = await prisma.approvalRequest.count({
