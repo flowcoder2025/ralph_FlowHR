@@ -10,6 +10,36 @@ interface GpsBody {
   longitude?: number;
 }
 
+/** Tenant settings에서 근무시간 추출 */
+function getWorkSettings(settings: unknown): {
+  workStartTime: string;
+  workEndTime: string;
+  timezone: string;
+} {
+  if (!settings || typeof settings !== "object") {
+    return { workStartTime: "09:00", workEndTime: "18:00", timezone: "Asia/Seoul" };
+  }
+  const s = settings as Record<string, unknown>;
+  return {
+    workStartTime: typeof s.workStartTime === "string" ? s.workStartTime : "09:00",
+    workEndTime: typeof s.workEndTime === "string" ? s.workEndTime : "18:00",
+    timezone: typeof s.timezone === "string" ? s.timezone : "Asia/Seoul",
+  };
+}
+
+/** 출근 시각 기준으로 상태 판별 (KST 기반) */
+function determineCheckInStatus(checkInTime: Date, workStartTime: string): "PRESENT" | "LATE" {
+  // KST로 변환 (UTC+9)
+  const kst = new Date(checkInTime.getTime() + 9 * 60 * 60 * 1000);
+  const checkInMinutes = kst.getUTCHours() * 60 + kst.getUTCMinutes();
+
+  const [startH, startM] = workStartTime.split(":").map(Number);
+  const startMinutes = startH * 60 + startM;
+
+  // 근무 시작 시간 이후 출근 = 지각
+  return checkInMinutes > startMinutes ? "LATE" : "PRESENT";
+}
+
 /** Tenant settings에서 GPS 설정 추출 */
 function getGpsSettings(settings: unknown): {
   officeLatitude?: number;
@@ -94,16 +124,22 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // GPS 위치 검증
+  // Tenant 설정 조회 (GPS + 근무시간)
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },
     select: { settings: true },
   });
+
+  // GPS 위치 검증
   const gps = getGpsSettings(tenant?.settings);
   const validation = validateLocation(body, gps);
   if (!validation.ok) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
+
+  // 출근 상태 판별 (정상/지각)
+  const work = getWorkSettings(tenant?.settings);
+  const status = determineCheckInStatus(now, work.workStartTime);
 
   const record = await prisma.attendanceRecord.create({
     data: {
@@ -111,7 +147,7 @@ export async function POST(request: NextRequest) {
       employeeId,
       date: today,
       checkIn: now,
-      status: "PRESENT",
+      status,
       checkInLat: body.latitude,
       checkInLon: body.longitude,
     },
@@ -183,11 +219,13 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
-  // GPS 위치 검증
+  // Tenant 설정 조회 (GPS + 근무시간)
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },
     select: { settings: true },
   });
+
+  // GPS 위치 검증
   const gps = getGpsSettings(tenant?.settings);
   const validation = validateLocation(body, gps);
   if (!validation.ok) {
@@ -198,11 +236,25 @@ export async function PATCH(request: NextRequest) {
     (now.getTime() - existing.checkIn.getTime()) / (1000 * 60),
   );
 
+  // 퇴근 시 상태 갱신: 조기퇴근 판별
+  const work = getWorkSettings(tenant?.settings);
+  const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const checkOutMinutes = kstNow.getUTCHours() * 60 + kstNow.getUTCMinutes();
+  const [endH, endM] = work.workEndTime.split(":").map(Number);
+  const endMinutes = endH * 60 + endM;
+
+  // 기존 상태가 LATE면 유지, 정상 퇴근 시간 전에 퇴근하면 EARLY_LEAVE
+  let finalStatus = existing.status;
+  if (existing.status !== "LATE" && checkOutMinutes < endMinutes - 30) {
+    finalStatus = "EARLY_LEAVE";
+  }
+
   const record = await prisma.attendanceRecord.update({
     where: { id: existing.id },
     data: {
       checkOut: now,
       workMinutes,
+      status: finalStatus,
       checkOutLat: body.latitude,
       checkOutLon: body.longitude,
     },
