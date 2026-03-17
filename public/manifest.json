@@ -1,0 +1,20 @@
+{
+  "name": "FlowHR - 스마트 HR 플랫폼",
+  "short_name": "FlowHR",
+  "description": "근태, 휴가, 결재, 문서, 급여, 평가까지. 하나의 플랫폼에서 모든 HR 업무를 처리하세요.",
+  "start_url": "/login",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d9488",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
