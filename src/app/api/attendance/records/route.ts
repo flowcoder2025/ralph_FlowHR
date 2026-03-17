@@ -4,7 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { formatTimeWithTz, formatDateWithTz } from "@/lib/date-utils";
 import type { Prisma, AttendanceStatus } from "@prisma/client";
-import { DEFAULT_TIMEZONE } from "@/lib/constants";
+import { DEFAULT_TIMEZONE, DEFAULT_GPS_RADIUS } from "@/lib/constants";
 
 const VALID_STATUSES: AttendanceStatus[] = [
   "PRESENT",
@@ -80,6 +80,11 @@ export async function GET(request: NextRequest) {
   const tenantSettings = (tenant?.settings && typeof tenant.settings === "object") ? tenant.settings as Record<string, unknown> : {};
   const tz = (typeof tenantSettings.timezone === "string" && tenantSettings.timezone) || DEFAULT_TIMEZONE;
 
+  // Office GPS settings for map display
+  const officeLatitude = tenantSettings.officeLatitude != null ? Number(tenantSettings.officeLatitude) : null;
+  const officeLongitude = tenantSettings.officeLongitude != null ? Number(tenantSettings.officeLongitude) : null;
+  const gpsRadius = tenantSettings.allowedRadius != null ? Number(tenantSettings.allowedRadius) : DEFAULT_GPS_RADIUS;
+
   const [records, total] = await Promise.all([
     prisma.attendanceRecord.findMany({
       where,
@@ -145,6 +150,11 @@ export async function GET(request: NextRequest) {
       pageSize,
       total,
       totalPages: Math.ceil(total / pageSize),
+    },
+    officeGps: {
+      officeLatitude,
+      officeLongitude,
+      gpsRadius,
     },
   });
   } catch (error) {

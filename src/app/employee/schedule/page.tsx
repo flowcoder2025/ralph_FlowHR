@@ -13,6 +13,8 @@ import {
   Breadcrumb,
 } from "@/components/ui";
 import { useToast } from "@/components/layout/Toast";
+import { GpsMapModal } from "@/components/GpsMapModal";
+import type { OfficeGps } from "@/components/GpsMapModal";
 
 /* ────────────────────────────────────────────
    Types
@@ -39,7 +41,7 @@ interface WeeklyScheduleRow {
   isToday: boolean;
 }
 
-type HistoryStatus = "normal" | "late" | "half_day" | "early_leave" | "annual" | "working";
+type HistoryStatus = "normal" | "late" | "half_day" | "early_leave" | "annual" | "absent" | "working";
 type HistoryFilter = "recent2w" | "thisMonth" | "lastMonth";
 
 interface AttendanceHistoryRow {
@@ -51,6 +53,12 @@ interface AttendanceHistoryRow {
   totalWork: string | null;
   status: HistoryStatus;
   isToday: boolean;
+  checkInLat: number | null;
+  checkInLon: number | null;
+  checkOutLat: number | null;
+  checkOutLon: number | null;
+  checkInGpsStatus: string | null;
+  checkOutGpsStatus: string | null;
 }
 
 interface ScheduleResponse {
@@ -65,6 +73,7 @@ interface ScheduleResponse {
       page: number;
       pageSize: number;
     };
+    officeGps: OfficeGps;
   };
 }
 
@@ -104,6 +113,8 @@ function historyStatusBadge(status: HistoryStatus) {
       return <Badge variant="info">반차</Badge>;
     case "early_leave":
       return <Badge variant="warning">조퇴</Badge>;
+    case "absent":
+      return <Badge variant="danger">결근</Badge>;
     case "annual":
       return <Badge variant="neutral">연차</Badge>;
     case "working":
@@ -153,6 +164,20 @@ export default function SchedulePage() {
   const [historyTotal, setHistoryTotal] = useState(0);
   const [historyTotalPages, setHistoryTotalPages] = useState(1);
 
+  // GPS 관련 상태
+  const [officeGps, setOfficeGps] = useState<OfficeGps>({
+    officeLatitude: null,
+    officeLongitude: null,
+    gpsRadius: 500,
+  });
+  const [mapModalOpen, setMapModalOpen] = useState(false);
+  const [mapRecord, setMapRecord] = useState<AttendanceHistoryRow | null>(null);
+
+  function openMapModal(row: AttendanceHistoryRow) {
+    setMapRecord(row);
+    setMapModalOpen(true);
+  }
+
   const fetchSchedule = useCallback(async (filter: HistoryFilter, page: number) => {
     try {
       const res = await fetch(`/api/employee/schedule?filter=${filter}&page=${page}`);
@@ -167,6 +192,9 @@ export default function SchedulePage() {
       setHistoryPageData(json.data.history.items);
       setHistoryTotal(json.data.history.total);
       setHistoryTotalPages(json.data.history.totalPages);
+      if (json.data.officeGps) {
+        setOfficeGps(json.data.officeGps);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다");
     } finally {
@@ -420,6 +448,7 @@ export default function SchedulePage() {
                 <th className="text-left px-sp-5 py-sp-3 font-medium text-text-tertiary">퇴근</th>
                 <th className="text-left px-sp-5 py-sp-3 font-medium text-text-tertiary">총 근무</th>
                 <th className="text-left px-sp-5 py-sp-3 font-medium text-text-tertiary">상태</th>
+                <th className="text-left px-sp-5 py-sp-3 font-medium text-text-tertiary">위치</th>
               </tr>
             </thead>
             <tbody>
@@ -443,6 +472,59 @@ export default function SchedulePage() {
                     {row.totalWork ?? "—"}
                   </td>
                   <td className="px-sp-5 py-sp-3">{historyStatusBadge(row.status)}</td>
+                  <td className="px-sp-5 py-sp-3">
+                    {(() => {
+                      const gpsIn = row.checkInGpsStatus;
+                      const gpsOut = row.checkOutGpsStatus;
+                      const status = gpsIn === "NO_GPS" || gpsOut === "NO_GPS"
+                        ? "NO_GPS"
+                        : gpsIn === "OUT_OF_OFFICE" || gpsOut === "OUT_OF_OFFICE"
+                          ? "OUT_OF_OFFICE"
+                          : gpsIn === "IN_OFFICE" || gpsOut === "IN_OFFICE"
+                            ? "IN_OFFICE"
+                            : null;
+
+                      if (!status) return <span className="text-text-tertiary">—</span>;
+
+                      const gpsMap: Record<string, { label: string; variant: "success" | "warning" | "neutral" }> = {
+                        IN_OFFICE: { label: "사내", variant: "success" },
+                        OUT_OF_OFFICE: { label: "사외", variant: "warning" },
+                        NO_GPS: { label: "미확인", variant: "neutral" },
+                      };
+                      const info = gpsMap[status];
+                      if (!info) return <>{status}</>;
+
+                      const hasCoords = row.checkInLat != null || row.checkOutLat != null;
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => hasCoords && openMapModal(row)}
+                          className={hasCoords ? "cursor-pointer" : "cursor-default"}
+                          title={hasCoords ? "클릭하여 지도 보기" : "GPS 좌표 없음"}
+                        >
+                          <Badge variant={info.variant}>
+                            {info.label}
+                            {hasCoords && (
+                              <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="ml-0.5 inline-block"
+                              >
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                <circle cx="12" cy="10" r="3" />
+                              </svg>
+                            )}
+                          </Badge>
+                        </button>
+                      );
+                    })()}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -489,6 +571,35 @@ export default function SchedulePage() {
           </div>
         </div>
       </Card>
+
+      {/* GPS Map Modal */}
+      <GpsMapModal
+        open={mapModalOpen}
+        onClose={() => setMapModalOpen(false)}
+        employeeName="나"
+        date={mapRecord?.date ?? ""}
+        checkIn={
+          mapRecord?.checkInLat != null && mapRecord?.checkInLon != null
+            ? {
+                lat: mapRecord.checkInLat,
+                lon: mapRecord.checkInLon,
+                label: "출근",
+                time: mapRecord.checkIn,
+              }
+            : null
+        }
+        checkOut={
+          mapRecord?.checkOutLat != null && mapRecord?.checkOutLon != null
+            ? {
+                lat: mapRecord.checkOutLat,
+                lon: mapRecord.checkOutLon,
+                label: "퇴근",
+                time: mapRecord.checkOut,
+              }
+            : null
+        }
+        office={officeGps}
+      />
     </div>
   );
 }
