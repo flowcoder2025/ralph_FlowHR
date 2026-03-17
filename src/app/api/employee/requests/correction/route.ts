@@ -21,16 +21,17 @@ export async function POST(request: NextRequest) {
   const employeeId = employee.id;
 
   const body = await request.json();
-  const { date, reason, correctionType, correctedTime } = body;
+  const { date, targetDate: targetDateField, reason, correctionType, correctedTime } = body;
+  const dateValue = date || targetDateField;
 
-  if (!date || !reason) {
+  if (!dateValue || !reason) {
     return NextResponse.json(
       { error: "date, reason은 필수입니다" },
       { status: 400 },
     );
   }
 
-  const targetDate = new Date(date);
+  const targetDate = new Date(dateValue);
   targetDate.setUTCHours(0, 0, 0, 0);
 
   // 동일 날짜 중복 정정 신청 확인

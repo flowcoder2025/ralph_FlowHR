@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
   const token = await getToken({ req: request });
-  if (!token || !token.tenantId || !token.employeeNumber) {
+  if (!token || !token.tenantId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
