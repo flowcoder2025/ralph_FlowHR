@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { formatTimeWithTz } from "@/lib/date-utils";
+import { DEFAULT_TIMEZONE } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -92,7 +94,7 @@ export async function GET(request: NextRequest) {
     queueItems.push({
       priority: "medium",
       title: `${t.name} -- ${t.plan} 플랜 신규 가입`,
-      meta: `오늘 ${t.createdAt.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} \u00b7 온보딩 안내 필요`,
+      meta: `오늘 ${formatTimeWithTz(t.createdAt, DEFAULT_TIMEZONE)} \u00b7 온보딩 안내 필요`,
       actionLabel: "검토",
       actionVariant: "secondary",
     });
@@ -154,10 +156,7 @@ export async function GET(request: NextRequest) {
   });
 
   for (const t of recentTenantChanges) {
-    const timeStr = t.updatedAt.toLocaleTimeString("ko-KR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const timeStr = formatTimeWithTz(t.updatedAt, DEFAULT_TIMEZONE) ?? "—";
     const isNew =
       Math.abs(t.createdAt.getTime() - t.updatedAt.getTime()) < 60000;
 

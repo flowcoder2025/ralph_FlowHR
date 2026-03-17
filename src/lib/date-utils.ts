@@ -77,3 +77,28 @@ export function isSameUTCDay(a: Date, b: Date): boolean {
     a.getUTCDate() === b.getUTCDate()
   );
 }
+
+/** Tenant timezone 기반 시각 포맷 (HH:MM) — 서버 환경 무관 */
+export function formatTimeWithTz(date: Date | null | undefined, timezone = "Asia/Seoul"): string | null {
+  if (!date) return null;
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: timezone,
+  }).formatToParts(date);
+  const h = parts.find((p) => p.type === "hour")?.value ?? "00";
+  const m = parts.find((p) => p.type === "minute")?.value ?? "00";
+  return `${h}:${m}`;
+}
+
+/** Tenant timezone 기반 날짜 포맷 (YYYY. MM. DD.) — 서버 환경 무관 */
+export function formatDateWithTz(date: Date | null | undefined, timezone = "Asia/Seoul"): string | null {
+  if (!date) return null;
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: timezone,
+  }).format(date);
+}

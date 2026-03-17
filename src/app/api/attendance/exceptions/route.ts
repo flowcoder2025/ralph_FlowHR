@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { formatDateWithTz } from "@/lib/date-utils";
+import { DEFAULT_TIMEZONE } from "@/lib/constants";
 import type { ExceptionType, ExceptionStatus } from "@prisma/client";
 
 const VALID_TYPES: ExceptionType[] = [
@@ -41,6 +43,10 @@ export async function GET(request: NextRequest) {
   ) {
     where.status = statusFilter as ExceptionStatus;
   }
+
+  const tenant = await prisma.tenant.findUnique({ where: { id: tenantId as string }, select: { settings: true } });
+  const tenantSettings = (tenant?.settings && typeof tenant.settings === "object") ? tenant.settings as Record<string, unknown> : {};
+  const tz = (typeof tenantSettings.timezone === "string" && tenantSettings.timezone) || DEFAULT_TIMEZONE;
 
   const exceptions = await prisma.attendanceException.findMany({
     where,
@@ -93,25 +99,13 @@ export async function GET(request: NextRequest) {
       department: ex.employee.department?.name ?? "—",
       type: ex.type,
       status: ex.status,
-      date: new Date(ex.date).toLocaleDateString("ko-KR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }),
+      date: formatDateWithTz(new Date(ex.date), tz) ?? "—",
       reason: ex.reason,
       approvedBy: ex.approvedBy,
       approvedAt: ex.approvedAt
-        ? new Date(ex.approvedAt).toLocaleDateString("ko-KR", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          })
+        ? formatDateWithTz(new Date(ex.approvedAt), tz)
         : null,
-      createdAt: new Date(ex.createdAt).toLocaleDateString("ko-KR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }),
+      createdAt: formatDateWithTz(new Date(ex.createdAt), tz) ?? "—",
     });
   }
 

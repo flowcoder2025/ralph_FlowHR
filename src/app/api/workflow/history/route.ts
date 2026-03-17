@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { formatDateWithTz } from "@/lib/date-utils";
+import { DEFAULT_TIMEZONE } from "@/lib/constants";
 import type { Prisma, ApprovalRequestStatus } from "@prisma/client";
 
 const COMPLETED_STATUSES: ApprovalRequestStatus[] = [
@@ -71,6 +73,10 @@ export async function GET(request: NextRequest) {
       orderBy = { completedAt: sortDir };
   }
 
+  const tenant = await prisma.tenant.findUnique({ where: { id: tenantId as string }, select: { settings: true } });
+  const tenantSettings = (tenant?.settings && typeof tenant.settings === "object") ? tenant.settings as Record<string, unknown> : {};
+  const tz = (typeof tenantSettings.timezone === "string" && tenantSettings.timezone) || DEFAULT_TIMEZONE;
+
   const [records, total] = await Promise.all([
     prisma.approvalRequest.findMany({
       where,
@@ -106,17 +112,9 @@ export async function GET(request: NextRequest) {
       requesterName: r.requester.name,
       department: r.requester.department?.name ?? "—",
       requestType: r.requestType,
-      createdAt: createdDate.toLocaleDateString("ko-KR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }),
+      createdAt: formatDateWithTz(createdDate, tz) ?? "—",
       completedAt: completedDate
-        ? completedDate.toLocaleDateString("ko-KR", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          })
+        ? formatDateWithTz(completedDate, tz) ?? "—"
         : "—",
       status: r.status,
       processingDays,
