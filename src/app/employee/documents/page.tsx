@@ -362,16 +362,17 @@ export default function EmployeeDocumentsPage() {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-sp-3 mt-sp-4 pt-sp-4 border-t border-border-subtle">
+            <div className="flex flex-col sm:flex-row gap-sp-3 mt-sp-4 pt-sp-4 border-t border-border-subtle">
               <Button
                 variant="primary"
                 size="lg"
                 onClick={handleSignComplete}
                 disabled={!signatureDrawn}
+                className="w-full sm:w-auto min-h-[44px]"
               >
                 {"\uC11C\uBA85 \uC644\uB8CC"}
               </Button>
-              <Button variant="danger" size="lg" onClick={() => {
+              <Button variant="danger" size="lg" className="w-full sm:w-auto min-h-[44px]" onClick={() => {
                 if (!selectedDoc) return;
                 fetch(`/api/employee/documents/${selectedDoc.id}`, {
                   method: "PATCH",
@@ -386,7 +387,7 @@ export default function EmployeeDocumentsPage() {
               }}>
                 {"\uAC70\uBD80"}
               </Button>
-              <Button variant="ghost" onClick={handleBack}>
+              <Button variant="ghost" onClick={handleBack} className="w-full sm:w-auto min-h-[44px]">
                 {"\uB4A4\uB85C"}
               </Button>
             </div>
@@ -436,15 +437,15 @@ export default function EmployeeDocumentsPage() {
           </div>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="flex-col gap-sp-3 sm:flex-row">
               <CardTitle>{"\uBCF4\uAD00 \uBB38\uC11C"}</CardTitle>
-              <div className="flex gap-sp-2">
+              <div className="flex gap-sp-2 flex-wrap">
                 {CATEGORY_FILTERS.map((f) => (
                   <button
                     key={f.value}
                     onClick={() => setCategoryFilter(f.value)}
                     className={[
-                      "px-sp-3 py-sp-1 rounded-full text-sm font-medium transition-colors",
+                      "px-sp-3 py-sp-1 rounded-full text-xs md:text-sm font-medium transition-colors min-h-[32px]",
                       categoryFilter === f.value
                         ? "bg-brand text-white"
                         : "bg-surface-secondary text-text-secondary hover:bg-surface-tertiary",
@@ -455,7 +456,7 @@ export default function EmployeeDocumentsPage() {
                 ))}
               </div>
             </CardHeader>
-            <CardBody className="!p-0">
+            <CardBody className="!p-0 overflow-x-auto">
               <DataTable
                 columns={ARCHIVE_COLUMNS}
                 data={filteredArchive}

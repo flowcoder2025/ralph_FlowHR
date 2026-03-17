@@ -415,7 +415,7 @@ export default function RequestsPage() {
         <p className="text-sm text-text-tertiary mt-sp-1">신청할 요청 유형을 선택하세요</p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-sp-4 mb-sp-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-sp-3 md:gap-sp-4 mb-sp-6 md:mb-sp-8">
         {requestTypes.map((type) => {
           const enabled = type.isLeave || type.isCorrection;
           return (
@@ -423,16 +423,16 @@ export default function RequestsPage() {
               key={type.id}
               onClick={() => handleCardClick(type)}
               className={[
-                "rounded-xl border bg-surface-primary p-sp-6 text-center transition-all",
+                "rounded-xl border bg-surface-primary p-sp-4 md:p-sp-6 text-center transition-all min-h-[44px]",
                 enabled
                   ? "border-border hover:border-brand hover:shadow-md cursor-pointer"
                   : "border-border-subtle opacity-60 cursor-not-allowed",
               ].join(" ")}
               disabled={!enabled}
             >
-              <div className="text-[32px] mb-sp-3">{type.icon}</div>
-              <div className="font-semibold text-sm text-text-primary mb-sp-1">{type.label}</div>
-              <div className="text-xs text-text-tertiary">{type.description}</div>
+              <div className="text-[28px] md:text-[32px] mb-sp-2 md:mb-sp-3">{type.icon}</div>
+              <div className="font-semibold text-xs md:text-sm text-text-primary mb-sp-1">{type.label}</div>
+              <div className="text-[10px] md:text-xs text-text-tertiary hidden sm:block">{type.description}</div>
             </button>
           );
         })}
@@ -455,12 +455,12 @@ export default function RequestsPage() {
             </CardHeader>
             <CardBody>
               {/* Step Indicator */}
-              <div className="flex items-center gap-sp-4 mb-sp-6">
+              <div className="flex items-center gap-sp-2 md:gap-sp-4 mb-sp-4 md:mb-sp-6 overflow-x-auto">
                 {STEP_LABELS.map(({ step, label }) => (
-                  <div key={step} className="flex items-center gap-sp-2">
+                  <div key={step} className="flex items-center gap-sp-1 md:gap-sp-2 shrink-0">
                     <span
                       className={[
-                        "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold",
+                        "w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center text-xs font-bold",
                         formStep > step
                           ? "bg-status-success text-white"
                           : formStep === step
@@ -472,14 +472,14 @@ export default function RequestsPage() {
                     </span>
                     <span
                       className={[
-                        "text-sm font-medium",
+                        "text-xs md:text-sm font-medium",
                         formStep === step ? "text-text-primary" : "text-text-tertiary",
                       ].join(" ")}
                     >
                       {label}
                     </span>
                     {step < 3 && (
-                      <div className="w-8 h-px bg-border-subtle mx-sp-1" />
+                      <div className="w-4 md:w-8 h-px bg-border-subtle mx-sp-1" />
                     )}
                   </div>
                 ))}
@@ -722,18 +722,18 @@ export default function RequestsPage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-between mt-sp-6 pt-sp-4 border-t border-border-subtle">
-                    <Button variant="ghost" onClick={() => setFormStep(2)}>
+                  <div className="flex flex-col gap-sp-3 sm:flex-row sm:justify-between mt-sp-6 pt-sp-4 border-t border-border-subtle">
+                    <Button variant="ghost" onClick={() => setFormStep(2)} className="w-full sm:w-auto">
                       이전
                     </Button>
-                    <div className="flex gap-sp-3">
-                      <Button variant="ghost" onClick={handleCancel}>
+                    <div className="flex flex-col sm:flex-row gap-sp-2 sm:gap-sp-3">
+                      <Button variant="ghost" onClick={handleCancel} className="w-full sm:w-auto">
                         취소
                       </Button>
-                      <Button variant="secondary" onClick={handleDraftSave} disabled={draftLoading || submitLoading}>
+                      <Button variant="secondary" onClick={handleDraftSave} disabled={draftLoading || submitLoading} className="w-full sm:w-auto">
                         {draftLoading ? "저장 중..." : "임시 저장"}
                       </Button>
-                      <Button variant="primary" onClick={handleSubmit} disabled={submitLoading || draftLoading}>
+                      <Button variant="primary" onClick={handleSubmit} disabled={submitLoading || draftLoading} className="w-full sm:w-auto">
                         {submitLoading ? "신청 중..." : "신청하기"}
                       </Button>
                     </div>
@@ -871,15 +871,15 @@ export default function RequestsPage() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex-col gap-sp-3 sm:flex-row">
           <CardTitle>요청 이력</CardTitle>
-          <div className="flex gap-sp-2">
+          <div className="flex gap-sp-2 flex-wrap">
             {HISTORY_FILTERS.map((f) => (
               <button
                 key={f.value}
                 onClick={() => handleFilterChange(f.value)}
                 className={[
-                  "px-sp-3 py-sp-1 rounded-full text-xs font-medium transition-colors",
+                  "px-sp-3 py-sp-1 rounded-full text-xs font-medium transition-colors min-h-[32px]",
                   historyFilter === f.value
                     ? "bg-brand text-white"
                     : "bg-surface-secondary text-text-secondary hover:bg-surface-tertiary",
@@ -892,7 +892,7 @@ export default function RequestsPage() {
         </CardHeader>
         <CardBody className="!p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm min-w-[600px]">
               <thead>
                 <tr className="border-b border-border bg-surface-secondary">
                   <th className="px-sp-4 py-sp-3 text-left font-medium text-text-tertiary">유형</th>
@@ -944,7 +944,7 @@ export default function RequestsPage() {
         </CardBody>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-sp-4 py-sp-3 border-t border-border">
+        <div className="flex flex-col gap-sp-2 sm:flex-row items-center justify-between px-sp-4 py-sp-3 border-t border-border">
           <span className="text-sm text-text-tertiary">
             총 {totalFiltered}건 중 {(historyPage - 1) * PAGE_SIZE + 1}-{Math.min(historyPage * PAGE_SIZE, totalFiltered)}
           </span>
