@@ -55,7 +55,7 @@ function mapHistoryStatus(
     case "EARLY_LEAVE":
       return "early_leave";
     case "ABSENT":
-      return "annual";
+      return "absent";
     default:
       return "normal";
   }
@@ -199,6 +199,15 @@ export async function GET(request: NextRequest) {
   });
 
   const historyItems = historyRecords.map((r) => {
+    // GPS 필드는 Prisma generate 전 빌드 호환을 위해 캐스트
+    const rec = r as typeof r & {
+      checkInLat?: number | null;
+      checkInLon?: number | null;
+      checkOutLat?: number | null;
+      checkOutLon?: number | null;
+      checkInGpsStatus?: string | null;
+      checkOutGpsStatus?: string | null;
+    };
     const recordDate = new Date(r.date);
     const isToday = isSameDay(recordDate, today);
     return {
@@ -210,12 +219,23 @@ export async function GET(request: NextRequest) {
       totalWork: formatWorkMinutes(r.workMinutes),
       status: mapHistoryStatus(r.status, isToday, r.checkIn, r.checkOut),
       isToday,
+      checkInLat: rec.checkInLat ?? null,
+      checkInLon: rec.checkInLon ?? null,
+      checkOutLat: rec.checkOutLat ?? null,
+      checkOutLon: rec.checkOutLon ?? null,
+      checkInGpsStatus: rec.checkInGpsStatus ?? null,
+      checkOutGpsStatus: rec.checkOutGpsStatus ?? null,
     };
   });
 
   const total = historyItems.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const pagedItems = historyItems.slice((page - 1) * pageSize, page * pageSize);
+
+  // Office GPS 설정 추출
+  const officeLatitude = typeof tenantSettings.officeLatitude === "number" ? tenantSettings.officeLatitude : null;
+  const officeLongitude = typeof tenantSettings.officeLongitude === "number" ? tenantSettings.officeLongitude : null;
+  const gpsRadius = typeof tenantSettings.allowedRadius === "number" ? tenantSettings.allowedRadius : 500;
 
   return NextResponse.json({
     data: {
@@ -228,6 +248,11 @@ export async function GET(request: NextRequest) {
         totalPages,
         page,
         pageSize,
+      },
+      officeGps: {
+        officeLatitude,
+        officeLongitude,
+        gpsRadius,
       },
     },
   });

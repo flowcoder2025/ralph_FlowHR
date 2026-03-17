@@ -4,7 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { utcToday } from "@/lib/date-utils";
 import { calculateDistance } from "@/lib/geo";
-import { DEFAULT_TIMEZONE, DEFAULT_WORK_START_TIME, DEFAULT_WORK_END_TIME, DEFAULT_GPS_RADIUS, EARLY_LEAVE_THRESHOLD_MINUTES, MINIMUM_WORK_MINUTES } from "@/lib/constants";
+import { DEFAULT_TIMEZONE, DEFAULT_WORK_START_TIME, DEFAULT_WORK_END_TIME, DEFAULT_GPS_RADIUS, EARLY_LEAVE_THRESHOLD_MINUTES, ABSENT_THRESHOLD_MINUTES, HALF_DAY_UPPER_MINUTES, LATE_THRESHOLD_MINUTES } from "@/lib/constants";
 import { gpsCheckinSchema } from "@/lib/validations";
 
 interface GpsBody {
@@ -40,7 +40,7 @@ function determineCheckInStatus(checkInTime: Date, workStartTime: string, timezo
   const [startH, startM] = workStartTime.split(":").map(Number);
   const startMinutes = startH * 60 + startM;
 
-  return checkInMinutes > startMinutes ? "LATE" : "PRESENT";
+  return checkInMinutes > startMinutes + LATE_THRESHOLD_MINUTES ? "LATE" : "PRESENT";
 }
 
 /** Tenant settings에서 GPS 설정 추출 */
@@ -268,25 +268,37 @@ export async function PATCH(request: NextRequest) {
     (now.getTime() - existing.checkIn.getTime()) / (1000 * 60),
   );
 
-  // 퇴근 시 상태 갱신: 조기퇴근 판별
+  // 퇴근 시 상태 갱신: 근무시간 기반 판별
   const work = getWorkSettings(tenant?.settings);
-  const timeStr = new Intl.DateTimeFormat("en-GB", {
-    hour: "2-digit", minute: "2-digit", hour12: false, timeZone: work.timezone,
-  }).format(now);
-  const [coH, coM] = timeStr.split(":").map(Number);
-  const checkOutMinutes = coH * 60 + coM;
+  const [startH, startM] = work.workStartTime.split(":").map(Number);
   const [endH, endM] = work.workEndTime.split(":").map(Number);
-  const endMinutes = endH * 60 + endM;
+  const regularMinutes = (endH * 60 + endM) - (startH * 60 + startM);
 
-  // 기존 상태가 LATE면 유지, 정상 퇴근 시간 전에 퇴근하면 EARLY_LEAVE
-  let finalStatus = existing.status;
-  if (existing.status !== "LATE" && checkOutMinutes < endMinutes - EARLY_LEAVE_THRESHOLD_MINUTES) {
-    finalStatus = "EARLY_LEAVE";
-  }
+  // 출근 시각의 지각 여부 판별 (Tenant timezone 기준)
+  const checkInTimeStr = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit", minute: "2-digit", hour12: false, timeZone: work.timezone,
+  }).format(existing.checkIn);
+  const [ciH, ciM] = checkInTimeStr.split(":").map(Number);
+  const checkInMinutes = ciH * 60 + ciM;
+  const startMinutes = startH * 60 + startM;
+  const isLate = checkInMinutes > startMinutes + LATE_THRESHOLD_MINUTES;
 
-  // 최소 근무시간 미만이면 HALF_DAY 처리
-  if (workMinutes < MINIMUM_WORK_MINUTES) {
+  let finalStatus: string;
+  if (workMinutes <= ABSENT_THRESHOLD_MINUTES) {
+    // 0~30분 근무 → 결근
+    finalStatus = "ABSENT";
+  } else if (workMinutes <= HALF_DAY_UPPER_MINUTES) {
+    // 30분~4시간 근무 → 반차
     finalStatus = "HALF_DAY";
+  } else if (workMinutes < regularMinutes - EARLY_LEAVE_THRESHOLD_MINUTES) {
+    // 4시간~(정규시간-30분) 근무 → 조퇴
+    finalStatus = "EARLY_LEAVE";
+  } else if (isLate) {
+    // 충분히 근무했지만 출근이 30분 이상 늦었으면 → 지각
+    finalStatus = "LATE";
+  } else {
+    // 정규시간-30분 이상 근무 → 정상
+    finalStatus = "PRESENT";
   }
 
   // GPS 판정값 결정
