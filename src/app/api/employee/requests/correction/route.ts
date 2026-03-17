@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   }
 
   const targetDate = new Date(date);
-  targetDate.setHours(0, 0, 0, 0);
+  targetDate.setUTCHours(0, 0, 0, 0);
 
   // 동일 날짜 중복 정정 신청 확인
   const existing = await prisma.attendanceException.findFirst({

@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { utcToday, utcTodayEnd, utcMonday, utcDaysOffset, utcMonthStart, utcLastMonthStart, utcLastMonthEnd, isSameUTCDay } from "@/lib/date-utils";
+import { DEFAULT_TIMEZONE, DEFAULT_WORK_START_TIME, DEFAULT_WORK_END_TIME, HISTORY_LOOKBACK_DAYS, DEFAULT_PAGE_SIZE } from "@/lib/constants";
 
 const SHIFT_TYPE_LABEL: Record<string, string> = {
   REGULAR: "일반 근무",
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const filter = searchParams.get("filter") || "recent2w";
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const pageSize = 10;
+  const pageSize = DEFAULT_PAGE_SIZE;
 
   // Tenant timezone 조회
   const tenant = await prisma.tenant.findUnique({
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest) {
     select: { settings: true },
   });
   const tenantSettings = (tenant?.settings && typeof tenant.settings === "object") ? tenant.settings as Record<string, unknown> : {};
-  const tz = (typeof tenantSettings.timezone === "string" && tenantSettings.timezone) || "Asia/Seoul";
+  const tz = (typeof tenantSettings.timezone === "string" && tenantSettings.timezone) || DEFAULT_TIMEZONE;
 
   const now = new Date();
   const today = utcToday();
@@ -104,8 +105,8 @@ export async function GET(request: NextRequest) {
   const shiftName = shiftAssignment
     ? SHIFT_TYPE_LABEL[shiftAssignment.shift.type] || shiftAssignment.shift.name
     : "일반 근무";
-  const shiftStart = shiftAssignment?.shift.startTime || "09:00";
-  const shiftEnd = shiftAssignment?.shift.endTime || "18:00";
+  const shiftStart = shiftAssignment?.shift.startTime || DEFAULT_WORK_START_TIME;
+  const shiftEnd = shiftAssignment?.shift.endTime || DEFAULT_WORK_END_TIME;
 
   // Today's attendance
   const todayRecord = await prisma.attendanceRecord.findFirst({
@@ -183,7 +184,7 @@ export async function GET(request: NextRequest) {
   } else if (filter === "thisMonth") {
     historyStart = utcMonthStart();
   } else {
-    historyStart = utcDaysOffset(-13);
+    historyStart = utcDaysOffset(-HISTORY_LOOKBACK_DAYS);
   }
 
   const historyRecords = await prisma.attendanceRecord.findMany({

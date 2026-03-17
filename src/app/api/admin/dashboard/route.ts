@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { utcToday, utcTomorrow, utcYesterday, utcDaysOffset } from "@/lib/date-utils";
+import { OVERTIME_LIMIT_MINUTES, APPROVAL_SLA_DAYS } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -125,7 +126,7 @@ export async function GET(request: NextRequest) {
     weeklyByEmployee.set(r.employeeId, cur + (r.workMinutes ?? 0));
   }
   const overtimeNear = Array.from(weeklyByEmployee.values()).filter(
-    (mins) => mins >= 2880, // 48h+
+    (mins) => mins >= OVERTIME_LIMIT_MINUTES,
   ).length;
 
   interface QueueItemData {
@@ -244,7 +245,7 @@ export async function GET(request: NextRequest) {
         tenantId,
         status: { in: ["PENDING", "IN_PROGRESS"] },
         createdAt: {
-          lt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days
+          lt: new Date(Date.now() - APPROVAL_SLA_DAYS * 24 * 60 * 60 * 1000),
         },
       },
     }),

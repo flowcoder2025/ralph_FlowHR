@@ -4,6 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { utcToday } from "@/lib/date-utils";
 import { calculateDistance } from "@/lib/geo";
+import { DEFAULT_TIMEZONE, DEFAULT_WORK_START_TIME, DEFAULT_WORK_END_TIME, DEFAULT_GPS_RADIUS, EARLY_LEAVE_THRESHOLD_MINUTES } from "@/lib/constants";
 
 interface GpsBody {
   latitude?: number;
@@ -17,13 +18,13 @@ function getWorkSettings(settings: unknown): {
   timezone: string;
 } {
   if (!settings || typeof settings !== "object") {
-    return { workStartTime: "09:00", workEndTime: "18:00", timezone: "Asia/Seoul" };
+    return { workStartTime: DEFAULT_WORK_START_TIME, workEndTime: DEFAULT_WORK_END_TIME, timezone: DEFAULT_TIMEZONE };
   }
   const s = settings as Record<string, unknown>;
   return {
-    workStartTime: typeof s.workStartTime === "string" ? s.workStartTime : "09:00",
-    workEndTime: typeof s.workEndTime === "string" ? s.workEndTime : "18:00",
-    timezone: typeof s.timezone === "string" ? s.timezone : "Asia/Seoul",
+    workStartTime: typeof s.workStartTime === "string" ? s.workStartTime : DEFAULT_WORK_START_TIME,
+    workEndTime: typeof s.workEndTime === "string" ? s.workEndTime : DEFAULT_WORK_END_TIME,
+    timezone: typeof s.timezone === "string" ? s.timezone : DEFAULT_TIMEZONE,
   };
 }
 
@@ -70,7 +71,7 @@ function validateLocation(
     body.latitude!, body.longitude!,
     gps.officeLatitude!, gps.officeLongitude!,
   );
-  const radius = gps.allowedRadius ?? 500;
+  const radius = gps.allowedRadius ?? DEFAULT_GPS_RADIUS;
 
   if (distance > radius) {
     return {
@@ -249,7 +250,7 @@ export async function PATCH(request: NextRequest) {
 
   // 기존 상태가 LATE면 유지, 정상 퇴근 시간 전에 퇴근하면 EARLY_LEAVE
   let finalStatus = existing.status;
-  if (existing.status !== "LATE" && checkOutMinutes < endMinutes - 30) {
+  if (existing.status !== "LATE" && checkOutMinutes < endMinutes - EARLY_LEAVE_THRESHOLD_MINUTES) {
     finalStatus = "EARLY_LEAVE";
   }
 

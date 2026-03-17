@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { DEFAULT_TIMEZONE, DEFAULT_WORK_START_TIME, DEFAULT_WORK_END_TIME, DEFAULT_GPS_RADIUS } from "@/lib/constants";
 
 interface CompanySettings {
   companyName: string;
@@ -24,13 +25,13 @@ const DEFAULT_SETTINGS: CompanySettings = {
   industry: "",
   representative: "",
   fiscalYearStart: "1",
-  timezone: "Asia/Seoul",
-  workStartTime: "09:00",
-  workEndTime: "18:00",
+  timezone: DEFAULT_TIMEZONE,
+  workStartTime: DEFAULT_WORK_START_TIME,
+  workEndTime: DEFAULT_WORK_END_TIME,
   logoUrl: "",
   officeLatitude: "",
   officeLongitude: "",
-  allowedRadius: "500",
+  allowedRadius: String(DEFAULT_GPS_RADIUS),
 };
 
 // ─── GET: 회사 설정 조회 ────────────────────────────────
@@ -64,13 +65,13 @@ export async function GET(request: NextRequest) {
     industry: (stored.industry as string) || "",
     representative: (stored.representative as string) || "",
     fiscalYearStart: (stored.fiscalYearStart as string) || "1",
-    timezone: (stored.timezone as string) || "Asia/Seoul",
-    workStartTime: (stored.workStartTime as string) || "09:00",
-    workEndTime: (stored.workEndTime as string) || "18:00",
+    timezone: (stored.timezone as string) || DEFAULT_TIMEZONE,
+    workStartTime: (stored.workStartTime as string) || DEFAULT_WORK_START_TIME,
+    workEndTime: (stored.workEndTime as string) || DEFAULT_WORK_END_TIME,
     logoUrl: (stored.logoUrl as string) || "",
     officeLatitude: stored.officeLatitude !== undefined ? String(stored.officeLatitude) : "",
     officeLongitude: stored.officeLongitude !== undefined ? String(stored.officeLongitude) : "",
-    allowedRadius: stored.allowedRadius !== undefined ? String(stored.allowedRadius) : "500",
+    allowedRadius: stored.allowedRadius !== undefined ? String(stored.allowedRadius) : String(DEFAULT_GPS_RADIUS),
   };
 
   return NextResponse.json({ data: company });
@@ -139,7 +140,7 @@ export async function PATCH(request: NextRequest) {
     ...(logoUrl !== undefined && { logoUrl }),
     ...(officeLatitude !== undefined && { officeLatitude: officeLatitude ? parseFloat(officeLatitude) : null }),
     ...(officeLongitude !== undefined && { officeLongitude: officeLongitude ? parseFloat(officeLongitude) : null }),
-    ...(allowedRadius !== undefined && { allowedRadius: allowedRadius ? parseInt(allowedRadius, 10) : 500 }),
+    ...(allowedRadius !== undefined && { allowedRadius: allowedRadius ? parseInt(allowedRadius, 10) : DEFAULT_GPS_RADIUS }),
   };
 
   await prisma.tenant.update({
