@@ -64,3 +64,4 @@ test-screenshots/
 e2e-manual.js
 e2e-visual.js
 e2e-full.js
+e2e-crud.js
