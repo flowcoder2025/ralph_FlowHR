@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { formatTimeWithTz, formatDateWithTz } from "@/lib/date-utils";
 import type { Prisma, AttendanceStatus } from "@prisma/client";
+import { DEFAULT_TIMEZONE } from "@/lib/constants";
 
 const VALID_STATUSES: AttendanceStatus[] = [
   "PRESENT",
@@ -70,6 +72,14 @@ export async function GET(request: NextRequest) {
       orderBy = { date: sortDir };
   }
 
+  // Tenant timezone 조회
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId as string },
+    select: { settings: true },
+  });
+  const tenantSettings = (tenant?.settings && typeof tenant.settings === "object") ? tenant.settings as Record<string, unknown> : {};
+  const tz = (typeof tenantSettings.timezone === "string" && tenantSettings.timezone) || DEFAULT_TIMEZONE;
+
   const [records, total] = await Promise.all([
     prisma.attendanceRecord.findMany({
       where,
@@ -90,20 +100,8 @@ export async function GET(request: NextRequest) {
   ]);
 
   const data = records.map((r) => {
-    const checkInTime = r.checkIn
-      ? new Date(r.checkIn).toLocaleTimeString("ko-KR", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })
-      : null;
-    const checkOutTime = r.checkOut
-      ? new Date(r.checkOut).toLocaleTimeString("ko-KR", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })
-      : null;
+    const checkInTime = formatTimeWithTz(r.checkIn, tz);
+    const checkOutTime = formatTimeWithTz(r.checkOut, tz);
 
     let workDisplay: string;
     if (r.workMinutes !== null && r.workMinutes > 0) {
@@ -120,11 +118,7 @@ export async function GET(request: NextRequest) {
       id: r.id,
       employeeName: r.employee.name,
       department: r.employee.department?.name ?? "—",
-      date: new Date(r.date).toLocaleDateString("ko-KR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }),
+      date: formatDateWithTz(r.date, tz) ?? "—",
       checkIn: checkInTime,
       checkOut: checkOutTime,
       workDisplay,

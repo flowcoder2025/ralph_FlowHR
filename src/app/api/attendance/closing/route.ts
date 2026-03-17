@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import { formatDateWithTz } from "@/lib/date-utils";
+import { DEFAULT_TIMEZONE } from "@/lib/constants";
 import type { ClosingStatus } from "@prisma/client";
 
 const VALID_TRANSITIONS: Record<ClosingStatus, ClosingStatus | null> = {
@@ -19,6 +21,10 @@ export async function GET(request: NextRequest) {
 
   const tenantId = token.tenantId as string;
   const { searchParams } = request.nextUrl;
+
+  const tenant = await prisma.tenant.findUnique({ where: { id: tenantId as string }, select: { settings: true } });
+  const tenantSettings = (tenant?.settings && typeof tenant.settings === "object") ? tenant.settings as Record<string, unknown> : {};
+  const tz = (typeof tenantSettings.timezone === "string" && tenantSettings.timezone) || DEFAULT_TIMEZONE;
 
   const now = new Date();
   const year = parseInt(searchParams.get("year") ?? String(now.getFullYear()), 10);
@@ -152,11 +158,7 @@ export async function GET(request: NextRequest) {
     status: closing.status,
     closedBy: closing.closedBy,
     closedAt: closing.closedAt
-      ? new Date(closing.closedAt).toLocaleDateString("ko-KR", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        })
+      ? formatDateWithTz(new Date(closing.closedAt), tz)
       : null,
     totalDays: totalRecords,
     totalHours: totalHoursComputed,
