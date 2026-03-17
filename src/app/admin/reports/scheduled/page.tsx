@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import {
   Card,
   CardHeader,
@@ -12,6 +11,8 @@ import {
   DataTable,
   Input,
   Select,
+  Breadcrumb,
+  SkeletonTable,
 } from "@/components/ui";
 import type { Column } from "@/components/ui";
 import { Modal } from "@/components/layout/Modal";
@@ -257,8 +258,8 @@ export default function ScheduledReportsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-sp-12">
-        <span className="text-sm text-text-tertiary">불러오는 중...</span>
+      <div className="py-sp-12 space-y-sp-4">
+        <SkeletonTable rows={5} />
       </div>
     );
   }
@@ -267,13 +268,7 @@ export default function ScheduledReportsPage() {
     <div>
       {/* Header */}
       <div className="mb-sp-6">
-        <div className="mb-sp-2 text-sm text-text-secondary">
-          <Link href="/admin/reports" className="hover:text-text-primary">
-            리포트 센터
-          </Link>
-          {" > "}
-          <span className="text-text-primary">예약 보고서</span>
-        </div>
+        <Breadcrumb items={[{ label: "리포트 센터", href: "/admin/reports" }, { label: "예약 보고서" }]} />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-text-primary">

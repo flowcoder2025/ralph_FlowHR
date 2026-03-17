@@ -20,6 +20,7 @@ import {
   QueueItem,
 } from "@/components/ui";
 import type { BadgeVariant, BarChartDatum, Column, QueuePriority } from "@/components/ui";
+import { Modal } from "@/components/layout/Modal";
 import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
@@ -656,12 +657,56 @@ function OverallBadge({ row }: { row: EvalProgressRow }) {
   return <Badge variant={variant}>{row.completedStages}/3</Badge>;
 }
 
+interface GoalItem {
+  id: string;
+  title: string;
+  description: string | null;
+  progress: number;
+  status: string;
+  weight: number;
+  dueDate: string | null;
+}
+
+const GOAL_STATUS_BADGE: Record<string, { variant: BadgeVariant; label: string }> = {
+  NOT_STARTED: { variant: "neutral", label: "미시작" },
+  IN_PROGRESS: { variant: "info", label: "진행 중" },
+  COMPLETED: { variant: "success", label: "완료" },
+  CANCELLED: { variant: "danger", label: "취소" },
+};
+
 function EvalProgressTab() {
   const { addToast } = useToast();
   const [data, setData] = useState<EvalProgressData | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const pageSize = 10;
+
+  // ─── Goals Detail Modal ──────────────────────────────────
+  const [goalsModalOpen, setGoalsModalOpen] = useState(false);
+  const [goalsModalName, setGoalsModalName] = useState("");
+  const [goals, setGoals] = useState<GoalItem[]>([]);
+  const [goalsLoading, setGoalsLoading] = useState(false);
+
+  async function openGoalsModal(row: EvalProgressRow) {
+    setGoalsModalName(row.name);
+    setGoalsModalOpen(true);
+    setGoalsLoading(true);
+    try {
+      const res = await fetch(`/api/performance/goals?employeeId=${row.employeeId}`);
+      if (res.ok) {
+        const json = await res.json();
+        setGoals(json.data ?? []);
+      } else {
+        setGoals([]);
+        addToast({ message: "목표 데이터를 불러올 수 없습니다.", variant: "danger" });
+      }
+    } catch {
+      setGoals([]);
+      addToast({ message: "서버 오류가 발생했습니다.", variant: "danger" });
+    } finally {
+      setGoalsLoading(false);
+    }
+  }
 
   const fetchProgress = useCallback(async () => {
     setLoading(true);
@@ -752,7 +797,7 @@ function EvalProgressTab() {
           if (row.status === "NOT_STARTED") {
             addToast({ message: "리마인더가 발송되었습니다.", variant: "success" });
           } else {
-            addToast({ message: "상세 정보를 준비 중입니다.", variant: "info" });
+            openGoalsModal(row);
           }
         }}>
           {row.status === "NOT_STARTED" ? "리마인더" : "상세"}
@@ -773,6 +818,58 @@ function EvalProgressTab() {
   }
 
   return (
+    <>
+    {/* Goals Detail Modal */}
+    <Modal
+      open={goalsModalOpen}
+      onClose={() => setGoalsModalOpen(false)}
+      title={`${goalsModalName} - 목표 목록`}
+      size="lg"
+      footer={
+        <Button variant="secondary" size="sm" onClick={() => setGoalsModalOpen(false)}>
+          닫기
+        </Button>
+      }
+    >
+      {goalsLoading ? (
+        <div className="flex items-center justify-center py-sp-8">
+          <span className="text-sm text-text-tertiary">불러오는 중...</span>
+        </div>
+      ) : goals.length === 0 ? (
+        <div className="flex items-center justify-center py-sp-8">
+          <span className="text-sm text-text-tertiary">등록된 목표가 없습니다.</span>
+        </div>
+      ) : (
+        <div className="space-y-sp-3">
+          {goals.map((goal) => {
+            const statusInfo = GOAL_STATUS_BADGE[goal.status] ?? { variant: "neutral" as BadgeVariant, label: goal.status };
+            return (
+              <div key={goal.id} className="rounded-md border border-border p-sp-3">
+                <div className="flex items-center justify-between mb-sp-2">
+                  <span className="font-medium text-text-primary">{goal.title}</span>
+                  <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+                </div>
+                {goal.description && (
+                  <p className="text-sm text-text-secondary mb-sp-2">{goal.description}</p>
+                )}
+                <div className="flex items-center gap-sp-4 text-xs text-text-tertiary">
+                  <span>진행률: {goal.progress}%</span>
+                  <span>가중치: {goal.weight}</span>
+                  {goal.dueDate && <span>마감: {new Date(goal.dueDate).toLocaleDateString("ko-KR")}</span>}
+                </div>
+                <div className="mt-sp-2 w-full bg-surface-secondary rounded-full h-1.5">
+                  <div
+                    className="bg-brand rounded-full h-1.5 transition-all"
+                    style={{ width: `${goal.progress}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Modal>
+
     <Card>
       <CardHeader>
         <CardTitle>{cycle.name} 진행 현황</CardTitle>
@@ -833,6 +930,7 @@ function EvalProgressTab() {
         )}
       </CardBody>
     </Card>
+    </>
   );
 }
 

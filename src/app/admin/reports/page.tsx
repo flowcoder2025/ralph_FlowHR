@@ -143,7 +143,7 @@ function ReportsContent() {
                 if (report.href) {
                   router.push(report.href);
                 } else {
-                  addToast({ message: "리포트 준비 중입니다.", variant: "info" });
+                  addToast({ message: "해당 리포트는 준비 중입니다.", variant: "info" });
                 }
               }}>
                 리포트 보기

@@ -329,7 +329,7 @@ export default function PeoplePage() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage(page - 1)}
-                className="flex h-7 w-7 items-center justify-center rounded-md text-xs text-text-secondary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-10 w-10 items-center justify-center rounded-md text-xs text-text-secondary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-40"
               >
                 &laquo;
               </button>
@@ -339,7 +339,7 @@ export default function PeoplePage() {
                   type="button"
                   onClick={() => setPage(p)}
                   className={[
-                    "flex h-7 w-7 items-center justify-center rounded-md text-xs font-medium transition-colors",
+                    "flex h-10 w-10 items-center justify-center rounded-md text-xs font-medium transition-colors",
                     p === page
                       ? "bg-brand text-white"
                       : "text-text-secondary hover:bg-surface-secondary",
@@ -352,7 +352,7 @@ export default function PeoplePage() {
                 type="button"
                 disabled={page >= pagination.totalPages}
                 onClick={() => setPage(page + 1)}
-                className="flex h-7 w-7 items-center justify-center rounded-md text-xs text-text-secondary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-10 w-10 items-center justify-center rounded-md text-xs text-text-secondary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-40"
               >
                 &raquo;
               </button>

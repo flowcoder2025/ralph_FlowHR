@@ -15,6 +15,7 @@ import {
   BarChart,
   QueueList,
   QueueItem,
+  SkeletonCard,
 } from "@/components/ui";
 import type { BadgeVariant, QueuePriority } from "@/components/ui";
 import { useToast } from "@/components/layout/Toast";
@@ -119,8 +120,9 @@ export default function AdminHomePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center py-sp-12">
-          <span className="text-sm text-text-tertiary">불러오는 중...</span>
+        <div className="py-sp-12 space-y-sp-4">
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       }
     >
@@ -154,8 +156,10 @@ function AdminDashboardContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-sp-12">
-        <span className="text-sm text-text-tertiary">불러오는 중...</span>
+      <div className="py-sp-12 space-y-sp-4">
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
       </div>
     );
   }

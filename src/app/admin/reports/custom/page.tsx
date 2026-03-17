@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardHeader, CardBody, Button, Select } from "@/components/ui";
+import { Card, CardHeader, CardBody, Button, Select, Breadcrumb, SkeletonCard } from "@/components/ui";
 import { useToast } from "@/components/layout/Toast";
 import { exportToCSV } from "@/lib/export";
 
@@ -110,8 +110,9 @@ export default function CustomReportPage() {
 
   if (metaLoading) {
     return (
-      <div className="flex items-center justify-center py-sp-12">
-        <span className="text-sm text-text-tertiary">불러오는 중...</span>
+      <div className="py-sp-12 space-y-sp-4">
+        <SkeletonCard />
+        <SkeletonCard />
       </div>
     );
   }
@@ -121,6 +122,7 @@ export default function CustomReportPage() {
       {/* Header */}
       <div className="mb-sp-6 flex items-center justify-between">
         <div>
+          <Breadcrumb items={[{ label: "리포트 센터", href: "/admin/reports" }, { label: "커스텀 리포트" }]} />
           <h1 className="text-3xl font-bold text-text-primary">커스텀 리포트</h1>
           <p className="mt-sp-1 text-md text-text-secondary">
             데이터 소스와 필터를 선택하여 맞춤 리포트를 생성합니다

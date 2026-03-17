@@ -913,8 +913,20 @@ function PayslipsTab() {
               재발송
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={() => addToast({ message: "PDF 다운로드 기능 준비 중입니다.", variant: "info" })}>
-            다운로드
+          <Button variant="ghost" size="sm" onClick={() => {
+            const cols = [
+              { key: "employeeName", label: "이름" },
+              { key: "department", label: "부서" },
+              { key: "baseSalary", label: "기본급" },
+              { key: "allowances", label: "수당" },
+              { key: "deductions", label: "공제" },
+              { key: "netAmount", label: "실수령액" },
+              { key: "status", label: "상태" },
+            ];
+            exportToCSV(cols, [row as unknown as Record<string, unknown>], `payslip-${row.employeeName}-${selectedMonth}.csv`);
+            addToast({ message: "명세서가 CSV로 다운로드되었습니다.", variant: "success" });
+          }}>
+            CSV 내보내기
           </Button>
         </div>
       ),
