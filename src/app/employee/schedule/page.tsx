@@ -9,6 +9,7 @@ import {
   Badge,
   Button,
 } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 
 /* ────────────────────────────────────────────
    Types
@@ -127,6 +128,7 @@ function StatRow({ label, value, muted }: { label: string; value: string; muted?
    ──────────────────────────────────────────── */
 
 export default function SchedulePage() {
+  const { addToast } = useToast();
   const [currentTime, setCurrentTime] = useState<string>("");
   const [currentDate, setCurrentDate] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -256,11 +258,11 @@ export default function SchedulePage() {
                     ...(body ? { headers: { "Content-Type": "application/json" }, body } : {}),
                   });
                   if (res.ok) {
-                    alert("출근 처리되었습니다.");
+                    addToast({ message: "출근 처리되었습니다.", variant: "success" });
                     window.location.reload();
                   } else {
                     const data = await res.json().catch(() => ({}));
-                    alert(data.error || "출근 처리에 실패했습니다.");
+                    addToast({ message: data.error || "출근 처리에 실패했습니다.", variant: "danger" });
                   }
                 }}
               >
@@ -298,11 +300,11 @@ export default function SchedulePage() {
                     ...(body ? { headers: { "Content-Type": "application/json" }, body } : {}),
                   });
                   if (res.ok) {
-                    alert("퇴근 처리되었습니다.");
+                    addToast({ message: "퇴근 처리되었습니다.", variant: "success" });
                     window.location.reload();
                   } else {
                     const data = await res.json().catch(() => ({}));
-                    alert(data.error || "퇴근 처리에 실패했습니다.");
+                    addToast({ message: data.error || "퇴근 처리에 실패했습니다.", variant: "danger" });
                   }
                 }}
               >

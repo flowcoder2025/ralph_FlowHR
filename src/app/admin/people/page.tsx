@@ -6,6 +6,7 @@ import type { BadgeVariant } from "@/components/ui";
 import { DataTable } from "@/components/ui";
 import type { Column } from "@/components/ui";
 import { EmployeeDetailDrawer } from "./EmployeeDetailDrawer";
+import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -52,6 +53,7 @@ const PAGE_SIZE = 10;
 // ─── Component ──────────────────────────────────────────────
 
 export default function PeoplePage() {
+  const { addToast } = useToast();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
@@ -65,6 +67,7 @@ export default function PeoplePage() {
   const [loading, setLoading] = useState(true);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
 
   const fetchEmployees = useCallback(async () => {
     setLoading(true);
@@ -205,26 +208,31 @@ export default function PeoplePage() {
             <h2 className="text-lg font-semibold text-text-primary mb-sp-4">직원 등록</h2>
             <form onSubmit={async (e) => {
               e.preventDefault();
-              const form = e.target as HTMLFormElement;
-              const fd = new FormData(form);
-              const res = await fetch("/api/employees", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  name: fd.get("name"),
-                  email: fd.get("email"),
-                  phone: fd.get("phone") || undefined,
-                  employeeNumber: fd.get("employeeNumber"),
-                  hireDate: fd.get("hireDate"),
-                  type: fd.get("type") || "FULL_TIME",
-                }),
-              });
-              if (res.ok) {
-                setShowCreateModal(false);
-                fetchEmployees();
-              } else {
-                const err = await res.json().catch(() => ({}));
-                alert(err.error || "등록에 실패했습니다.");
+              setCreateLoading(true);
+              try {
+                const form = e.target as HTMLFormElement;
+                const fd = new FormData(form);
+                const res = await fetch("/api/employees", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    name: fd.get("name"),
+                    email: fd.get("email"),
+                    phone: fd.get("phone") || undefined,
+                    employeeNumber: fd.get("employeeNumber"),
+                    hireDate: fd.get("hireDate"),
+                    type: fd.get("type") || "FULL_TIME",
+                  }),
+                });
+                if (res.ok) {
+                  setShowCreateModal(false);
+                  fetchEmployees();
+                } else {
+                  const err = await res.json().catch(() => ({}));
+                  addToast({ message: err.error || "등록에 실패했습니다.", variant: "danger" });
+                }
+              } finally {
+                setCreateLoading(false);
               }
             }} className="space-y-sp-3">
               <div className="grid grid-cols-2 gap-sp-3">
@@ -259,8 +267,8 @@ export default function PeoplePage() {
                 </div>
               </div>
               <div className="flex justify-end gap-sp-2 pt-sp-3">
-                <button type="button" onClick={() => setShowCreateModal(false)} className="rounded-md border border-border px-sp-4 py-sp-2 text-sm text-text-secondary hover:bg-surface-secondary">취소</button>
-                <button type="submit" className="rounded-md bg-brand px-sp-4 py-sp-2 text-sm font-medium text-white hover:bg-brand-hover">등록</button>
+                <button type="button" onClick={() => setShowCreateModal(false)} disabled={createLoading} className="rounded-md border border-border px-sp-4 py-sp-2 text-sm text-text-secondary hover:bg-surface-secondary disabled:opacity-50 disabled:cursor-not-allowed">취소</button>
+                <button type="submit" disabled={createLoading} className="rounded-md bg-brand px-sp-4 py-sp-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed">{createLoading ? "등록 중..." : "등록"}</button>
               </div>
             </form>
           </div>

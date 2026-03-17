@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import type { NavSection } from "@/components/layout/Sidebar";
+import { useToast } from "@/components/layout/Toast";
 
 const EMPLOYEE_NAV: NavSection[] = [
   {
@@ -33,14 +34,15 @@ export default function EmployeeLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { addToast } = useToast();
   const activeId = getActiveId(pathname);
 
   useEffect(() => {
     if (status === "authenticated" && !session?.user?.tenantId) {
-      alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+      addToast({ message: "세션이 만료되었습니다. 다시 로그인해주세요.", variant: "warning" });
       signOut({ callbackUrl: "/login" });
     }
-  }, [status, session]);
+  }, [status, session, addToast]);
 
   function handleNavigate(id: string) {
     const item = EMPLOYEE_NAV.flatMap((s) => s.items).find((i) => i.id === id);

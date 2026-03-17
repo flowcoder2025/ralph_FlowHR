@@ -28,6 +28,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             className="block text-sm font-medium text-text-secondary mb-sp-1"
           >
             {label}
+            {props.required && <span className="text-status-danger-text ml-0.5">*</span>}
           </label>
         )}
         <select

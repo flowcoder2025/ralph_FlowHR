@@ -20,6 +20,7 @@ import {
 } from "@/components/ui";
 import type { BadgeVariant, QueuePriority, Column } from "@/components/ui";
 import { Modal } from "@/components/layout/Modal";
+import { useToast } from "@/components/layout/Toast";
 import { exportToCSV } from "@/lib/export";
 
 // ─── Types ──────────────────────────────────────────────────
@@ -776,6 +777,7 @@ function generateMonthOptions(): { value: string; label: string }[] {
 }
 
 function PayslipsTab() {
+  const { addToast } = useToast();
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(
     `${now.getFullYear()}-${now.getMonth() + 1}`,
@@ -911,7 +913,7 @@ function PayslipsTab() {
               재발송
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={() => alert("PDF 다운로드 기능 준비 중입니다.")}>
+          <Button variant="ghost" size="sm" onClick={() => addToast({ message: "PDF 다운로드 기능 준비 중입니다.", variant: "info" })}>
             다운로드
           </Button>
         </div>
@@ -937,7 +939,7 @@ function PayslipsTab() {
             value={selectedMonth}
             onChange={handleMonthChange}
           />
-          <Button variant="secondary" size="sm" onClick={() => alert("급여 명세서가 발송되었습니다.")}>
+          <Button variant="secondary" size="sm" onClick={() => addToast({ message: "급여 명세서가 발송되었습니다.", variant: "success" })}>
             일괄 발송
           </Button>
           <Button variant="secondary" size="sm" onClick={() => {

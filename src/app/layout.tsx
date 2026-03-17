@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { SkipLink } from "@/components/a11y/SkipLink";
 import { LiveRegionProvider } from "@/components/a11y/LiveRegion";
+import { ToastProvider } from "@/components/layout/Toast";
 import { I18nProvider } from "@/lib/i18n";
 import "./globals.css";
 
@@ -30,8 +31,10 @@ export default function RootLayout({
         <AuthProvider>
           <I18nProvider>
             <LiveRegionProvider>
-              <SkipLink />
-              {children}
+              <ToastProvider>
+                <SkipLink />
+                {children}
+              </ToastProvider>
             </LiveRegionProvider>
           </I18nProvider>
         </AuthProvider>

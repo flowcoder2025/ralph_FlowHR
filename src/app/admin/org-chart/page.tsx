@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -26,6 +27,7 @@ function getTotalCount(node: DepartmentNode): number {
 // ─── Component ──────────────────────────────────────────────
 
 export default function OrgChartPage() {
+  const { addToast } = useToast();
   const [tree, setTree] = useState<DepartmentNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -110,11 +112,11 @@ export default function OrgChartPage() {
                 body: JSON.stringify({ name, code }),
               });
               if (res.ok) {
-                alert("부서가 추가되었습니다.");
+                addToast({ message: "부서가 추가되었습니다.", variant: "success" });
                 window.location.reload();
               } else {
                 const err = await res.json().catch(() => ({}));
-                alert(err.error || "부서 추가에 실패했습니다.");
+                addToast({ message: err.error || "부서 추가에 실패했습니다.", variant: "danger" });
               }
             }}
             className="rounded-md bg-brand px-sp-3 py-sp-1 text-xs font-medium text-white transition-colors hover:bg-brand-hover"
@@ -165,6 +167,7 @@ function TreeNode({
   expandedIds: Set<string>;
   onToggle: (_id: string) => void;
 }) {
+  const { addToast } = useToast();
   const hasChildren = node.children.length > 0;
   const isExpanded = expandedIds.has(node.id);
   const totalCount = getTotalCount(node);
@@ -237,7 +240,7 @@ function TreeNode({
                 body: JSON.stringify({ id: node.id, name: newName }),
               });
               if (res.ok) window.location.reload();
-              else alert("수정에 실패했습니다.");
+              else addToast({ message: "수정에 실패했습니다.", variant: "danger" });
             }}
             className="rounded px-sp-2 py-sp-1 text-xs text-text-secondary hover:bg-surface-tertiary"
           >
@@ -252,7 +255,7 @@ function TreeNode({
               if (res.ok) window.location.reload();
               else {
                 const err = await res.json().catch(() => ({}));
-                alert(err.error || "삭제에 실패했습니다.");
+                addToast({ message: err.error || "삭제에 실패했습니다.", variant: "danger" });
               }
             }}
             className="rounded px-sp-2 py-sp-1 text-xs text-status-danger-solid hover:bg-red-50"

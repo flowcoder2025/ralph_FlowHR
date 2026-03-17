@@ -20,6 +20,7 @@ import {
   QueueItem,
 } from "@/components/ui";
 import type { BadgeVariant, BarChartDatum, Column, QueuePriority } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -656,6 +657,7 @@ function OverallBadge({ row }: { row: EvalProgressRow }) {
 }
 
 function EvalProgressTab() {
+  const { addToast } = useToast();
   const [data, setData] = useState<EvalProgressData | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -748,9 +750,9 @@ function EvalProgressTab() {
       render: (row) => (
         <Button variant="ghost" size="sm" onClick={() => {
           if (row.status === "NOT_STARTED") {
-            alert("리마인더가 발송되었습니다.");
+            addToast({ message: "리마인더가 발송되었습니다.", variant: "success" });
           } else {
-            alert("상세 정보를 준비 중입니다.");
+            addToast({ message: "상세 정보를 준비 중입니다.", variant: "info" });
           }
         }}>
           {row.status === "NOT_STARTED" ? "리마인더" : "상세"}
@@ -896,6 +898,7 @@ function getMeetingPriority(meeting: OneOnOneMeeting): QueuePriority {
 }
 
 function OneOnOneHub() {
+  const { addToast } = useToast();
   const [data, setData] = useState<OneOnOneData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(
@@ -967,10 +970,10 @@ function OneOnOneHub() {
                 body: JSON.stringify({ employeeName, scheduledAt: dateStr }),
               });
               if (!res.ok) throw new Error("1:1 예약 실패");
-              alert("1:1 미팅이 성공적으로 예약되었습니다.");
+              addToast({ message: "1:1 미팅이 성공적으로 예약되었습니다.", variant: "success" });
               fetchOneOnOnes();
             } catch {
-              alert("1:1 예약에 실패했습니다. 다시 시도해 주세요.");
+              addToast({ message: "1:1 예약에 실패했습니다. 다시 시도해 주세요.", variant: "danger" });
             }
           }}>
             + 1:1 예약

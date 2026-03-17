@@ -17,6 +17,7 @@ import {
   QueueItem,
 } from "@/components/ui";
 import type { BadgeVariant, QueuePriority } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -130,6 +131,7 @@ export default function AdminHomePage() {
 
 function AdminDashboardContent() {
   const router = useRouter();
+  const { addToast } = useToast();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -306,9 +308,9 @@ function AdminDashboardContent() {
                                 body: JSON.stringify({ action: "send" }),
                               });
                               if (!res.ok) throw new Error("알림 발송 실패");
-                              alert("알림이 성공적으로 발송되었습니다.");
+                              addToast({ message: "알림이 성공적으로 발송되었습니다.", variant: "success" });
                             } catch {
-                              alert("알림 발송에 실패했습니다. 다시 시도해 주세요.");
+                              addToast({ message: "알림 발송에 실패했습니다. 다시 시도해 주세요.", variant: "danger" });
                             }
                           }
                         }}

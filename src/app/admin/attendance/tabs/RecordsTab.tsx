@@ -7,6 +7,7 @@ import {
   DataTable,
 } from "@/components/ui";
 import type { BadgeVariant, Column, SortState, SortDirection } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -53,6 +54,7 @@ const RECORDS_PAGE_SIZE = 10;
 // ─── Component ──────────────────────────────────────────────
 
 export function RecordsTab() {
+  const { addToast } = useToast();
   const [records, setRecords] = useState<AttendanceRecordRow[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
@@ -185,7 +187,7 @@ export function RecordsTab() {
       align: "center",
       width: "80px",
       render: () => (
-        <Button variant="ghost" size="sm" onClick={() => alert("출결 기록 수정 기능 준비 중입니다.")}>
+        <Button variant="ghost" size="sm" onClick={() => addToast({ message: "출결 기록 수정 기능 준비 중입니다.", variant: "info" })}>
           수정
         </Button>
       ),

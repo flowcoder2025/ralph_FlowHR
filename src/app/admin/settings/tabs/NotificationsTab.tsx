@@ -10,6 +10,7 @@ import {
   Badge,
 } from "@/components/ui";
 import type { Column } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -80,6 +81,7 @@ function getChannelBadgeVariant(
 // ─── Component ──────────────────────────────────────────────
 
 export function NotificationsTab() {
+  const { addToast } = useToast();
   const [rules, setRules] = useState<NotificationRule[]>(
     INITIAL_NOTIFICATION_RULES,
   );
@@ -147,7 +149,7 @@ export function NotificationsTab() {
       align: "center",
       width: "80px",
       render: (row) => (
-        <Button variant="ghost" size="sm" onClick={() => alert(`알림 규칙 편집 기능 준비 중입니다. (${row.event})`)}>
+        <Button variant="ghost" size="sm" onClick={() => addToast({ message: `알림 규칙 편집 기능 준비 중입니다. (${row.event})`, variant: "info" })}>
           편집
         </Button>
       ),
@@ -158,7 +160,7 @@ export function NotificationsTab() {
     <Card>
       <CardHeader>
         <h2 className="text-md font-semibold text-text-primary">알림 규칙</h2>
-        <Button size="sm" onClick={() => alert("알림 규칙 추가 기능 준비 중입니다.")}>규칙 추가</Button>
+        <Button size="sm" onClick={() => addToast({ message: "알림 규칙 추가 기능 준비 중입니다.", variant: "info" })}>규칙 추가</Button>
       </CardHeader>
       <CardBody>
         <DataTable<NotificationRule>

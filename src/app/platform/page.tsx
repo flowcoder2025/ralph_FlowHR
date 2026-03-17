@@ -16,6 +16,7 @@ import {
   QueueItem,
 } from "@/components/ui";
 import type { BadgeVariant } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -138,6 +139,7 @@ export default function PlatformHomePage() {
 
 function PlatformDashboardContent() {
   const router = useRouter();
+  const { addToast } = useToast();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -224,10 +226,10 @@ function PlatformDashboardContent() {
                 body: JSON.stringify({ name }),
               });
               if (!res.ok) throw new Error("테넌트 추가 실패");
-              alert("테넌트가 성공적으로 추가되었습니다.");
+              addToast({ message: "테넌트가 성공적으로 추가되었습니다.", variant: "success" });
               fetchDashboard();
             } catch {
-              alert("테넌트 추가에 실패했습니다. 다시 시도해 주세요.");
+              addToast({ message: "테넌트 추가에 실패했습니다. 다시 시도해 주세요.", variant: "danger" });
             }
           }}>테넌트 추가</Button>
         </div>
