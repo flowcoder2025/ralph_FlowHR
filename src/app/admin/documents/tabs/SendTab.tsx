@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Card,
   CardHeader,
@@ -83,18 +83,16 @@ export function SendTab() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const searchTimeoutRef = useCallback(() => {
-    let timeoutId: NodeJS.Timeout | null = null;
-    return {
-      set: (fn: () => void, ms: number) => {
-        if (timeoutId) clearTimeout(timeoutId);
-        timeoutId = setTimeout(fn, ms);
-      },
-      clear: () => {
-        if (timeoutId) clearTimeout(timeoutId);
-      },
-    };
-  }, [])();
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeout = {
+    set: (fn: () => void, ms: number) => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+      searchTimeoutRef.current = setTimeout(fn, ms);
+    },
+    clear: () => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    },
+  };
 
   // 템플릿 로드
   useEffect(() => {
@@ -131,7 +129,7 @@ export function SendTab() {
       return;
     }
 
-    searchTimeoutRef.set(async () => {
+    searchTimeout.set(async () => {
       setSearching(true);
       try {
         const res = await fetch(
@@ -150,8 +148,9 @@ export function SendTab() {
       }
     }, 300);
 
-    return () => searchTimeoutRef.clear();
-  }, [recipientSearch, form.recipientIds, searchTimeoutRef]);
+    return () => searchTimeout.clear();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipientSearch, form.recipientIds]);
 
   function addRecipient(emp: RecipientEmployee) {
     setSelectedRecipients((prev) => [...prev, emp]);

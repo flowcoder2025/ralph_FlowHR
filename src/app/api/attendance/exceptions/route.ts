@@ -6,6 +6,36 @@ import { formatDateWithTz } from "@/lib/date-utils";
 import { DEFAULT_TIMEZONE } from "@/lib/constants";
 import type { ExceptionType, ExceptionStatus } from "@prisma/client";
 
+/**
+ * Tenant timezone 기준 "HH:mm" → UTC Date 변환
+ * 예: recordDate=2026-03-17, time="09:00", tz="Asia/Seoul"
+ *   → KST 09:00 = UTC 00:00 → 2026-03-17T00:00:00Z
+ */
+function localTimeToUTC(recordDate: Date, time: string, timezone: string): Date {
+  const [h, m] = time.split(":").map(Number);
+  // 임시로 UTC에 로컬 시각을 넣고, Intl로 실제 UTC offset을 계산
+  const tentative = new Date(recordDate);
+  tentative.setUTCHours(h, m, 0, 0);
+  // Intl.DateTimeFormat으로 해당 timezone의 실제 시각을 구해서 offset 역산
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: timezone,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  });
+  const parts = formatter.formatToParts(tentative);
+  const tzH = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const tzM = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  // offset(분) = (tz에서 보이는 시각) - (UTC 시각)
+  const utcMinutes = h * 60 + m;
+  const localMinutes = tzH * 60 + tzM;
+  const offsetMinutes = localMinutes - utcMinutes;
+  // 사용자가 입력한 시각은 로컬이므로, UTC = 로컬 - offset
+  const result = new Date(recordDate);
+  result.setUTCHours(h, m, 0, 0);
+  result.setUTCMinutes(result.getUTCMinutes() - offsetMinutes);
+  return result;
+}
+
 const VALID_TYPES: ExceptionType[] = [
   "CORRECTION",
   "OVERTIME",
@@ -172,6 +202,15 @@ export async function PATCH(request: NextRequest) {
         const recordDate = new Date(exceptionExt.date);
         recordDate.setUTCHours(0, 0, 0, 0);
 
+        // Tenant timezone 조회 (정정 시각은 로컬 시간대 기준)
+        const tenantRecord = await tx.tenant.findUnique({
+          where: { id: tenantId as string },
+          select: { settings: true },
+        });
+        const tSettings = (tenantRecord?.settings && typeof tenantRecord.settings === "object")
+          ? tenantRecord.settings as Record<string, unknown> : {};
+        const tz = (typeof tSettings.timezone === "string" && tSettings.timezone) || DEFAULT_TIMEZONE;
+
         // 기존 출결 기록 조회
         const existingRecord = await tx.attendanceRecord.findUnique({
           where: {
@@ -190,9 +229,7 @@ export async function PATCH(request: NextRequest) {
         };
 
         if (exceptionExt.correctedCheckIn && existingRecord) {
-          const [h, m] = exceptionExt.correctedCheckIn.split(":").map(Number);
-          const correctedDate = new Date(recordDate);
-          correctedDate.setUTCHours(h, m, 0, 0);
+          const correctedDate = localTimeToUTC(recordDate, exceptionExt.correctedCheckIn, tz);
           updateData.checkIn = correctedDate;
 
           // workMinutes 재계산
@@ -205,9 +242,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         if (exceptionExt.correctedCheckOut && existingRecord) {
-          const [h, m] = exceptionExt.correctedCheckOut.split(":").map(Number);
-          const correctedDate = new Date(recordDate);
-          correctedDate.setUTCHours(h, m, 0, 0);
+          const correctedDate = localTimeToUTC(recordDate, exceptionExt.correctedCheckOut, tz);
           updateData.checkOut = correctedDate;
 
           // workMinutes 재계산

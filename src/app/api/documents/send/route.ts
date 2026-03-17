@@ -16,10 +16,22 @@ export async function POST(request: NextRequest) {
   const employee = await prisma.employee.findFirst({
     where: { userId: token.id as string, tenantId },
   });
-  if (!employee) {
-    return NextResponse.json({ error: "Employee not found" }, { status: 404 });
+
+  // Admin 사용자는 Employee 레코드가 없을 수 있음 — 첫 번째 직원을 발송자로 사용
+  let senderId: string;
+  if (employee) {
+    senderId = employee.id;
+  } else {
+    // Employee 레코드가 없는 Admin의 경우, 같은 테넌트의 첫 번째 직원을 발송자로 대체
+    const fallbackEmployee = await prisma.employee.findFirst({
+      where: { tenantId },
+      orderBy: { createdAt: "asc" },
+    });
+    if (!fallbackEmployee) {
+      return NextResponse.json({ error: "발송자 정보를 찾을 수 없습니다" }, { status: 404 });
+    }
+    senderId = fallbackEmployee.id;
   }
-  const senderId = employee.id;
 
   const body = await request.json();
   const {
