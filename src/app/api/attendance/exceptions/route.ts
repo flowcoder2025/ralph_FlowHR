@@ -155,19 +155,68 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
-  const updated = await prisma.attendanceException.update({
-    where: { id },
-    data: {
-      status: action === "approve" ? "APPROVED" : "REJECTED",
-      approvedBy: token.employeeNumber as string,
-      approvedAt: new Date(),
-    },
-  });
+  if (action === "approve") {
+    // 트랜잭션: exception 승인 + 출결 기록 자동 수정
+    const [updated] = await prisma.$transaction(async (tx) => {
+      const updatedEx = await tx.attendanceException.update({
+        where: { id },
+        data: {
+          status: "APPROVED",
+          approvedBy: token.employeeNumber as string,
+          approvedAt: new Date(),
+        },
+      });
 
-  return NextResponse.json({
-    id: updated.id,
-    status: updated.status,
-  });
+      // CORRECTION 타입 승인 시 해당 날짜 출결 기록 자동 수정
+      if (exception.type === "CORRECTION") {
+        const recordDate = new Date(exception.date);
+        recordDate.setUTCHours(0, 0, 0, 0);
+
+        await tx.attendanceRecord.upsert({
+          where: {
+            tenantId_employeeId_date: {
+              tenantId,
+              employeeId: exception.employeeId,
+              date: recordDate,
+            },
+          },
+          update: {
+            status: "PRESENT",
+            note: `정정 승인 (사유: ${exception.reason})`,
+          },
+          create: {
+            tenantId,
+            employeeId: exception.employeeId,
+            date: recordDate,
+            status: "PRESENT",
+            note: `정정 승인 (사유: ${exception.reason})`,
+          },
+        });
+      }
+
+      return [updatedEx];
+    });
+
+    return NextResponse.json({
+      id: updated.id,
+      status: updated.status,
+    });
+  } else {
+    // reject
+    const updated = await prisma.attendanceException.update({
+      where: { id },
+      data: {
+        status: "REJECTED",
+        approvedBy: token.employeeNumber as string,
+        approvedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json({
+      id: updated.id,
+      status: updated.status,
+    });
+  }
   } catch (error) {
     console.error("[attendance/exceptions PATCH] Error:", error);
     return NextResponse.json(

@@ -10,6 +10,7 @@ import {
 import type { Column, SortState } from "@/components/ui/DataTable";
 import type { BadgeVariant } from "@/components/ui/Badge";
 import { Drawer } from "@/components/layout/Drawer";
+import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -159,6 +160,7 @@ export default function TenantsPage() {
 }
 
 function TenantsContent() {
+  const { addToast } = useToast();
   const [tenants, setTenants] = useState<TenantRow[]>([]);
   const [counts, setCounts] = useState<StatusCounts>({ total: 0, byStatus: {}, byPlan: {} });
   const [pagination, setPagination] = useState<PaginationInfo>({
@@ -395,10 +397,10 @@ function TenantsContent() {
                 body: JSON.stringify({ name }),
               });
               if (!res.ok) throw new Error("테넌트 추가 실패");
-              alert("테넌트가 성공적으로 추가되었습니다.");
+              addToast({ message: "테넌트가 성공적으로 추가되었습니다.", variant: "success" });
               fetchTenants();
             } catch {
-              alert("테넌트 추가에 실패했습니다. 다시 시도해 주세요.");
+              addToast({ message: "테넌트 추가에 실패했습니다. 다시 시도해 주세요.", variant: "danger" });
             }
           }}>테넌트 추가</Button>
         </div>

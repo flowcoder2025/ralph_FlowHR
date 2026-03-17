@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Drawer } from "@/components/layout/Drawer";
 import { Badge, Button } from "@/components/ui";
 import type { BadgeVariant } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -105,8 +106,10 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 export function EmployeeDetailDrawer({ employeeId, onClose }: EmployeeDetailDrawerProps) {
   const router = useRouter();
+  const { addToast } = useToast();
   const [employee, setEmployee] = useState<EmployeeDetail | null>(null);
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     if (!employeeId) {
@@ -231,36 +234,45 @@ export function EmployeeDetailDrawer({ employeeId, onClose }: EmployeeDetailDraw
                 <Button size="sm" variant="secondary" onClick={() => { onClose(); router.push("/admin/attendance"); }}>근태 기록</Button>
                 <Button size="sm" variant="secondary" onClick={() => { onClose(); router.push("/admin/leave"); }}>휴가 이력</Button>
                 <Button size="sm" variant="secondary" onClick={() => { onClose(); router.push("/admin/payroll"); }}>급여 명세</Button>
-                <Button size="sm" variant="secondary" onClick={async () => {
+                <Button size="sm" variant="secondary" disabled={actionLoading === "edit"} onClick={async () => {
                   if (!employee) return;
                   const newName = prompt("이름 수정", employee.name);
                   if (!newName || newName === employee.name) return;
-                  const res = await fetch("/api/employees/" + employee.id, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: newName }),
-                  });
-                  if (res.ok) { alert("수정되었습니다."); window.location.reload(); }
-                  else alert("수정에 실패했습니다.");
-                }}>수정</Button>
-                <Button size="sm" variant="danger" onClick={async () => {
+                  setActionLoading("edit");
+                  try {
+                    const res = await fetch("/api/employees/" + employee.id, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ name: newName }),
+                    });
+                    if (res.ok) { addToast({ message: "수정되었습니다.", variant: "success" }); window.location.reload(); }
+                    else addToast({ message: "수정에 실패했습니다.", variant: "danger" });
+                  } finally { setActionLoading(null); }
+                }}>{actionLoading === "edit" ? "저장 중..." : "수정"}</Button>
+                <Button size="sm" variant="danger" disabled={actionLoading === "resign"} onClick={async () => {
                   if (!employee) return;
                   if (!confirm(employee.name + " 직원을 퇴사 처리하시겠습니까?")) return;
-                  const res = await fetch("/api/employees/" + employee.id, { method: "DELETE" });
-                  if (res.ok) { alert("퇴사 처리되었습니다."); onClose(); window.location.reload(); }
-                  else alert("처리에 실패했습니다.");
-                }}>퇴사 처리</Button>
-                <Button size="sm" variant="primary" onClick={async () => {
+                  setActionLoading("resign");
+                  try {
+                    const res = await fetch("/api/employees/" + employee.id, { method: "DELETE" });
+                    if (res.ok) { addToast({ message: "퇴사 처리되었습니다.", variant: "success" }); onClose(); window.location.reload(); }
+                    else addToast({ message: "처리에 실패했습니다.", variant: "danger" });
+                  } finally { setActionLoading(null); }
+                }}>{actionLoading === "resign" ? "처리 중..." : "퇴사 처리"}</Button>
+                <Button size="sm" variant="primary" disabled={actionLoading === "meeting"} onClick={async () => {
                   if (!employee) return;
                   const date = prompt("1:1 일정 (예: 2026-03-20 14:00)");
                   if (!date) return;
-                  const res = await fetch("/api/performance/one-on-one", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ employeeId: employee.id, scheduledAt: new Date(date).toISOString(), duration: 30, agenda: `${employee.name} 1:1 미팅` }),
-                  });
-                  alert(res.ok ? "1:1 예약이 생성되었습니다." : "1:1 예약에 실패했습니다.");
-                }}>1:1 예약</Button>
+                  setActionLoading("meeting");
+                  try {
+                    const res = await fetch("/api/performance/one-on-one", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ employeeId: employee.id, scheduledAt: new Date(date).toISOString(), duration: 30, agenda: `${employee.name} 1:1 미팅` }),
+                    });
+                    addToast({ message: res.ok ? "1:1 예약이 생성되었습니다." : "1:1 예약에 실패했습니다.", variant: res.ok ? "success" : "danger" });
+                  } finally { setActionLoading(null); }
+                }}>{actionLoading === "meeting" ? "예약 중..." : "1:1 예약"}</Button>
               </div>
             </div>
 

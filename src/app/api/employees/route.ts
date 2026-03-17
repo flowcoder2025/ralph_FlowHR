@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 import type { Prisma, EmployeeStatus, EmploymentType } from "@prisma/client";
 
 const VALID_STATUSES: EmployeeStatus[] = [
@@ -113,22 +114,62 @@ export async function POST(request: NextRequest) {
   const validTypes: EmploymentType[] = ["FULL_TIME", "PART_TIME", "CONTRACT", "INTERN"];
   const empType = type && validTypes.includes(type) ? type : "FULL_TIME";
 
-  const employee = await prisma.employee.create({
-    data: {
-      tenantId,
-      name,
-      email,
-      phone: phone || null,
-      departmentId: departmentId || null,
-      positionId: positionId || null,
-      employeeNumber,
-      hireDate: new Date(hireDate),
-      type: empType,
-    },
-    include: {
-      department: { select: { id: true, name: true } },
-      position: { select: { id: true, name: true, level: true } },
-    },
+  // 트랜잭션: Employee 생성 + User 자동 생성 + Role 할당
+  const employee = await prisma.$transaction(async (tx) => {
+    // 1. 동일 이메일 User 존재 여부 확인
+    const existingUser = await tx.user.findUnique({
+      where: { email },
+    });
+
+    let userId: string | null = null;
+
+    if (!existingUser) {
+      // 2. Tenant의 EMPLOYEE role 조회
+      const employeeRole = await tx.role.findFirst({
+        where: { tenantId, name: "EMPLOYEE" },
+      });
+
+      // 3. 임시 비밀번호 해시 생성
+      const hashedPassword = await bcrypt.hash("temp1234!", 10);
+
+      // 4. User 생성
+      const newUser = await tx.user.create({
+        data: {
+          tenantId,
+          email,
+          name,
+          password: hashedPassword,
+          status: "ACTIVE",
+          roleId: employeeRole?.id ?? null,
+        },
+      });
+
+      userId = newUser.id;
+    } else {
+      userId = existingUser.id;
+    }
+
+    // 5. Employee 생성 (userId 연결)
+    const created = await tx.employee.create({
+      data: {
+        tenantId,
+        name,
+        email,
+        phone: phone || null,
+        departmentId: departmentId || null,
+        positionId: positionId || null,
+        employeeNumber,
+        hireDate: new Date(hireDate),
+        type: empType,
+        userId,
+      },
+      include: {
+        department: { select: { id: true, name: true } },
+        position: { select: { id: true, name: true, level: true } },
+      },
+    });
+
+    return created;
   });
 
   return NextResponse.json({ data: employee }, { status: 201 });

@@ -11,6 +11,7 @@ import {
   ProgressBar,
 } from "@/components/ui";
 import type { BadgeVariant } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 
 /* ────────────────────────────────────────────
    Types
@@ -282,6 +283,7 @@ export default function ProfilePage() {
    ──────────────────────────────────────────── */
 
 function BasicInfoTab({ profile }: { profile: ProfileData }) {
+  const { addToast } = useToast();
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-sp-6">
       {/* 기본정보 */}
@@ -332,9 +334,9 @@ function BasicInfoTab({ profile }: { profile: ProfileData }) {
                   }),
                 });
                 if (!res.ok) throw new Error("요청 실패");
-                alert("정보 수정 요청이 성공적으로 제출되었습니다.");
+                addToast({ message: "정보 수정 요청이 성공적으로 제출되었습니다.", variant: "success" });
               } catch {
-                alert("정보 수정 요청에 실패했습니다. 다시 시도해 주세요.");
+                addToast({ message: "정보 수정 요청에 실패했습니다. 다시 시도해 주세요.", variant: "danger" });
               }
             }}>
               정보 수정 요청

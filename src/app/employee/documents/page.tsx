@@ -13,6 +13,7 @@ import {
   QueueItem,
 } from "@/components/ui";
 import type { Column, QueuePriority } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 import { printPage } from "@/lib/export";
 
 /* ────────────────────────────────────────────
@@ -222,6 +223,7 @@ const ARCHIVE_COLUMNS: Column<ArchivedDoc>[] = [
    ──────────────────────────────────────────── */
 
 export default function EmployeeDocumentsPage() {
+  const { addToast } = useToast();
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedDoc, setSelectedDoc] = useState<SignatureDoc | null>(null);
   const [signed, setSigned] = useState(false);
@@ -376,10 +378,10 @@ export default function EmployeeDocumentsPage() {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ status: "REJECTED" }),
                 }).then(() => {
-                  alert("문서가 거부되었습니다.");
+                  addToast({ message: "문서가 거부되었습니다.", variant: "success" });
                   handleBack();
                 }).catch(() => {
-                  alert("문서 거부 처리에 실패했습니다.");
+                  addToast({ message: "문서 거부 처리에 실패했습니다.", variant: "danger" });
                 });
               }}>
                 {"\uAC70\uBD80"}

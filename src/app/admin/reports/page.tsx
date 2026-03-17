@@ -9,6 +9,7 @@ import {
   CardFooter,
   Button,
 } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -53,6 +54,7 @@ export default function ReportsPage() {
 
 function ReportsContent() {
   const router = useRouter();
+  const { addToast } = useToast();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -141,7 +143,7 @@ function ReportsContent() {
                 if (report.href) {
                   router.push(report.href);
                 } else {
-                  alert("리포트 준비 중입니다.");
+                  addToast({ message: "리포트 준비 중입니다.", variant: "info" });
                 }
               }}>
                 리포트 보기

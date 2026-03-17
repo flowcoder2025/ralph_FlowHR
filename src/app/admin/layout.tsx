@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import type { NavSection } from "@/components/layout/Sidebar";
+import { useToast } from "@/components/layout/Toast";
 
 const ADMIN_NAV: NavSection[] = [
   {
@@ -55,15 +56,16 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { addToast } = useToast();
   const activeId = getActiveId(pathname);
 
   // 세션 무효화 감지: tenantId가 없거나 세션이 만료되면 자동 로그아웃
   useEffect(() => {
     if (status === "authenticated" && !session?.user?.tenantId) {
-      alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+      addToast({ message: "세션이 만료되었습니다. 다시 로그인해주세요.", variant: "warning" });
       signOut({ callbackUrl: "/login" });
     }
-  }, [status, session]);
+  }, [status, session, addToast]);
 
   function handleNavigate(id: string) {
     const item = ADMIN_NAV.flatMap((s) => s.items).find((i) => i.id === id);

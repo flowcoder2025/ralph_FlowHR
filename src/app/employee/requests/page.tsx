@@ -9,6 +9,7 @@ import {
   Badge,
   Button,
 } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 
 /* ────────────────────────────────────────────
    Types
@@ -148,6 +149,8 @@ function getDefaultLeaveType(requestTypeId: string): LeaveType {
    ──────────────────────────────────────────── */
 
 export default function RequestsPage() {
+  const { addToast } = useToast();
+
   /* Data from API */
   const [requestTypes, setRequestTypes] = useState<RequestTypeCard[]>([]);
   const [requestHistory, setRequestHistory] = useState<RequestHistoryItem[]>([]);
@@ -165,6 +168,11 @@ export default function RequestsPage() {
   const [showCorrectionForm, setShowCorrectionForm] = useState(false);
   const [correctionData, setCorrectionData] = useState<CorrectionFormData>(DEFAULT_CORRECTION_DATA);
   const [correctionSubmitted, setCorrectionSubmitted] = useState(false);
+
+  /* Loading states for buttons */
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [correctionLoading, setCorrectionLoading] = useState(false);
+  const [draftLoading, setDraftLoading] = useState(false);
 
   /* History state */
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>("all");
@@ -240,6 +248,7 @@ export default function RequestsPage() {
   }
 
   async function handleSubmit() {
+    setSubmitLoading(true);
     try {
       const res = await fetch("/api/leave/requests", {
         method: "PATCH",
@@ -253,17 +262,22 @@ export default function RequestsPage() {
       setFormData(DEFAULT_FORM_DATA);
       fetchHistory();
     } catch {
-      alert("휴가 신청에 실패했습니다. 다시 시도해주세요.");
+      addToast({ message: "휴가 신청에 실패했습니다. 다시 시도해주세요.", variant: "danger" });
+    } finally {
+      setSubmitLoading(false);
     }
   }
 
   function handleDraftSave() {
+    setDraftLoading(true);
     // 임시 저장: localStorage에 폼 데이터 저장
     localStorage.setItem("leave-draft", JSON.stringify(formData));
-    alert("임시 저장되었습니다.");
+    addToast({ message: "임시 저장되었습니다.", variant: "success" });
+    setDraftLoading(false);
   }
 
   async function handleCorrectionSubmit() {
+    setCorrectionLoading(true);
     try {
       const res = await fetch("/api/employee/requests/correction", {
         method: "POST",
@@ -276,7 +290,9 @@ export default function RequestsPage() {
       setCorrectionData(DEFAULT_CORRECTION_DATA);
       fetchHistory();
     } catch {
-      alert("근태 정정 요청에 실패했습니다. 다시 시도해주세요.");
+      addToast({ message: "근태 정정 요청에 실패했습니다. 다시 시도해주세요.", variant: "danger" });
+    } finally {
+      setCorrectionLoading(false);
     }
   }
 
@@ -291,15 +307,15 @@ export default function RequestsPage() {
         if (!res.ok) throw new Error("취소 실패");
         fetchHistory();
       } catch {
-        alert("취소에 실패했습니다.");
+        addToast({ message: "취소에 실패했습니다.", variant: "danger" });
       }
     } else if (item.status === "rejected") {
       // 재신청: 해당 유형 폼을 다시 오픈
       setShowLeaveForm(true);
       setFormStep(1);
     } else if (item.status === "approved") {
-      // 상세: alert로 상세 정보 표시 (향후 드로어로 개선)
-      alert(`신청 상세\n유형: ${item.type}\n내용: ${item.content}\n승인자: ${item.approver}\n상태: ${item.status}`);
+      // 상세: toast로 상세 정보 표시 (향후 드로어로 개선)
+      addToast({ message: `신청 상세 - 유형: ${item.type}, 내용: ${item.content}, 승인자: ${item.approver}`, variant: "info", duration: 6000 });
     }
   }
 
@@ -639,11 +655,11 @@ export default function RequestsPage() {
                       <Button variant="ghost" onClick={handleCancel}>
                         취소
                       </Button>
-                      <Button variant="secondary" onClick={handleDraftSave}>
-                        임시 저장
+                      <Button variant="secondary" onClick={handleDraftSave} disabled={draftLoading || submitLoading}>
+                        {draftLoading ? "저장 중..." : "임시 저장"}
                       </Button>
-                      <Button variant="primary" onClick={handleSubmit}>
-                        신청하기
+                      <Button variant="primary" onClick={handleSubmit} disabled={submitLoading || draftLoading}>
+                        {submitLoading ? "신청 중..." : "신청하기"}
                       </Button>
                     </div>
                   </div>
@@ -763,8 +779,8 @@ export default function RequestsPage() {
                   <Button variant="ghost" onClick={handleCancel}>
                     취소
                   </Button>
-                  <Button variant="primary" onClick={handleCorrectionSubmit}>
-                    정정 요청
+                  <Button variant="primary" onClick={handleCorrectionSubmit} disabled={correctionLoading}>
+                    {correctionLoading ? "요청 중..." : "정정 요청"}
                   </Button>
                 </div>
               </div>

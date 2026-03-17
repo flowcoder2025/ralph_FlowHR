@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui";
 import type { BadgeVariant } from "@/components/ui";
 
 interface Notification {
   id: string;
-  type: "approval" | "info" | "warning" | "system";
+  type: string;
   title: string;
   message: string;
   read: boolean;
@@ -14,19 +14,50 @@ interface Notification {
 }
 
 const TYPE_BADGE: Record<string, { label: string; variant: BadgeVariant }> = {
-  approval: { label: "결재", variant: "info" },
-  info: { label: "알림", variant: "neutral" },
-  warning: { label: "주의", variant: "warning" },
-  system: { label: "시스템", variant: "neutral" },
+  APPROVAL: { label: "결재", variant: "info" },
+  LEAVE: { label: "휴가", variant: "success" },
+  ATTENDANCE: { label: "근태", variant: "warning" },
+  DOCUMENT: { label: "문서", variant: "neutral" },
+  PAYROLL: { label: "급여", variant: "info" },
+  SYSTEM: { label: "시스템", variant: "neutral" },
 };
 
-// 시드 데이터 없으므로 빈 상태로 시작
 export default function InboxPage() {
   const [filter, setFilter] = useState<"all" | "unread">("all");
-  const [notifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = filter === "unread" ? notifications.filter((n) => !n.read) : notifications;
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const fetchNotifications = useCallback(async () => {
+    setLoading(true);
+    try {
+      const readParam = filter === "unread" ? "&read=false" : "";
+      const res = await fetch(`/api/employee/notifications?page=1&pageSize=50${readParam}`);
+      if (res.ok) {
+        const json = await res.json();
+        setNotifications(json.data ?? []);
+        setUnreadCount(json.unreadCount ?? 0);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [filter]);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  async function handleMarkRead(id: string) {
+    const res = await fetch("/api/employee/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+      setUnreadCount((c) => Math.max(0, c - 1));
+    }
+  }
 
   return (
     <div>
@@ -55,7 +86,11 @@ export default function InboxPage() {
 
       {/* List */}
       <div className="rounded-lg border border-border bg-surface-primary shadow-xs">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-sp-12">
+            <span className="text-sm text-text-tertiary">불러오는 중...</span>
+          </div>
+        ) : notifications.length === 0 ? (
           <div className="flex items-center justify-center py-sp-12">
             <span className="text-sm text-text-tertiary">
               {filter === "unread" ? "안 읽은 알림이 없습니다" : "수신함이 비어 있습니다"}
@@ -63,12 +98,13 @@ export default function InboxPage() {
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {filtered.map((n) => {
-              const typeInfo = TYPE_BADGE[n.type] || TYPE_BADGE.info;
+            {notifications.map((n) => {
+              const typeInfo = TYPE_BADGE[n.type] || { label: n.type, variant: "neutral" as BadgeVariant };
               return (
                 <div
                   key={n.id}
-                  className={`flex items-start gap-sp-3 px-sp-4 py-sp-3 transition-colors hover:bg-surface-secondary ${!n.read ? "bg-brand-soft/20" : ""}`}
+                  className={`flex items-start gap-sp-3 px-sp-4 py-sp-3 transition-colors hover:bg-surface-secondary cursor-pointer ${!n.read ? "bg-brand-soft/20" : ""}`}
+                  onClick={() => !n.read && handleMarkRead(n.id)}
                 >
                   <div className="mt-0.5">
                     {!n.read && <span className="block h-2 w-2 rounded-full bg-brand" />}

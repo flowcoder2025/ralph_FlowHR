@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardBody, Button, Select } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 import { exportToCSV } from "@/lib/export";
 
 interface TableMeta {
@@ -19,6 +20,7 @@ interface ReportResult {
 
 export default function CustomReportPage() {
   const router = useRouter();
+  const { addToast } = useToast();
   const [tables, setTables] = useState<TableMeta[]>([]);
   const [selectedTable, setSelectedTable] = useState("");
   const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
@@ -84,7 +86,7 @@ export default function CustomReportPage() {
         setResult(json);
       } else {
         const err = await res.json().catch(() => ({}));
-        alert(err.error || "리포트 생성에 실패했습니다.");
+        addToast({ message: err.error || "리포트 생성에 실패했습니다.", variant: "danger" });
       }
     } finally {
       setLoading(false);

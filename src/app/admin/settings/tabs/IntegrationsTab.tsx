@@ -6,6 +6,7 @@ import {
   Button,
   Badge,
 } from "@/components/ui";
+import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -66,6 +67,7 @@ const INTEGRATION_SERVICES: IntegrationService[] = [
 // ─── Component ──────────────────────────────────────────────
 
 export function IntegrationsTab() {
+  const { addToast } = useToast();
   return (
     <div className="space-y-sp-4">
       <div className="flex items-center justify-between">
@@ -127,7 +129,7 @@ export function IntegrationsTab() {
                     variant={svc.connected ? "secondary" : "primary"}
                     size="sm"
                     className="w-full"
-                    onClick={() => alert(`${svc.name} 연동 설정 기능 준비 중입니다.`)}
+                    onClick={() => addToast({ message: `${svc.name} 연동 설정 기능 준비 중입니다.`, variant: "info" })}
                   >
                     {svc.connected ? "설정" : "연결하기"}
                   </Button>
