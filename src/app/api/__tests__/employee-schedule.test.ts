@@ -11,6 +11,11 @@ import { GET } from "../employee/schedule/route";
 describe("GET /api/employee/schedule", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Tenant timezone mock (모든 테스트에서 필요)
+    prismaMock.tenant.findUnique.mockResolvedValue({
+      id: "tenant-1",
+      settings: { timezone: "Asia/Seoul" },
+    });
   });
 
   it("토큰 없으면 401 반환", async () => {

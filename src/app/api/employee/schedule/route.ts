@@ -14,12 +14,17 @@ const SHIFT_TYPE_LABEL: Record<string, string> = {
 
 const DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
-/** KST(UTC+9) 기준으로 시각 포맷 */
-function formatTime(date: Date | null | undefined): string | null {
+/** Tenant timezone 기준으로 시각 포맷 (서버 환경 무관) */
+function formatTime(date: Date | null | undefined, timezone = "Asia/Seoul"): string | null {
   if (!date) return null;
-  const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
-  const h = kst.getUTCHours().toString().padStart(2, "0");
-  const m = kst.getUTCMinutes().toString().padStart(2, "0");
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: timezone,
+  }).formatToParts(date);
+  const h = parts.find((p) => p.type === "hour")?.value ?? "00";
+  const m = parts.find((p) => p.type === "minute")?.value ?? "00";
   return `${h}:${m}`;
 }
 
@@ -73,6 +78,14 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1", 10);
   const pageSize = 10;
 
+  // Tenant timezone 조회
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    select: { settings: true },
+  });
+  const tenantSettings = (tenant?.settings && typeof tenant.settings === "object") ? tenant.settings as Record<string, unknown> : {};
+  const tz = (typeof tenantSettings.timezone === "string" && tenantSettings.timezone) || "Asia/Seoul";
+
   const now = new Date();
   const today = utcToday();
 
@@ -104,8 +117,8 @@ export async function GET(request: NextRequest) {
   else if (todayRecord?.checkIn && todayRecord?.checkOut) attendanceStatus = "done";
 
   const todayData = {
-    checkIn: formatTime(todayRecord?.checkIn),
-    checkOut: formatTime(todayRecord?.checkOut),
+    checkIn: formatTime(todayRecord?.checkIn, tz),
+    checkOut: formatTime(todayRecord?.checkOut, tz),
     totalHours: formatWorkMinutes(todayRecord?.workMinutes),
     shiftType: shiftName,
     expectedEnd: shiftEnd,
@@ -189,8 +202,8 @@ export async function GET(request: NextRequest) {
       id: r.id,
       date: r.date.toISOString().slice(0, 10),
       dayLabel: DAY_LABELS[recordDate.getUTCDay()],
-      checkIn: formatTime(r.checkIn),
-      checkOut: formatTime(r.checkOut),
+      checkIn: formatTime(r.checkIn, tz),
+      checkOut: formatTime(r.checkOut, tz),
       totalWork: formatWorkMinutes(r.workMinutes),
       status: mapHistoryStatus(r.status, isToday, r.checkIn, r.checkOut),
       isToday,

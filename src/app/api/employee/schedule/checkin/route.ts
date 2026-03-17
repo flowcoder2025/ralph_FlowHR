@@ -27,16 +27,17 @@ function getWorkSettings(settings: unknown): {
   };
 }
 
-/** 출근 시각 기준으로 상태 판별 (KST 기반) */
-function determineCheckInStatus(checkInTime: Date, workStartTime: string): "PRESENT" | "LATE" {
-  // KST로 변환 (UTC+9)
-  const kst = new Date(checkInTime.getTime() + 9 * 60 * 60 * 1000);
-  const checkInMinutes = kst.getUTCHours() * 60 + kst.getUTCMinutes();
+/** 출근 시각 기준으로 상태 판별 (Tenant timezone 기반, 서버 환경 무관) */
+function determineCheckInStatus(checkInTime: Date, workStartTime: string, timezone: string): "PRESENT" | "LATE" {
+  const timeStr = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit", minute: "2-digit", hour12: false, timeZone: timezone,
+  }).format(checkInTime);
+  const [h, m] = timeStr.split(":").map(Number);
+  const checkInMinutes = h * 60 + m;
 
   const [startH, startM] = workStartTime.split(":").map(Number);
   const startMinutes = startH * 60 + startM;
 
-  // 근무 시작 시간 이후 출근 = 지각
   return checkInMinutes > startMinutes ? "LATE" : "PRESENT";
 }
 
@@ -139,7 +140,7 @@ export async function POST(request: NextRequest) {
 
   // 출근 상태 판별 (정상/지각)
   const work = getWorkSettings(tenant?.settings);
-  const status = determineCheckInStatus(now, work.workStartTime);
+  const status = determineCheckInStatus(now, work.workStartTime, work.timezone);
 
   const record = await prisma.attendanceRecord.create({
     data: {
@@ -238,8 +239,11 @@ export async function PATCH(request: NextRequest) {
 
   // 퇴근 시 상태 갱신: 조기퇴근 판별
   const work = getWorkSettings(tenant?.settings);
-  const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  const checkOutMinutes = kstNow.getUTCHours() * 60 + kstNow.getUTCMinutes();
+  const timeStr = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit", minute: "2-digit", hour12: false, timeZone: work.timezone,
+  }).format(now);
+  const [coH, coM] = timeStr.split(":").map(Number);
+  const checkOutMinutes = coH * 60 + coM;
   const [endH, endM] = work.workEndTime.split(":").map(Number);
   const endMinutes = endH * 60 + endM;
 

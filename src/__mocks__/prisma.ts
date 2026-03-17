@@ -16,6 +16,7 @@ function createModelMock() {
 }
 
 export const prismaMock = {
+  tenant: createModelMock(),
   user: createModelMock(),
   account: createModelMock(),
   employee: createModelMock(),
