@@ -39,7 +39,7 @@ interface WeeklyScheduleRow {
   isToday: boolean;
 }
 
-type HistoryStatus = "normal" | "late" | "half_day" | "annual" | "working";
+type HistoryStatus = "normal" | "late" | "half_day" | "early_leave" | "annual" | "working";
 type HistoryFilter = "recent2w" | "thisMonth" | "lastMonth";
 
 interface AttendanceHistoryRow {
@@ -102,10 +102,14 @@ function historyStatusBadge(status: HistoryStatus) {
       return <Badge variant="warning">지각</Badge>;
     case "half_day":
       return <Badge variant="info">반차</Badge>;
+    case "early_leave":
+      return <Badge variant="warning">조퇴</Badge>;
     case "annual":
       return <Badge variant="neutral">연차</Badge>;
     case "working":
       return <Badge variant="info">근무 중</Badge>;
+    default:
+      return <Badge variant="neutral">{status}</Badge>;
   }
 }
 

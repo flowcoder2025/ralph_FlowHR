@@ -52,6 +52,8 @@ function mapHistoryStatus(
       return "late";
     case "HALF_DAY":
       return "half_day";
+    case "EARLY_LEAVE":
+      return "early_leave";
     case "ABSENT":
       return "annual";
     default:
