@@ -163,6 +163,7 @@ export default function RequestsPage() {
   const [formStep, setFormStep] = useState<FormStep>(1);
   const [formData, setFormData] = useState<LeaveFormData>(DEFAULT_FORM_DATA);
   const [submitted, setSubmitted] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   /* Correction form state */
   const [showCorrectionForm, setShowCorrectionForm] = useState(false);
@@ -179,6 +180,41 @@ export default function RequestsPage() {
   const [historyPage, setHistoryPage] = useState(1);
 
   const usedDays = calcDays(formData.startDate, formData.endDate);
+
+  /* Field-level validation on blur */
+  function validateField(field: string) {
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[field];
+
+      if (field === "startDate") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const start = new Date(formData.startDate);
+        if (formData.startDate && start < today) {
+          next.startDate = "시작일은 오늘 이후여야 합니다";
+        }
+      }
+
+      if (field === "endDate") {
+        if (formData.startDate && formData.endDate) {
+          const start = new Date(formData.startDate);
+          const end = new Date(formData.endDate);
+          if (end < start) {
+            next.endDate = "종료일은 시작일 이후여야 합니다";
+          }
+        }
+      }
+
+      if (field === "reason") {
+        if (!formData.reason.trim()) {
+          next.reason = "사유를 입력해주세요";
+        }
+      }
+
+      return next;
+    });
+  }
 
   /* Fetch request types + remaining leave */
   useEffect(() => {
@@ -245,6 +281,7 @@ export default function RequestsPage() {
     setCorrectionData(DEFAULT_CORRECTION_DATA);
     setSubmitted(false);
     setCorrectionSubmitted(false);
+    setFieldErrors({});
   }
 
   async function handleSubmit() {
@@ -506,8 +543,15 @@ export default function RequestsPage() {
                           onChange={(e) =>
                             setFormData((prev) => ({ ...prev, startDate: e.target.value }))
                           }
-                          className="w-full rounded-lg border border-border bg-surface-primary px-sp-3 py-sp-2 text-sm text-text-primary focus:border-brand focus:outline-none"
+                          onBlur={() => validateField("startDate")}
+                          className={[
+                            "w-full rounded-lg border bg-surface-primary px-sp-3 py-sp-2 text-sm text-text-primary focus:border-brand focus:outline-none",
+                            fieldErrors.startDate ? "border-status-danger-solid" : "border-border",
+                          ].join(" ")}
                         />
+                        {fieldErrors.startDate && (
+                          <span className="text-xs text-status-danger-solid mt-sp-1 block">{fieldErrors.startDate}</span>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-text-primary mb-sp-2">
@@ -519,8 +563,15 @@ export default function RequestsPage() {
                           onChange={(e) =>
                             setFormData((prev) => ({ ...prev, endDate: e.target.value }))
                           }
-                          className="w-full rounded-lg border border-border bg-surface-primary px-sp-3 py-sp-2 text-sm text-text-primary focus:border-brand focus:outline-none"
+                          onBlur={() => validateField("endDate")}
+                          className={[
+                            "w-full rounded-lg border bg-surface-primary px-sp-3 py-sp-2 text-sm text-text-primary focus:border-brand focus:outline-none",
+                            fieldErrors.endDate ? "border-status-danger-solid" : "border-border",
+                          ].join(" ")}
                         />
+                        {fieldErrors.endDate && (
+                          <span className="text-xs text-status-danger-solid mt-sp-1 block">{fieldErrors.endDate}</span>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-text-primary mb-sp-2">
@@ -551,8 +602,15 @@ export default function RequestsPage() {
                           onChange={(e) =>
                             setFormData((prev) => ({ ...prev, reason: e.target.value }))
                           }
-                          className="w-full rounded-lg border border-border bg-surface-primary px-sp-3 py-sp-2 text-sm text-text-primary focus:border-brand focus:outline-none resize-none"
+                          onBlur={() => validateField("reason")}
+                          className={[
+                            "w-full rounded-lg border bg-surface-primary px-sp-3 py-sp-2 text-sm text-text-primary focus:border-brand focus:outline-none resize-none",
+                            fieldErrors.reason ? "border-status-danger-solid" : "border-border",
+                          ].join(" ")}
                         />
+                        {fieldErrors.reason && (
+                          <span className="text-xs text-status-danger-solid mt-sp-1 block">{fieldErrors.reason}</span>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-text-primary mb-sp-2">

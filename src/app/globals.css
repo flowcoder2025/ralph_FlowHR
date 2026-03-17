@@ -62,3 +62,47 @@
     @apply outline-2 outline-offset-2 outline-brand;
   }
 }
+
+/* ─── Dark mode color overrides ─── */
+.dark {
+  --surface-primary: #1a1a2e;
+  --surface-secondary: #16213e;
+  --surface-canvas: #0f0f23;
+  --surface-tertiary: #1e2a45;
+  --surface-inverse: #e8e8e8;
+  --surface-raised: #1a1a2e;
+
+  --text-primary: #e8e8e8;
+  --text-secondary: #a0a0b0;
+  --text-tertiary: #6a6a7a;
+  --text-inverse: #111827;
+  --text-brand: #3dd6c8;
+  --text-link: #60a5fa;
+
+  --brand: #14b8a6;
+  --brand-secondary: #2dd4bf;
+  --brand-soft: rgba(20, 184, 166, 0.15);
+  --brand-hover: #0d9488;
+  --brand-text: #3dd6c8;
+
+  --border: #2a2a3e;
+  --border-strong: #3a3a50;
+  --border-focus: #14b8a6;
+  --border-subtle: #1e1e32;
+
+  --status-danger-bg: rgba(220, 38, 38, 0.12);
+  --status-danger-text: #fca5a5;
+  --status-danger-border: rgba(220, 38, 38, 0.3);
+  --status-warning-bg: rgba(245, 158, 11, 0.12);
+  --status-warning-text: #fde68a;
+  --status-warning-border: rgba(245, 158, 11, 0.3);
+  --status-info-bg: rgba(59, 130, 246, 0.12);
+  --status-info-text: #93c5fd;
+  --status-info-border: rgba(59, 130, 246, 0.3);
+  --status-success-bg: rgba(34, 197, 94, 0.12);
+  --status-success-text: #86efac;
+  --status-success-border: rgba(34, 197, 94, 0.3);
+  --status-neutral-bg: #1a1a2e;
+  --status-neutral-text: #a0a0b0;
+  --status-neutral-border: #2a2a3e;
+}
