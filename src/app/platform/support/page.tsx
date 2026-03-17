@@ -284,7 +284,7 @@ function SupportContent() {
       {/* Header */}
       <div className="mb-sp-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">지원 티켓</h1>
+          <h1 className="text-2xl font-bold text-text-primary md:text-3xl">지원 티켓</h1>
           <p className="mt-sp-1 text-md text-text-secondary">
             고객 지원 요청 관리
           </p>

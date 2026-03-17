@@ -123,7 +123,7 @@ export default function CustomReportPage() {
       <div className="mb-sp-6 flex items-center justify-between">
         <div>
           <Breadcrumb items={[{ label: "리포트 센터", href: "/admin/reports" }, { label: "커스텀 리포트" }]} />
-          <h1 className="text-3xl font-bold text-text-primary">커스텀 리포트</h1>
+          <h1 className="text-2xl font-bold text-text-primary md:text-3xl">커스텀 리포트</h1>
           <p className="mt-sp-1 text-md text-text-secondary">
             데이터 소스와 필터를 선택하여 맞춤 리포트를 생성합니다
           </p>

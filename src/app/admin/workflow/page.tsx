@@ -122,21 +122,21 @@ function WorkflowContent() {
     <div>
       {/* Header */}
       <div className="mb-sp-6">
-        <h1 className="text-3xl font-bold text-text-primary">결재 관리</h1>
+        <h1 className="text-2xl font-bold text-text-primary md:text-3xl">결재 관리</h1>
         <p className="mt-sp-1 text-md text-text-secondary">
           승인 요청 처리, 워크플로 설계, 결재 이력 관리
         </p>
       </div>
 
       {/* Tab Navigation */}
-      <div className="mb-sp-6 flex gap-sp-1 border-b border-border">
+      <div className="mb-sp-6 flex gap-sp-1 overflow-x-auto border-b border-border">
         {TABS.map((tab) => (
           <button
             key={tab.key}
             type="button"
             onClick={() => handleTabChange(tab.key)}
             className={[
-              "px-sp-4 py-sp-2 text-sm font-medium transition-colors duration-fast",
+              "whitespace-nowrap px-sp-4 py-sp-2 text-sm font-medium transition-colors duration-fast",
               "-mb-px border-b-2",
               activeTab === tab.key
                 ? "border-brand text-brand-text"

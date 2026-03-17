@@ -79,7 +79,7 @@ export default function OrgChartPage() {
       {/* Header */}
       <div className="mb-sp-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">조직도</h1>
+          <h1 className="text-2xl font-bold text-text-primary md:text-3xl">조직도</h1>
           <p className="mt-sp-1 text-md text-text-secondary">
             부서별 트리 구조와 인원 현황을 확인합니다
           </p>

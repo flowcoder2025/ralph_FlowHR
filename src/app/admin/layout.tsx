@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -68,32 +68,90 @@ export default function AdminLayout({
     }
   }, [status, session, addToast]);
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
   function handleNavigate(id: string) {
     const item = ADMIN_NAV.flatMap((s) => s.items).find((i) => i.id === id);
     if (item?.href) router.push(item.href);
   }
 
+  function handleMobileNavigate(id: string) {
+    handleNavigate(id);
+    setMobileMenuOpen(false);
+  }
+
+  const sidebarFooter = (
+    <div className="flex items-center justify-between">
+      <button
+        onClick={() => signOut({ callbackUrl: "/login" })}
+        className="flex items-center gap-sp-2 rounded-md px-sp-3 py-sp-2 text-sm text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        로그아웃
+      </button>
+      <ThemeToggle />
+    </div>
+  );
+
   return (
     <div className="flex h-screen overflow-hidden bg-surface-canvas">
-      <Sidebar
-        variant="admin"
-        sections={ADMIN_NAV}
-        activeId={activeId}
-        onNavigate={handleNavigate}
-        footer={
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
-              className="flex items-center gap-sp-2 rounded-md px-sp-3 py-sp-2 text-sm text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              로그아웃
-            </button>
-            <ThemeToggle />
+      {/* Desktop sidebar */}
+      <div className="hidden md:flex">
+        <Sidebar
+          variant="admin"
+          sections={ADMIN_NAV}
+          activeId={activeId}
+          onNavigate={handleNavigate}
+          footer={sidebarFooter}
+        />
+      </div>
+
+      {/* Mobile hamburger button */}
+      <button
+        type="button"
+        className="fixed left-3 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-md bg-surface-primary shadow-md md:hidden"
+        onClick={() => setMobileMenuOpen(true)}
+        aria-label="메뉴 열기"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+
+      {/* Mobile drawer overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label="메뉴 닫기"
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setMobileMenuOpen(false)}
+            onKeyDown={(e) => { if (e.key === "Escape" || e.key === "Enter") setMobileMenuOpen(false); }}
+          />
+          <div className="relative h-full w-sidebar">
+            <Sidebar
+              variant="admin"
+              sections={ADMIN_NAV}
+              activeId={activeId}
+              onNavigate={handleMobileNavigate}
+              footer={sidebarFooter}
+            />
           </div>
-        }
-      />
-      <main className="flex-1 overflow-y-auto p-sp-8">{children}</main>
+        </div>
+      )}
+
+      {/* Main content */}
+      <main className="flex-1 overflow-y-auto p-4 pt-14 md:p-sp-8 md:pt-sp-8">
+        {children}
+      </main>
     </div>
   );
 }

@@ -112,7 +112,7 @@ export default function EmployeeChangesPage() {
     <div>
       {/* Header */}
       <div className="mb-sp-6">
-        <h1 className="text-3xl font-bold text-text-primary">인사 변동</h1>
+        <h1 className="text-2xl font-bold text-text-primary md:text-3xl">인사 변동</h1>
         <p className="mt-sp-1 text-md text-text-secondary">
           입사, 이동, 퇴사, 승진 등 인사 변동 이력을 확인합니다
         </p>

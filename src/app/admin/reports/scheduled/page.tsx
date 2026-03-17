@@ -271,7 +271,7 @@ export default function ScheduledReportsPage() {
         <Breadcrumb items={[{ label: "리포트 센터", href: "/admin/reports" }, { label: "예약 보고서" }]} />
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-text-primary">
+            <h1 className="text-2xl font-bold text-text-primary md:text-3xl">
               예약 보고서
             </h1>
             <p className="mt-sp-1 text-md text-text-secondary">

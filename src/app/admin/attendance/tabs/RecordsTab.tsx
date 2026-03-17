@@ -470,7 +470,7 @@ export function RecordsTab() {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-border bg-surface-primary shadow-xs">
+      <div className="overflow-hidden rounded-lg border border-border bg-surface-primary shadow-xs">
         {loading ? (
           <div className="flex items-center justify-center py-sp-12">
             <span className="text-sm text-text-tertiary">불러오는 중...</span>

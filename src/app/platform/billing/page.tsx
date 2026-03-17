@@ -168,7 +168,7 @@ function BillingContent() {
       {/* Header */}
       <div className="mb-sp-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">
+          <h1 className="text-2xl font-bold text-text-primary md:text-3xl">
             플랜 &amp; 빌링
           </h1>
           <p className="mt-sp-1 text-md text-text-secondary">

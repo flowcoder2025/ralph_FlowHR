@@ -201,9 +201,9 @@ export default function PeoplePage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-sp-6 flex items-center justify-between">
+      <div className="mb-sp-6 flex flex-col gap-sp-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">직원 관리</h1>
+          <h1 className="text-2xl font-bold text-text-primary md:text-3xl">직원 관리</h1>
           <p className="mt-sp-1 text-md text-text-secondary">
             전체 직원 목록을 검색하고 관리합니다
           </p>
@@ -253,7 +253,7 @@ export default function PeoplePage() {
                 setCreateLoading(false);
               }
             }} className="space-y-sp-3">
-              <div className="grid grid-cols-2 gap-sp-3">
+              <div className="grid grid-cols-1 gap-sp-3 sm:grid-cols-2">
                 <div>
                   <label className="block text-xs font-medium text-text-secondary mb-sp-1">이름 *</label>
                   <input name="name" required className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm" />
@@ -334,7 +334,7 @@ export default function PeoplePage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-border bg-surface-primary shadow-xs">
+      <div className="overflow-hidden rounded-lg border border-border bg-surface-primary shadow-xs">
         {loading ? (
           <div className="flex items-center justify-center py-sp-12">
             <span className="text-sm text-text-tertiary">불러오는 중...</span>
