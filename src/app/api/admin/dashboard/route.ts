@@ -400,51 +400,53 @@ export async function GET(request: NextRequest) {
     : 0;
 
   return NextResponse.json({
-    kpi: {
-      pendingApprovals: {
-        value: pendingApprovals,
-        delta: approvalDelta,
+    data: {
+      kpi: {
+        pendingApprovals: {
+          value: pendingApprovals,
+          delta: approvalDelta,
+        },
+        attendanceIssues: {
+          value: checkoutMissing,
+          delta: missingDelta,
+        },
+        overtimeNear: {
+          value: overtimeNear,
+        },
+        unsignedDocs: {
+          value: unsignedDocs,
+          delta: docsDelta,
+        },
+        closingBottleneck: {
+          value: closingBottleneck,
+        },
       },
-      attendanceIssues: {
-        value: checkoutMissing,
-        delta: missingDelta,
+      todayQueue: queueItems,
+      orgSnapshot: {
+        departments: orgSnapshot,
+        signals: {
+          danger: dangerDepts.map((d) => `${d.name} ${d.total - d.present}건`),
+          warning: warningDepts.map((d) => `${d.name} ${d.total - d.present}건`),
+        },
       },
-      overtimeNear: {
-        value: overtimeNear,
+      approvalFunnel: {
+        data: funnelData,
+        total: totalFunnel,
+        avgProcessDays,
+        slaOverdue,
       },
-      unsignedDocs: {
-        value: unsignedDocs,
-        delta: docsDelta,
+      exceptionMonitor,
+      documentStatus: {
+        unsigned: unsignedTotal,
+        urgent: urgentDocs,
+        expiringContracts,
       },
-      closingBottleneck: {
-        value: closingBottleneck,
+      payrollStatus: {
+        changes: payrollChanges,
+        currentStep: currentPayroll?.currentStep ?? 0,
+        currentStatus: currentPayroll?.status ?? "NONE",
+        reissueRequests,
       },
-    },
-    todayQueue: queueItems,
-    orgSnapshot: {
-      departments: orgSnapshot,
-      signals: {
-        danger: dangerDepts.map((d) => `${d.name} ${d.total - d.present}건`),
-        warning: warningDepts.map((d) => `${d.name} ${d.total - d.present}건`),
-      },
-    },
-    approvalFunnel: {
-      data: funnelData,
-      total: totalFunnel,
-      avgProcessDays,
-      slaOverdue,
-    },
-    exceptionMonitor,
-    documentStatus: {
-      unsigned: unsignedTotal,
-      urgent: urgentDocs,
-      expiringContracts,
-    },
-    payrollStatus: {
-      changes: payrollChanges,
-      currentStep: currentPayroll?.currentStep ?? 0,
-      currentStatus: currentPayroll?.status ?? "NONE",
-      reissueRequests,
     },
   });
   } catch (error) {

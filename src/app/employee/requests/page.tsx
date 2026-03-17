@@ -287,19 +287,36 @@ export default function RequestsPage() {
   async function handleSubmit() {
     setSubmitLoading(true);
     try {
-      const res = await fetch("/api/leave/requests", {
-        method: "PATCH",
+      // leaveType → API가 기대하는 LeaveType enum으로 매핑
+      const leaveTypeMap: Record<string, string> = {
+        annual: "ANNUAL",
+        half_day_am: "HALF_DAY",
+        half_day_pm: "HALF_DAY",
+        sick: "SICK",
+        family: "FAMILY_EVENT",
+      };
+      const res = await fetch("/api/employee/requests/leave", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, action: "submit" }),
+        body: JSON.stringify({
+          type: leaveTypeMap[formData.leaveType] ?? "ANNUAL",
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          reason: formData.reason,
+        }),
       });
-      if (!res.ok) throw new Error("신청 실패");
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => null);
+        throw new Error(errJson?.error || "신청 실패");
+      }
       setSubmitted(true);
       setShowLeaveForm(false);
       setFormStep(1);
       setFormData(DEFAULT_FORM_DATA);
       fetchHistory();
-    } catch {
-      addToast({ message: "휴가 신청에 실패했습니다. 다시 시도해주세요.", variant: "danger" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "휴가 신청에 실패했습니다. 다시 시도해주세요.";
+      addToast({ message, variant: "danger" });
     } finally {
       setSubmitLoading(false);
     }

@@ -581,20 +581,22 @@ model ShiftAssignment {
 // ─── AttendanceRecord ──────────────────────────────────────
 
 model AttendanceRecord {
-  id          String           @id @default(cuid())
-  tenantId    String
-  employeeId  String
-  date        DateTime
-  status      AttendanceStatus @default(PRESENT)
-  checkIn     DateTime?
-  checkOut    DateTime?
-  workMinutes Int?
-  overtime    Int              @default(0)
-  note        String?
-  checkInLat  Float?
-  checkInLon  Float?
-  checkOutLat Float?
-  checkOutLon Float?
+  id              String           @id @default(cuid())
+  tenantId        String
+  employeeId      String
+  date            DateTime
+  status          AttendanceStatus @default(PRESENT)
+  checkIn         DateTime?
+  checkOut        DateTime?
+  workMinutes     Int?
+  overtime        Int              @default(0)
+  note            String?
+  checkInLat      Float?
+  checkInLon      Float?
+  checkOutLat     Float?
+  checkOutLon     Float?
+  checkInGpsStatus  String?        // "IN_OFFICE" | "OUT_OF_OFFICE" | "NO_GPS"
+  checkOutGpsStatus String?        // "IN_OFFICE" | "OUT_OF_OFFICE" | "NO_GPS"
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -608,15 +610,17 @@ model AttendanceRecord {
 // ─── AttendanceException ───────────────────────────────────
 
 model AttendanceException {
-  id          String          @id @default(cuid())
-  tenantId    String
-  employeeId  String
-  type        ExceptionType
-  status      ExceptionStatus @default(PENDING)
-  date        DateTime
-  reason      String
-  approvedBy  String?
-  approvedAt  DateTime?
+  id                String          @id @default(cuid())
+  tenantId          String
+  employeeId        String
+  type              ExceptionType
+  status            ExceptionStatus @default(PENDING)
+  date              DateTime
+  reason            String
+  approvedBy        String?
+  approvedAt        DateTime?
+  correctedCheckIn  String?         // 정정 요청 출근 시간 (HH:mm)
+  correctedCheckOut String?         // 정정 요청 퇴근 시간 (HH:mm)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -4,7 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { utcToday } from "@/lib/date-utils";
 import { calculateDistance } from "@/lib/geo";
-import { DEFAULT_TIMEZONE, DEFAULT_WORK_START_TIME, DEFAULT_WORK_END_TIME, DEFAULT_GPS_RADIUS, EARLY_LEAVE_THRESHOLD_MINUTES } from "@/lib/constants";
+import { DEFAULT_TIMEZONE, DEFAULT_WORK_START_TIME, DEFAULT_WORK_END_TIME, DEFAULT_GPS_RADIUS, EARLY_LEAVE_THRESHOLD_MINUTES, MINIMUM_WORK_MINUTES } from "@/lib/constants";
 import { gpsCheckinSchema } from "@/lib/validations";
 
 interface GpsBody {
@@ -84,6 +84,26 @@ function validateLocation(
   return { ok: true, distance };
 }
 
+/** GPS 판정값 결정 */
+function determineGpsStatus(
+  body: GpsBody,
+  gps: ReturnType<typeof getGpsSettings>,
+): "IN_OFFICE" | "OUT_OF_OFFICE" | "NO_GPS" {
+  const hasUserCoords = typeof body.latitude === "number" && typeof body.longitude === "number";
+  if (!hasUserCoords) return "NO_GPS";
+
+  const hasOfficeCoords = typeof gps.officeLatitude === "number" && typeof gps.officeLongitude === "number";
+  if (!hasOfficeCoords) return "IN_OFFICE"; // 사무실 좌표 미설정 시 사내로 간주
+
+  const distance = calculateDistance(
+    body.latitude!, body.longitude!,
+    gps.officeLatitude!, gps.officeLongitude!,
+  );
+  const radius = gps.allowedRadius ?? DEFAULT_GPS_RADIUS;
+
+  return distance <= radius ? "IN_OFFICE" : "OUT_OF_OFFICE";
+}
+
 // ─── POST: 출근 기록 생성 ──────────────────────────────
 export async function POST(request: NextRequest) {
   try {
@@ -145,16 +165,23 @@ export async function POST(request: NextRequest) {
   const work = getWorkSettings(tenant?.settings);
   const status = determineCheckInStatus(now, work.workStartTime, work.timezone);
 
+  // GPS 판정값 결정
+  const checkInGpsStatus = determineGpsStatus(body, gps);
+
+  // prisma generate 전 빌드 호환: 새 필드 포함을 위해 캐스트
+  const createData = {
+    tenantId,
+    employeeId,
+    date: today,
+    checkIn: now,
+    status,
+    checkInLat: body.latitude,
+    checkInLon: body.longitude,
+    checkInGpsStatus,
+  };
+
   const record = await prisma.attendanceRecord.create({
-    data: {
-      tenantId,
-      employeeId,
-      date: today,
-      checkIn: now,
-      status,
-      checkInLat: body.latitude,
-      checkInLon: body.longitude,
-    },
+    data: createData as Parameters<typeof prisma.attendanceRecord.create>[0]["data"],
   });
 
   return NextResponse.json({ data: record }, { status: 201 });
@@ -257,15 +284,27 @@ export async function PATCH(request: NextRequest) {
     finalStatus = "EARLY_LEAVE";
   }
 
+  // 최소 근무시간 미만이면 HALF_DAY 처리
+  if (workMinutes < MINIMUM_WORK_MINUTES) {
+    finalStatus = "HALF_DAY";
+  }
+
+  // GPS 판정값 결정
+  const checkOutGpsStatus = determineGpsStatus(body, gps);
+
+  // prisma generate 전 빌드 호환: 새 필드 포함을 위해 캐스트
+  const updateData = {
+    checkOut: now,
+    workMinutes,
+    status: finalStatus,
+    checkOutLat: body.latitude,
+    checkOutLon: body.longitude,
+    checkOutGpsStatus,
+  };
+
   const record = await prisma.attendanceRecord.update({
     where: { id: existing.id },
-    data: {
-      checkOut: now,
-      workMinutes,
-      status: finalStatus,
-      checkOutLat: body.latitude,
-      checkOutLon: body.longitude,
-    },
+    data: updateData as Parameters<typeof prisma.attendanceRecord.update>[0]["data"],
   });
 
   return NextResponse.json({ data: record });

@@ -104,6 +104,23 @@ export async function POST(request: NextRequest) {
     data: { usageCount: { increment: recipientIds.length } },
   });
 
+  // 발송 시 각 수신자에게 알림 생성 (임시저장은 제외)
+  if (!isDraft) {
+    await prisma.$transaction(
+      recipientIds.map((recipientId: string) =>
+        prisma.notification.create({
+          data: {
+            tenantId,
+            employeeId: recipientId,
+            type: "DOCUMENT",
+            title: "새 문서 수신",
+            message: `"${template.name}" 문서가 도착했습니다. 확인해주세요.`,
+          },
+        }),
+      ),
+    );
+  }
+
   return NextResponse.json(
     {
       documents,

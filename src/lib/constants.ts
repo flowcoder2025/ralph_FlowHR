@@ -14,6 +14,9 @@ export const DEFAULT_WORK_END_TIME = "18:00";
 /** 조기퇴근 판별 기준 (퇴근 시간 N분 전 퇴근 시 EARLY_LEAVE) */
 export const EARLY_LEAVE_THRESHOLD_MINUTES = 30;
 
+/** 최소 근무시간 (분) — 미만이면 HALF_DAY 처리 */
+export const MINIMUM_WORK_MINUTES = 30;
+
 /** GPS 허용 반경 기본값 (미터) */
 export const DEFAULT_GPS_RADIUS = 500;
 

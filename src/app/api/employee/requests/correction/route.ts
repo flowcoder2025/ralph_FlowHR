@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   const employeeId = employee.id;
 
   const body = await request.json();
-  const { date, reason } = body;
+  const { date, reason, correctionType, correctedTime } = body;
 
   if (!date || !reason) {
     return NextResponse.json(
@@ -51,15 +51,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // 정정 시간값 저장 (correctionType: "checkin" | "checkout", correctedTime: "HH:mm")
+  const correctedCheckIn = correctionType === "checkin" && correctedTime ? correctedTime : undefined;
+  const correctedCheckOut = correctionType === "checkout" && correctedTime ? correctedTime : undefined;
+
+  // prisma generate 전 빌드 호환: 새 필드를 포함하기 위해 data를 캐스트
+  const createData = {
+    tenantId,
+    employeeId,
+    type: "CORRECTION" as const,
+    date: targetDate,
+    reason,
+    status: "PENDING" as const,
+    correctedCheckIn,
+    correctedCheckOut,
+  };
+
   const exception = await prisma.attendanceException.create({
-    data: {
-      tenantId,
-      employeeId,
-      type: "CORRECTION",
-      date: targetDate,
-      reason,
-      status: "PENDING",
-    },
+    data: createData as Parameters<typeof prisma.attendanceException.create>[0]["data"],
   });
 
   return NextResponse.json({ data: exception }, { status: 201 });

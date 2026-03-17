@@ -24,6 +24,8 @@ interface AttendanceRecordRow {
   workDisplay: string;
   status: string;
   overtime: number;
+  checkInGpsStatus: string | null;
+  checkOutGpsStatus: string | null;
 }
 
 interface PaginationInfo {
@@ -247,6 +249,33 @@ export function RecordsTab() {
         ) : (
           row.status
         );
+      },
+    },
+    {
+      key: "gpsStatus",
+      header: "위치",
+      width: "100px",
+      render: (row) => {
+        const gpsIn = row.checkInGpsStatus;
+        const gpsOut = row.checkOutGpsStatus;
+        // 출근/퇴근 중 더 나쁜(우선순위 높은) 상태 표시
+        const status = gpsIn === "NO_GPS" || gpsOut === "NO_GPS"
+          ? "NO_GPS"
+          : gpsIn === "OUT_OF_OFFICE" || gpsOut === "OUT_OF_OFFICE"
+            ? "OUT_OF_OFFICE"
+            : gpsIn === "IN_OFFICE" || gpsOut === "IN_OFFICE"
+              ? "IN_OFFICE"
+              : null;
+
+        if (!status) return <span className="text-text-tertiary">—</span>;
+
+        const map: Record<string, { label: string; variant: BadgeVariant }> = {
+          IN_OFFICE: { label: "사내", variant: "success" },
+          OUT_OF_OFFICE: { label: "사외", variant: "warning" },
+          NO_GPS: { label: "미확인", variant: "neutral" },
+        };
+        const info = map[status];
+        return info ? <Badge variant={info.variant}>{info.label}</Badge> : status;
       },
     },
     {
