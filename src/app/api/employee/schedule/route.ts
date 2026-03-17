@@ -14,10 +14,12 @@ const SHIFT_TYPE_LABEL: Record<string, string> = {
 
 const DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
+/** KST(UTC+9) 기준으로 시각 포맷 */
 function formatTime(date: Date | null | undefined): string | null {
   if (!date) return null;
-  const h = date.getHours().toString().padStart(2, "0");
-  const m = date.getMinutes().toString().padStart(2, "0");
+  const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  const h = kst.getUTCHours().toString().padStart(2, "0");
+  const m = kst.getUTCMinutes().toString().padStart(2, "0");
   return `${h}:${m}`;
 }
 

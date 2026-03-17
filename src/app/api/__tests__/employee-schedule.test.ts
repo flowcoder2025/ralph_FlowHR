@@ -59,9 +59,9 @@ describe("GET /api/employee/schedule", () => {
       },
     });
 
-    // Today's attendance
+    // Today's attendance (KST 09:02 = UTC 00:02)
     const todayCheckIn = new Date();
-    todayCheckIn.setHours(9, 2, 0, 0);
+    todayCheckIn.setUTCHours(0, 2, 0, 0);
     prismaMock.attendanceRecord.findFirst.mockResolvedValue({
       id: "rec-today",
       checkIn: todayCheckIn,
@@ -127,13 +127,14 @@ describe("GET /api/employee/schedule", () => {
     prismaMock.attendanceRecord.findFirst.mockResolvedValue(null);
 
     const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+    yesterday.setUTCHours(0, 0, 0, 0);
 
+    // KST 09:12 = UTC 00:12, KST 18:30 = UTC 09:30
     const checkIn = new Date(yesterday);
-    checkIn.setHours(9, 12, 0, 0);
+    checkIn.setUTCHours(0, 12, 0, 0);
     const checkOut = new Date(yesterday);
-    checkOut.setHours(18, 30, 0, 0);
+    checkOut.setUTCHours(9, 30, 0, 0);
 
     // findMany is called twice: weekly records then history records
     prismaMock.attendanceRecord.findMany
@@ -172,10 +173,11 @@ describe("GET /api/employee/schedule", () => {
     });
     prismaMock.shiftAssignment.findFirst.mockResolvedValue(null);
 
+    // KST 09:00 = UTC 00:00, KST 18:05 = UTC 09:05
     const checkIn = new Date();
-    checkIn.setHours(9, 0, 0, 0);
+    checkIn.setUTCHours(0, 0, 0, 0);
     const checkOut = new Date();
-    checkOut.setHours(18, 5, 0, 0);
+    checkOut.setUTCHours(9, 5, 0, 0);
 
     prismaMock.attendanceRecord.findFirst.mockResolvedValue({
       id: "rec-today",
