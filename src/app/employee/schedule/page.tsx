@@ -253,7 +253,7 @@ export default function SchedulePage() {
       </div>
 
       {/* TE-101: Attendance Check Panel + Current Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-sp-6 mb-sp-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-sp-4 md:gap-sp-6 mb-sp-4 md:mb-sp-6">
         {/* Check-in/out Card */}
         <Card className="lg:col-span-2">
           <CardHeader>
@@ -261,17 +261,17 @@ export default function SchedulePage() {
             {statusBadge(attendanceStatus)}
           </CardHeader>
           <CardBody className="text-center">
-            <div className="text-5xl font-bold text-text-primary mb-sp-2 tabular-nums">
+            <div className="text-4xl md:text-5xl font-bold text-text-primary mb-sp-2 tabular-nums">
               {currentTime}
             </div>
-            <div className="text-sm text-text-tertiary mb-sp-6">{currentDate}</div>
+            <div className="text-sm text-text-tertiary mb-sp-4 md:mb-sp-6">{currentDate}</div>
 
-            <div className="flex gap-sp-4 justify-center">
+            <div className="flex gap-sp-3 md:gap-sp-4 justify-center">
               <Button
                 variant="secondary"
                 size="lg"
                 disabled={attendanceStatus === "working" || attendanceStatus === "done"}
-                className="min-w-[140px]"
+                className="min-w-[120px] md:min-w-[140px] min-h-[48px]"
                 onClick={async () => {
                   let body: string | undefined;
                   if (navigator.geolocation) {
@@ -313,7 +313,7 @@ export default function SchedulePage() {
                 variant="primary"
                 size="lg"
                 disabled={attendanceStatus !== "working"}
-                className="min-w-[140px]"
+                className="min-w-[120px] md:min-w-[140px] min-h-[48px]"
                 onClick={async () => {
                   let body: string | undefined;
                   if (navigator.geolocation) {
@@ -367,7 +367,7 @@ export default function SchedulePage() {
 
       {/* TE-102: Weekly Schedule Table */}
       <div className="mb-sp-4">
-        <h2 className="text-lg font-semibold text-text-primary">이번 주 근무 일정</h2>
+        <h2 className="text-base md:text-lg font-semibold text-text-primary">이번 주 근무 일정</h2>
         <p className="text-sm text-text-tertiary mt-sp-1">
           {weekLabel}
         </p>
@@ -375,7 +375,7 @@ export default function SchedulePage() {
 
       <Card>
         <CardBody className="p-0 overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[540px]">
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left px-sp-5 py-sp-3 font-medium text-text-tertiary w-[100px]">요일</th>
@@ -413,21 +413,21 @@ export default function SchedulePage() {
       </Card>
 
       {/* TE-103: Attendance History */}
-      <div className="mt-sp-8 mb-sp-4">
-        <h2 className="text-lg font-semibold text-text-primary">출퇴근 기록</h2>
+      <div className="mt-sp-6 md:mt-sp-8 mb-sp-4">
+        <h2 className="text-base md:text-lg font-semibold text-text-primary">출퇴근 기록</h2>
         <p className="text-sm text-text-tertiary mt-sp-1">최근 2주간 근태 기록</p>
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex-col gap-sp-3 sm:flex-row">
           <CardTitle>근태 이력</CardTitle>
-          <div className="flex gap-sp-2">
+          <div className="flex gap-sp-2 flex-wrap">
             {FILTER_LABELS.map((f) => (
               <button
                 key={f.key}
                 onClick={() => { setHistoryFilter(f.key); setHistoryPage(1); }}
                 className={[
-                  "px-sp-3 py-sp-1 rounded-full text-xs font-medium transition-colors",
+                  "px-sp-3 py-sp-1 rounded-full text-xs font-medium transition-colors min-h-[32px]",
                   historyFilter === f.key
                     ? "bg-brand text-white"
                     : "bg-surface-secondary text-text-secondary hover:bg-surface-canvas",
@@ -439,7 +439,7 @@ export default function SchedulePage() {
           </div>
         </CardHeader>
         <CardBody className="p-0 overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left px-sp-5 py-sp-3 font-medium text-text-tertiary">날짜</th>
@@ -532,7 +532,7 @@ export default function SchedulePage() {
         </CardBody>
 
         {/* Pagination Footer */}
-        <div className="flex items-center justify-between px-sp-5 py-sp-3 border-t border-border">
+        <div className="flex flex-col gap-sp-2 sm:flex-row items-center justify-between px-sp-4 md:px-sp-5 py-sp-3 border-t border-border">
           <span className="text-xs text-text-tertiary">
             {historyTotal}건 중 {historyTotal > 0 ? (historyPage - 1) * 10 + 1 : 0}–
             {Math.min(historyPage * 10, historyTotal)}건 표시

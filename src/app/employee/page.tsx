@@ -77,30 +77,30 @@ export default function EmployeeHomePage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-sp-8">
-        <h1 className="text-3xl font-bold text-text-primary">{greeting}, {userName}님</h1>
-        <p className="mt-sp-1 text-md text-text-secondary">
+      <div className="mb-sp-6 md:mb-sp-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-text-primary">{greeting}, {userName}님</h1>
+        <p className="mt-sp-1 text-sm md:text-md text-text-secondary">
           {now.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "long" })}
         </p>
       </div>
 
       {loading ? (
-        <div className="py-sp-12 grid grid-cols-1 gap-sp-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="py-sp-12 grid grid-cols-1 gap-sp-4 md:gap-sp-6 md:grid-cols-2 lg:grid-cols-3">
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-sp-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-sp-4 md:gap-sp-6 md:grid-cols-2 lg:grid-cols-3">
           {/* 출퇴근 상태 */}
-          <div className="rounded-lg border border-border bg-surface-primary p-sp-6 shadow-xs">
+          <div className="rounded-lg border border-border bg-surface-primary p-sp-4 md:p-sp-6 shadow-xs">
             <h2 className="text-sm font-semibold text-text-secondary mb-sp-3">오늘 근무</h2>
             <div className="flex items-center gap-sp-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-soft">
                 <span className="text-xl">⏰</span>
               </div>
               <div>
-                <div className="text-lg font-bold text-text-primary">
+                <div className="text-base md:text-lg font-bold text-text-primary">
                   {todayStatus?.checkIn ? `출근 ${todayStatus.checkIn}` : "미출근"}
                 </div>
                 <div className="text-sm text-text-tertiary">
@@ -110,7 +110,7 @@ export default function EmployeeHomePage() {
             </div>
             <button
               onClick={() => router.push("/employee/schedule")}
-              className="mt-sp-4 w-full rounded-md border border-border py-sp-2 text-sm text-text-secondary hover:bg-surface-secondary transition-colors"
+              className="mt-sp-4 w-full rounded-md border border-border py-sp-2 min-h-[44px] text-sm text-text-secondary hover:bg-surface-secondary transition-colors"
             >
               출퇴근 관리 →
             </button>
@@ -118,19 +118,19 @@ export default function EmployeeHomePage() {
 
           {/* 빠른 통계 */}
           {stats.map((stat) => (
-            <div key={stat.label} className="rounded-lg border border-border bg-surface-primary p-sp-6 shadow-xs">
+            <div key={stat.label} className="rounded-lg border border-border bg-surface-primary p-sp-4 md:p-sp-6 shadow-xs">
               <h2 className="text-sm font-semibold text-text-secondary mb-sp-3">{stat.label}</h2>
-              <div className="text-2xl font-bold text-text-primary">{stat.value}</div>
+              <div className="text-xl md:text-2xl font-bold text-text-primary">{stat.value}</div>
             </div>
           ))}
 
           {/* 퀵 액션 */}
-          <div className="rounded-lg border border-border bg-surface-primary p-sp-6 shadow-xs">
+          <div className="rounded-lg border border-border bg-surface-primary p-sp-4 md:p-sp-6 shadow-xs">
             <h2 className="text-sm font-semibold text-text-secondary mb-sp-3">빠른 이동</h2>
             <div className="space-y-sp-2">
-              <button onClick={() => router.push("/employee/requests")} className="w-full rounded-md border border-border py-sp-2 text-sm text-text-primary hover:bg-surface-secondary transition-colors">휴가 신청</button>
-              <button onClick={() => router.push("/employee/documents")} className="w-full rounded-md border border-border py-sp-2 text-sm text-text-primary hover:bg-surface-secondary transition-colors">문서 · 서명</button>
-              <button onClick={() => router.push("/employee/profile")} className="w-full rounded-md border border-border py-sp-2 text-sm text-text-primary hover:bg-surface-secondary transition-colors">내 정보</button>
+              <button onClick={() => router.push("/employee/requests")} className="w-full rounded-md border border-border py-sp-2 min-h-[44px] text-sm text-text-primary hover:bg-surface-secondary transition-colors">휴가 신청</button>
+              <button onClick={() => router.push("/employee/documents")} className="w-full rounded-md border border-border py-sp-2 min-h-[44px] text-sm text-text-primary hover:bg-surface-secondary transition-colors">문서 · 서명</button>
+              <button onClick={() => router.push("/employee/profile")} className="w-full rounded-md border border-border py-sp-2 min-h-[44px] text-sm text-text-primary hover:bg-surface-secondary transition-colors">내 정보</button>
             </div>
           </div>
         </div>

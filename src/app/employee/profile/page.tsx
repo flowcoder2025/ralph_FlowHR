@@ -218,13 +218,13 @@ export default function ProfilePage() {
       {/* Profile Hero */}
       <Card className="mb-sp-6">
         <CardBody>
-          <div className="flex items-center gap-sp-6">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-brand-soft text-2xl font-bold text-brand-text">
+          <div className="flex flex-col sm:flex-row items-center sm:items-center gap-sp-4 sm:gap-sp-6">
+            <div className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-full bg-brand-soft text-xl sm:text-2xl font-bold text-brand-text">
               {profile.avatar}
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-sp-3 mb-sp-1">
-                <span className="text-xl font-bold text-text-primary">
+            <div className="flex-1 min-w-0 text-center sm:text-left">
+              <div className="flex items-center justify-center sm:justify-start gap-sp-3 mb-sp-1">
+                <span className="text-lg sm:text-xl font-bold text-text-primary">
                   {profile.name}
                 </span>
                 {statusInfo && (
@@ -234,12 +234,13 @@ export default function ProfilePage() {
               <div className="text-sm text-text-secondary mb-sp-1">
                 {profile.department} · {profile.position}
               </div>
-              <div className="text-sm text-text-tertiary">
+              <div className="text-xs sm:text-sm text-text-tertiary">
                 사번: {profile.employeeNumber} · 입사일: {formatDate(profile.hireDate)} · 근속: {getTenure(profile.hireDate)}
               </div>
             </div>
-            <div className="hidden sm:flex flex-col items-end gap-sp-2">
-              <div className="text-right">
+            {/* Leave balance - visible on mobile too (below name) */}
+            <div className="flex flex-col items-center sm:items-end gap-sp-2">
+              <div className="text-center sm:text-right">
                 <div className="text-xs text-text-tertiary">잔여 연차</div>
                 <div className="text-2xl font-bold text-brand">
                   {totalLeaveRemaining}
@@ -252,13 +253,13 @@ export default function ProfilePage() {
       </Card>
 
       {/* Tabs */}
-      <div className="flex gap-sp-1 border-b border-border mb-sp-6">
+      <div className="flex gap-sp-1 border-b border-border mb-sp-6 overflow-x-auto">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={[
-              "px-sp-4 py-sp-3 text-sm font-medium transition-colors border-b-2 -mb-px",
+              "px-sp-3 md:px-sp-4 py-sp-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap min-h-[44px]",
               activeTab === tab.id
                 ? "border-brand text-brand"
                 : "border-transparent text-text-tertiary hover:text-text-secondary",
@@ -361,7 +362,7 @@ function LeaveBalanceTab({ leaveBalances }: { leaveBalances: LeaveBalanceItem[] 
   return (
     <div>
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-sp-4 mb-sp-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-sp-3 md:gap-sp-4 mb-sp-6">
         <SummaryCard label="총 부여" value={`${totalAll}일`} />
         <SummaryCard label="사용" value={`${totalUsed}일`} />
         <SummaryCard label="승인 대기" value={`${totalPending}일`} />
@@ -375,7 +376,7 @@ function LeaveBalanceTab({ leaveBalances }: { leaveBalances: LeaveBalanceItem[] 
         </CardHeader>
         <CardBody>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm min-w-[540px]">
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left py-sp-3 px-sp-4 text-text-secondary font-medium">유형</th>
@@ -441,7 +442,7 @@ function PerformanceTab({ goals, evaluation }: { goals: GoalItem[]; evaluation: 
             <div className="mb-sp-3 text-sm text-text-secondary">
               {evaluation.cycleName}
             </div>
-            <div className="grid grid-cols-3 gap-sp-4">
+            <div className="grid grid-cols-3 gap-sp-3 md:gap-sp-4">
               <ScoreCard
                 label="자기 평가"
                 score={evaluation.selfScore}

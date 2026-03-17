@@ -62,8 +62,8 @@ export default function InboxPage() {
   return (
     <div>
       <div className="mb-sp-6">
-        <h1 className="text-3xl font-bold text-text-primary">수신함</h1>
-        <p className="mt-sp-1 text-md text-text-secondary">
+        <h1 className="text-2xl md:text-3xl font-bold text-text-primary">수신함</h1>
+        <p className="mt-sp-1 text-sm md:text-md text-text-secondary">
           알림, 결재 요청, 공지사항을 확인합니다
         </p>
       </div>
@@ -72,13 +72,13 @@ export default function InboxPage() {
       <div className="mb-sp-4 flex gap-sp-2">
         <button
           onClick={() => setFilter("all")}
-          className={`rounded-full border px-sp-3 py-sp-1 text-xs font-medium transition-colors ${filter === "all" ? "border-brand bg-brand-soft text-brand-text" : "border-border text-text-secondary hover:bg-surface-secondary"}`}
+          className={`rounded-full border px-sp-3 py-sp-1 text-xs font-medium transition-colors min-h-[32px] ${filter === "all" ? "border-brand bg-brand-soft text-brand-text" : "border-border text-text-secondary hover:bg-surface-secondary"}`}
         >
           전체 ({notifications.length})
         </button>
         <button
           onClick={() => setFilter("unread")}
-          className={`rounded-full border px-sp-3 py-sp-1 text-xs font-medium transition-colors ${filter === "unread" ? "border-brand bg-brand-soft text-brand-text" : "border-border text-text-secondary hover:bg-surface-secondary"}`}
+          className={`rounded-full border px-sp-3 py-sp-1 text-xs font-medium transition-colors min-h-[32px] ${filter === "unread" ? "border-brand bg-brand-soft text-brand-text" : "border-border text-text-secondary hover:bg-surface-secondary"}`}
         >
           안 읽음 ({unreadCount})
         </button>
@@ -103,7 +103,7 @@ export default function InboxPage() {
               return (
                 <div
                   key={n.id}
-                  className={`flex items-start gap-sp-3 px-sp-4 py-sp-3 transition-colors hover:bg-surface-secondary cursor-pointer ${!n.read ? "bg-brand-soft/20" : ""}`}
+                  className={`flex items-start gap-sp-3 px-sp-3 md:px-sp-4 py-sp-3 transition-colors hover:bg-surface-secondary cursor-pointer min-h-[44px] ${!n.read ? "bg-brand-soft/20" : ""}`}
                   onClick={() => !n.read && handleMarkRead(n.id)}
                 >
                   <div className="mt-0.5">
