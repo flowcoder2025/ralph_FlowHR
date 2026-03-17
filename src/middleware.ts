@@ -61,10 +61,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check role-based access
-  const allowed = isRoleAllowed(pathname, token.role);
+  const allowed = isRoleAllowed(pathname, token.role as string);
 
   if (allowed === false) {
-    // User is authenticated but lacks the required role → 403 page
+    // API 요청은 JSON 403, 페이지 요청은 redirect
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
     const forbiddenUrl = new URL("/forbidden", request.url);
     return NextResponse.redirect(forbiddenUrl);
   }

@@ -36,9 +36,30 @@ export const ADMIN_ROLES: readonly RoleName[] = [
  */
 export const ROUTE_ROLE_MAP: { prefix: string; roles: readonly RoleName[] }[] =
   [
+    // 페이지
     { prefix: "/platform", roles: [ROLES.PLATFORM_OPERATOR] },
     { prefix: "/admin", roles: ADMIN_ROLES },
     { prefix: "/employee", roles: TENANT_ROLES },
+    // API (Employee API는 Employee 포함 전체 tenant role 허용)
+    { prefix: "/api/platform", roles: [ROLES.PLATFORM_OPERATOR] },
+    { prefix: "/api/admin", roles: ADMIN_ROLES },
+    { prefix: "/api/employees", roles: ADMIN_ROLES },
+    { prefix: "/api/employee-changes", roles: ADMIN_ROLES },
+    { prefix: "/api/employee", roles: TENANT_ROLES },
+    // Admin 전용 API
+    { prefix: "/api/attendance", roles: ADMIN_ROLES },
+    { prefix: "/api/leave", roles: ADMIN_ROLES },
+    { prefix: "/api/departments", roles: ADMIN_ROLES },
+    { prefix: "/api/documents/sign", roles: TENANT_ROLES },
+    { prefix: "/api/documents", roles: ADMIN_ROLES },
+    { prefix: "/api/payroll", roles: ADMIN_ROLES },
+    { prefix: "/api/performance", roles: ADMIN_ROLES },
+    { prefix: "/api/recruiting", roles: ADMIN_ROLES },
+    { prefix: "/api/reports", roles: ADMIN_ROLES },
+    { prefix: "/api/settings", roles: ADMIN_ROLES },
+    { prefix: "/api/workflow", roles: ADMIN_ROLES },
+    { prefix: "/api/approval", roles: ADMIN_ROLES },
+    { prefix: "/api/export", roles: ADMIN_ROLES },
   ];
 
 /** Routes that anyone (including unauthenticated users) can access. */

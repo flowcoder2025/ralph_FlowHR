@@ -721,13 +721,28 @@ async function main(): Promise<void> {
       const pattern = attendancePatterns[patternIdx % attendancePatterns.length];
       patternIdx++;
 
+      // KST(UTC+9) 시간을 UTC로 변환하여 저장
+      // 예: KST 08:55 → UTC 23:55 (전날)
+      const KST_OFFSET = 9;
       const checkIn = new Date(date);
       const [ciH, ciM] = pattern.checkIn.split(":");
-      checkIn.setUTCHours(parseInt(ciH, 10), parseInt(ciM, 10), 0, 0);
+      const ciUtcH = parseInt(ciH, 10) - KST_OFFSET;
+      if (ciUtcH < 0) {
+        checkIn.setUTCDate(checkIn.getUTCDate() - 1);
+        checkIn.setUTCHours(ciUtcH + 24, parseInt(ciM, 10), 0, 0);
+      } else {
+        checkIn.setUTCHours(ciUtcH, parseInt(ciM, 10), 0, 0);
+      }
 
       const checkOut = new Date(date);
       const [coH, coM] = pattern.checkOut.split(":");
-      checkOut.setUTCHours(parseInt(coH, 10), parseInt(coM, 10), 0, 0);
+      const coUtcH = parseInt(coH, 10) - KST_OFFSET;
+      if (coUtcH < 0) {
+        checkOut.setUTCDate(checkOut.getUTCDate() - 1);
+        checkOut.setUTCHours(coUtcH + 24, parseInt(coM, 10), 0, 0);
+      } else {
+        checkOut.setUTCHours(coUtcH, parseInt(coM, 10), 0, 0);
+      }
 
       await prisma.attendanceRecord.upsert({
         where: {
