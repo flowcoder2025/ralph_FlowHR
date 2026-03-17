@@ -189,30 +189,32 @@ export async function GET(request: NextRequest) {
   };
 
   return NextResponse.json({
-    kpi: {
-      present: {
-        rate: presentRate,
-        count: presentCount,
-        total: totalEmployees,
+    data: {
+      kpi: {
+        present: {
+          rate: presentRate,
+          count: presentCount,
+          total: totalEmployees,
+        },
+        inProgress: { rate: inProgressRate, count: inProgressCount },
+        absent: { rate: absentRate, count: absentCount },
+        exceptions: {
+          total: todayExceptions,
+          delta: exceptionDelta,
+          late: lateCount,
+          correction: correctionCount,
+          overtime: overtimeCount,
+          other: otherCount,
+        },
       },
-      inProgress: { rate: inProgressRate, count: inProgressCount },
-      absent: { rate: absentRate, count: absentCount },
-      exceptions: {
-        total: todayExceptions,
-        delta: exceptionDelta,
-        late: lateCount,
-        correction: correctionCount,
-        overtime: overtimeCount,
-        other: otherCount,
+      departmentRates,
+      weeklySummary: {
+        avgCheckIn: formatTime(avgCheckInMinutes),
+        avgCheckOut: formatTime(avgCheckOutMinutes),
+        avgWorkHours: (avgWorkMinutes / 60).toFixed(1) + "h",
+        overtimeCases: overtimeRecords,
+        near52hLimit: near52hCount,
       },
-    },
-    departmentRates,
-    weeklySummary: {
-      avgCheckIn: formatTime(avgCheckInMinutes),
-      avgCheckOut: formatTime(avgCheckOutMinutes),
-      avgWorkHours: (avgWorkMinutes / 60).toFixed(1) + "h",
-      overtimeCases: overtimeRecords,
-      near52hLimit: near52hCount,
     },
   });
   } catch (error) {

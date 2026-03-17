@@ -143,8 +143,18 @@ export async function PATCH(request: NextRequest) {
           pendingDays: { decrement: leaveRequest.days },
         },
       }),
+      prisma.notification.create({
+        data: {
+          tenantId: tenantId as string,
+          employeeId: leaveRequest.employeeId,
+          type: "LEAVE",
+          title: "휴가 승인",
+          message: `${leaveRequest.policy.name} 휴가 신청이 승인되었습니다.`,
+        },
+      }),
     ]);
   } else {
+    const rejectReason = body.rejectReason || null;
     await prisma.$transaction([
       prisma.leaveRequest.update({
         where: { id },
@@ -152,7 +162,7 @@ export async function PATCH(request: NextRequest) {
           status: "REJECTED",
           rejectedBy: currentEmployee.id,
           rejectedAt: now,
-          rejectReason: body.rejectReason || null,
+          rejectReason,
         },
       }),
       prisma.leaveBalance.updateMany({
@@ -164,6 +174,17 @@ export async function PATCH(request: NextRequest) {
         },
         data: {
           pendingDays: { decrement: leaveRequest.days },
+        },
+      }),
+      prisma.notification.create({
+        data: {
+          tenantId: tenantId as string,
+          employeeId: leaveRequest.employeeId,
+          type: "LEAVE",
+          title: "휴가 반려",
+          message: rejectReason
+            ? `${leaveRequest.policy.name} 휴가 신청이 반려되었습니다. (사유: ${rejectReason})`
+            : `${leaveRequest.policy.name} 휴가 신청이 반려되었습니다.`,
         },
       }),
     ]);

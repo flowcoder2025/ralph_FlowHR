@@ -32,6 +32,8 @@ export const prismaMock = {
   leavePolicy: createModelMock(),
   approvalRequest: createModelMock(),
   document: createModelMock(),
+  documentTemplate: createModelMock(),
+  notification: createModelMock(),
   payrollRun: createModelMock(),
   payslip: createModelMock(),
   goal: createModelMock(),

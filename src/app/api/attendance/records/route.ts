@@ -100,30 +100,41 @@ export async function GET(request: NextRequest) {
   ]);
 
   const data = records.map((r) => {
-    const checkInTime = formatTimeWithTz(r.checkIn, tz);
-    const checkOutTime = formatTimeWithTz(r.checkOut, tz);
+    // prisma generate 전 빌드 호환을 위한 확장 캐스트
+    const rec = r as typeof r & {
+      checkInGpsStatus?: string | null;
+      checkOutGpsStatus?: string | null;
+    };
+    const checkInTime = formatTimeWithTz(rec.checkIn, tz);
+    const checkOutTime = formatTimeWithTz(rec.checkOut, tz);
 
     let workDisplay: string;
-    if (r.workMinutes !== null && r.workMinutes > 0) {
-      const hours = Math.floor(r.workMinutes / 60);
-      const mins = r.workMinutes % 60;
+    if (rec.workMinutes !== null && rec.workMinutes > 0) {
+      const hours = Math.floor(rec.workMinutes / 60);
+      const mins = rec.workMinutes % 60;
       workDisplay = `${hours}h ${mins}m`;
-    } else if (r.checkIn && !r.checkOut) {
+    } else if (rec.checkIn && !rec.checkOut) {
       workDisplay = "진행 중";
     } else {
       workDisplay = "—";
     }
 
     return {
-      id: r.id,
-      employeeName: r.employee.name,
-      department: r.employee.department?.name ?? "—",
-      date: formatDateWithTz(r.date, tz) ?? "—",
+      id: rec.id,
+      employeeName: rec.employee.name,
+      department: rec.employee.department?.name ?? "—",
+      date: formatDateWithTz(rec.date, tz) ?? "—",
       checkIn: checkInTime,
       checkOut: checkOutTime,
       workDisplay,
-      status: r.status,
-      overtime: r.overtime,
+      status: rec.status,
+      overtime: rec.overtime,
+      checkInLat: rec.checkInLat,
+      checkInLon: rec.checkInLon,
+      checkOutLat: rec.checkOutLat,
+      checkOutLon: rec.checkOutLon,
+      checkInGpsStatus: rec.checkInGpsStatus ?? null,
+      checkOutGpsStatus: rec.checkOutGpsStatus ?? null,
     };
   });
 

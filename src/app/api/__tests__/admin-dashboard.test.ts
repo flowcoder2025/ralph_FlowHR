@@ -97,31 +97,35 @@ describe("GET /api/admin/dashboard", () => {
 
     expect(response.status).toBe(200);
 
+    // 응답이 data 래퍼로 감싸져 있음
+    const data = body.data;
+    expect(data).toBeDefined();
+
     // KPI structure
-    expect(body.kpi.pendingApprovals).toBeDefined();
-    expect(body.kpi.attendanceIssues).toBeDefined();
-    expect(body.kpi.overtimeNear).toBeDefined();
-    expect(body.kpi.unsignedDocs).toBeDefined();
-    expect(body.kpi.closingBottleneck).toBeDefined();
+    expect(data.kpi.pendingApprovals).toBeDefined();
+    expect(data.kpi.attendanceIssues).toBeDefined();
+    expect(data.kpi.overtimeNear).toBeDefined();
+    expect(data.kpi.unsignedDocs).toBeDefined();
+    expect(data.kpi.closingBottleneck).toBeDefined();
 
     // Queue
-    expect(body.todayQueue).toBeDefined();
-    expect(Array.isArray(body.todayQueue)).toBe(true);
+    expect(data.todayQueue).toBeDefined();
+    expect(Array.isArray(data.todayQueue)).toBe(true);
 
     // Org snapshot
-    expect(body.orgSnapshot).toBeDefined();
-    expect(body.orgSnapshot.departments).toBeDefined();
+    expect(data.orgSnapshot).toBeDefined();
+    expect(data.orgSnapshot.departments).toBeDefined();
 
     // Approval funnel
-    expect(body.approvalFunnel).toBeDefined();
-    expect(body.approvalFunnel.data).toHaveLength(4);
+    expect(data.approvalFunnel).toBeDefined();
+    expect(data.approvalFunnel.data).toHaveLength(4);
 
     // Document status
-    expect(body.documentStatus).toBeDefined();
+    expect(data.documentStatus).toBeDefined();
 
     // Payroll status
-    expect(body.payrollStatus).toBeDefined();
-    expect(body.payrollStatus.currentStatus).toBe("IN_PROGRESS");
+    expect(data.payrollStatus).toBeDefined();
+    expect(data.payrollStatus.currentStatus).toBe("IN_PROGRESS");
   });
 
   it("대기열 항목 우선순위 순서 확인", async () => {
@@ -156,11 +160,11 @@ describe("GET /api/admin/dashboard", () => {
     const body = await response.json();
 
     // Should have queue items for overtime (critical) and missing checkouts (high)
-    expect(body.todayQueue.length).toBeGreaterThan(0);
+    expect(body.data.todayQueue.length).toBeGreaterThan(0);
 
     // First item should be critical (overtime)
-    if (body.todayQueue.length > 0) {
-      expect(body.todayQueue[0].priority).toBe("critical");
+    if (body.data.todayQueue.length > 0) {
+      expect(body.data.todayQueue[0].priority).toBe("critical");
     }
   });
 });

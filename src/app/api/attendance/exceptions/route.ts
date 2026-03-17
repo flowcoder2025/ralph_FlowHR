@@ -149,6 +149,12 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
+  // exception을 확장 타입으로 캐스트 (prisma generate 전 빌드 호환)
+  const exceptionExt = exception as typeof exception & {
+    correctedCheckIn?: string | null;
+    correctedCheckOut?: string | null;
+  };
+
   if (action === "approve") {
     // 트랜잭션: exception 승인 + 출결 기록 자동 수정
     const [updated] = await prisma.$transaction(async (tx) => {
@@ -162,28 +168,77 @@ export async function PATCH(request: NextRequest) {
       });
 
       // CORRECTION 타입 승인 시 해당 날짜 출결 기록 자동 수정
-      if (exception.type === "CORRECTION") {
-        const recordDate = new Date(exception.date);
+      if (exceptionExt.type === "CORRECTION") {
+        const recordDate = new Date(exceptionExt.date);
         recordDate.setUTCHours(0, 0, 0, 0);
+
+        // 기존 출결 기록 조회
+        const existingRecord = await tx.attendanceRecord.findUnique({
+          where: {
+            tenantId_employeeId_date: {
+              tenantId,
+              employeeId: exceptionExt.employeeId,
+              date: recordDate,
+            },
+          },
+        });
+
+        // 정정 시간값 반영 (correctedCheckIn/correctedCheckOut)
+        const updateData: Record<string, unknown> = {
+          status: "PRESENT",
+          note: `정정 승인 (사유: ${exceptionExt.reason})`,
+        };
+
+        if (exceptionExt.correctedCheckIn && existingRecord) {
+          const [h, m] = exceptionExt.correctedCheckIn.split(":").map(Number);
+          const correctedDate = new Date(recordDate);
+          correctedDate.setUTCHours(h, m, 0, 0);
+          updateData.checkIn = correctedDate;
+
+          // workMinutes 재계산
+          const checkOut = existingRecord.checkOut;
+          if (checkOut) {
+            updateData.workMinutes = Math.floor(
+              (checkOut.getTime() - correctedDate.getTime()) / (1000 * 60),
+            );
+          }
+        }
+
+        if (exceptionExt.correctedCheckOut && existingRecord) {
+          const [h, m] = exceptionExt.correctedCheckOut.split(":").map(Number);
+          const correctedDate = new Date(recordDate);
+          correctedDate.setUTCHours(h, m, 0, 0);
+          updateData.checkOut = correctedDate;
+
+          // workMinutes 재계산
+          const checkIn = updateData.checkIn
+            ? (updateData.checkIn as Date)
+            : existingRecord.checkIn;
+          if (checkIn) {
+            updateData.workMinutes = Math.floor(
+              (correctedDate.getTime() - (checkIn as Date).getTime()) / (1000 * 60),
+            );
+          }
+        }
 
         await tx.attendanceRecord.upsert({
           where: {
             tenantId_employeeId_date: {
               tenantId,
-              employeeId: exception.employeeId,
+              employeeId: exceptionExt.employeeId,
               date: recordDate,
             },
           },
-          update: {
-            status: "PRESENT",
-            note: `정정 승인 (사유: ${exception.reason})`,
-          },
+          update: updateData,
           create: {
             tenantId,
-            employeeId: exception.employeeId,
+            employeeId: exceptionExt.employeeId,
             date: recordDate,
             status: "PRESENT",
-            note: `정정 승인 (사유: ${exception.reason})`,
+            note: `정정 승인 (사유: ${exceptionExt.reason})`,
+            checkIn: updateData.checkIn as Date | undefined,
+            checkOut: updateData.checkOut as Date | undefined,
+            workMinutes: updateData.workMinutes as number | undefined,
           },
         });
       }

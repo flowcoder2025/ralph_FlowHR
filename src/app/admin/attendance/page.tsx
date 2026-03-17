@@ -120,8 +120,8 @@ function AttendanceContent() {
     try {
       const res = await fetch("/api/attendance/dashboard");
       if (res.ok) {
-        const json: DashboardData = await res.json();
-        setData(json);
+        const json = await res.json();
+        setData(json.data as DashboardData);
       }
     } finally {
       setLoading(false);

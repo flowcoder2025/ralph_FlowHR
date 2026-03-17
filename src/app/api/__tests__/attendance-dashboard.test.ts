@@ -88,14 +88,17 @@ describe("GET /api/attendance/dashboard", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.kpi).toBeDefined();
-    expect(body.kpi.present).toBeDefined();
-    expect(body.kpi.present.total).toBe(50);
-    expect(body.kpi.absent).toBeDefined();
-    expect(body.kpi.exceptions).toBeDefined();
-    expect(body.kpi.exceptions.delta).toBe(1); // 3 - 2
-    expect(body.departmentRates).toBeDefined();
-    expect(body.weeklySummary).toBeDefined();
+    // 응답이 data 래퍼로 감싸져 있음
+    const data = body.data;
+    expect(data).toBeDefined();
+    expect(data.kpi).toBeDefined();
+    expect(data.kpi.present).toBeDefined();
+    expect(data.kpi.present.total).toBe(50);
+    expect(data.kpi.absent).toBeDefined();
+    expect(data.kpi.exceptions).toBeDefined();
+    expect(data.kpi.exceptions.delta).toBe(1); // 3 - 2
+    expect(data.departmentRates).toBeDefined();
+    expect(data.weeklySummary).toBeDefined();
   });
 
   it("직원 0명일 때 rate 0%", async () => {
@@ -111,8 +114,8 @@ describe("GET /api/attendance/dashboard", () => {
     const response = await GET(request);
     const body = await response.json();
 
-    expect(body.kpi.present.rate).toBe(0);
-    expect(body.kpi.inProgress.rate).toBe(0);
-    expect(body.kpi.absent.rate).toBe(0);
+    expect(body.data.kpi.present.rate).toBe(0);
+    expect(body.data.kpi.inProgress.rate).toBe(0);
+    expect(body.data.kpi.absent.rate).toBe(0);
   });
 });
