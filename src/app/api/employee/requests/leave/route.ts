@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
   const days = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
   const adjustedDays = type === "HALF_DAY" ? 0.5 : days;
 
-  // 잔여 휴가 확인
-  const balance = await prisma.leaveBalance.findFirst({
+  // 잔여 휴가 확인 — 없으면 정책 기본 일수로 자동 생성
+  let balance = await prisma.leaveBalance.findFirst({
     where: {
       tenantId,
       employeeId,
@@ -67,14 +67,26 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  if (balance) {
-    const remaining = balance.totalDays - balance.usedDays - balance.pendingDays;
-    if (remaining < adjustedDays) {
-      return NextResponse.json(
-        { error: "잔여 휴가가 부족합니다" },
-        { status: 400 },
-      );
-    }
+  if (!balance) {
+    balance = await prisma.leaveBalance.create({
+      data: {
+        tenantId,
+        employeeId,
+        policyId: policy.id,
+        year: start.getFullYear(),
+        totalDays: policy.defaultDays,
+        usedDays: 0,
+        pendingDays: 0,
+      },
+    });
+  }
+
+  const remaining = balance.totalDays - balance.usedDays - balance.pendingDays;
+  if (remaining < adjustedDays) {
+    return NextResponse.json(
+      { error: "잔여 휴가가 부족합니다" },
+      { status: 400 },
+    );
   }
 
   // 트랜잭션: 휴가 신청 + 대기 일수 증가
@@ -92,18 +104,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    if (balance) {
-      if (policy.requiresApproval) {
-        await tx.leaveBalance.update({
-          where: { id: balance.id },
-          data: { pendingDays: { increment: adjustedDays } },
-        });
-      } else {
-        await tx.leaveBalance.update({
-          where: { id: balance.id },
-          data: { usedDays: { increment: adjustedDays } },
-        });
-      }
+    if (policy.requiresApproval) {
+      await tx.leaveBalance.update({
+        where: { id: balance.id },
+        data: { pendingDays: { increment: adjustedDays } },
+      });
+    } else {
+      await tx.leaveBalance.update({
+        where: { id: balance.id },
+        data: { usedDays: { increment: adjustedDays } },
+      });
     }
 
     return created;

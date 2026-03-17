@@ -97,9 +97,8 @@ export async function PATCH(request: NextRequest) {
   const currentEmployee = await prisma.employee.findFirst({
     where: { userId: token.id as string, tenantId: tenantId as string },
   });
-  if (!currentEmployee) {
-    return NextResponse.json({ error: "Employee not found" }, { status: 404 });
-  }
+  // Admin 유저는 Employee 레코드가 없을 수 있으므로 userId로 대체
+  const actorId = currentEmployee?.id ?? (token.id as string);
   const body = await request.json();
   const { id, action } = body as { id: string; action: "approve" | "reject"; rejectReason?: string };
 
@@ -127,7 +126,7 @@ export async function PATCH(request: NextRequest) {
         where: { id },
         data: {
           status: "APPROVED",
-          approvedBy: currentEmployee.id,
+          approvedBy: actorId,
           approvedAt: now,
         },
       }),
@@ -160,7 +159,7 @@ export async function PATCH(request: NextRequest) {
         where: { id },
         data: {
           status: "REJECTED",
-          rejectedBy: currentEmployee.id,
+          rejectedBy: actorId,
           rejectedAt: now,
           rejectReason,
         },

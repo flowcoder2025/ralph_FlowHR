@@ -65,3 +65,7 @@ e2e-manual.js
 e2e-visual.js
 e2e-full.js
 e2e-crud.js
+.playwright-mcp/
+e2e-live.js
+e2e-final.js
+.claude/settings.local.json

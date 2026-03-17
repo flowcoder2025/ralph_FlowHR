@@ -60,24 +60,27 @@ export async function GET(request: NextRequest) {
     _count: true,
   });
 
-  // Calculate KPIs
-  const presentCount = todayRecords.filter(
-    (r) => r.status === "PRESENT" && r.checkOut !== null,
+  // Calculate KPIs — 부서 유무와 무관하게 전체 활성 직원 기준
+  const checkedInCount = todayRecords.filter(
+    (r) => r.checkIn !== null,
   ).length;
   const inProgressCount = todayRecords.filter(
     (r) => r.checkIn !== null && r.checkOut === null,
   ).length;
   const lateCount = todayRecords.filter((r) => r.status === "LATE").length;
-  const absentCount = Math.max(0, totalEmployees - todayRecords.length);
+  const absentCount = Math.max(0, totalEmployees - checkedInCount);
 
   const presentRate =
     totalEmployees > 0
-      ? Math.round((presentCount / totalEmployees) * 100)
+      ? Math.round((checkedInCount / totalEmployees) * 100)
       : 0;
   const inProgressRate =
     totalEmployees > 0
       ? Math.round((inProgressCount / totalEmployees) * 100)
       : 0;
+  const completedCount = todayRecords.filter(
+    (r) => r.checkIn !== null && r.checkOut !== null,
+  ).length;
   const absentRate =
     totalEmployees > 0
       ? Math.round((absentCount / totalEmployees) * 100)
@@ -193,7 +196,8 @@ export async function GET(request: NextRequest) {
       kpi: {
         present: {
           rate: presentRate,
-          count: presentCount,
+          count: checkedInCount,
+          completed: completedCount,
           total: totalEmployees,
         },
         inProgress: { rate: inProgressRate, count: inProgressCount },

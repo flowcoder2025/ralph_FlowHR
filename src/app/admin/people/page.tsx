@@ -69,6 +69,7 @@ export default function PeoplePage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [departments, setDepartments] = useState<{id: string; name: string}[]>([]);
+  const [positions, setPositions] = useState<{id: string; name: string}[]>([]);
 
   useEffect(() => {
     fetch("/api/departments/tree").then(r => r.ok ? r.json() : { data: [] }).then(j => {
@@ -78,6 +79,9 @@ export default function PeoplePage() {
       }
       flatten(j.data || j || []);
       setDepartments(depts);
+    });
+    fetch("/api/positions").then(r => r.ok ? r.json() : { data: [] }).then(j => {
+      setPositions((j.data || []).map((p: {id: string; name: string}) => ({ id: p.id, name: p.name })));
     });
   }, []);
 
@@ -235,6 +239,7 @@ export default function PeoplePage() {
                     hireDate: fd.get("hireDate"),
                     type: fd.get("type") || "FULL_TIME",
                     departmentId: fd.get("departmentId") || undefined,
+                    positionId: fd.get("positionId") || undefined,
                   }),
                 });
                 if (res.ok) {
@@ -274,6 +279,13 @@ export default function PeoplePage() {
                   <select name="departmentId" className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm">
                     <option value="">선택 안 함</option>
                     {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-sp-1">직급</label>
+                  <select name="positionId" className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm">
+                    <option value="">선택 안 함</option>
+                    {positions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div>
