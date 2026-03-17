@@ -96,9 +96,9 @@ export function CompanyTab() {
           workStartTime: json.data.workStartTime || "09:00",
           workEndTime: json.data.workEndTime || "18:00",
           logoUrl: json.data.logoUrl || "",
-          officeLatitude: json.data.officeLatitude || "",
-          officeLongitude: json.data.officeLongitude || "",
-          allowedRadius: json.data.allowedRadius || "500",
+          officeLatitude: (json.data.officeLatitude && json.data.officeLatitude !== "null") ? json.data.officeLatitude : "",
+          officeLongitude: (json.data.officeLongitude && json.data.officeLongitude !== "null") ? json.data.officeLongitude : "",
+          allowedRadius: (json.data.allowedRadius && json.data.allowedRadius !== "null") ? json.data.allowedRadius : "500",
         });
       }
     } finally {

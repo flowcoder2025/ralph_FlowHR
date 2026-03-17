@@ -69,9 +69,9 @@ export async function GET(request: NextRequest) {
     workStartTime: (stored.workStartTime as string) || DEFAULT_WORK_START_TIME,
     workEndTime: (stored.workEndTime as string) || DEFAULT_WORK_END_TIME,
     logoUrl: (stored.logoUrl as string) || "",
-    officeLatitude: stored.officeLatitude !== undefined ? String(stored.officeLatitude) : "",
-    officeLongitude: stored.officeLongitude !== undefined ? String(stored.officeLongitude) : "",
-    allowedRadius: stored.allowedRadius !== undefined ? String(stored.allowedRadius) : String(DEFAULT_GPS_RADIUS),
+    officeLatitude: (stored.officeLatitude != null) ? String(stored.officeLatitude) : "",
+    officeLongitude: (stored.officeLongitude != null) ? String(stored.officeLongitude) : "",
+    allowedRadius: (stored.allowedRadius != null) ? String(stored.allowedRadius) : String(DEFAULT_GPS_RADIUS),
   };
 
   return NextResponse.json({ data: company });
