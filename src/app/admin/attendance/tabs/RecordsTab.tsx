@@ -5,8 +5,11 @@ import {
   Badge,
   Button,
   DataTable,
+  Input,
+  Select,
 } from "@/components/ui";
 import type { BadgeVariant, Column, SortState, SortDirection } from "@/components/ui";
+import { Modal } from "@/components/layout/Modal";
 import { useToast } from "@/components/layout/Toast";
 
 // ─── Types ──────────────────────────────────────────────────
@@ -53,6 +56,14 @@ const RECORDS_PAGE_SIZE = 10;
 
 // ─── Component ──────────────────────────────────────────────
 
+const STATUS_OPTIONS = [
+  { value: "PRESENT", label: "정상" },
+  { value: "LATE", label: "지각" },
+  { value: "ABSENT", label: "결근" },
+  { value: "EARLY_LEAVE", label: "조퇴" },
+  { value: "HALF_DAY", label: "반차" },
+];
+
 export function RecordsTab() {
   const { addToast } = useToast();
   const [records, setRecords] = useState<AttendanceRecordRow[]>([]);
@@ -67,6 +78,63 @@ export function RecordsTab() {
   const [sort, setSort] = useState<SortState>({ key: "date", direction: "desc" });
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+
+  // ─── Edit Modal State ────────────────────────────────────
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<AttendanceRecordRow | null>(null);
+  const [editCheckIn, setEditCheckIn] = useState("");
+  const [editCheckOut, setEditCheckOut] = useState("");
+  const [editStatus, setEditStatus] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+
+  function openEditModal(row: AttendanceRecordRow) {
+    setEditingRecord(row);
+    setEditCheckIn(row.checkIn ?? "");
+    setEditCheckOut(row.checkOut ?? "");
+    setEditStatus(row.status);
+    setEditModalOpen(true);
+  }
+
+  async function handleEditSave() {
+    if (!editingRecord) return;
+    setEditSaving(true);
+    try {
+      const payload: Record<string, unknown> = { id: editingRecord.id };
+      if (editCheckIn !== (editingRecord.checkIn ?? "")) {
+        payload.checkIn = editCheckIn
+          ? `${editingRecord.date.replace(/\./g, "-").replace(/\s/g, "")}T${editCheckIn}:00`
+          : null;
+      }
+      if (editCheckOut !== (editingRecord.checkOut ?? "")) {
+        payload.checkOut = editCheckOut
+          ? `${editingRecord.date.replace(/\./g, "-").replace(/\s/g, "")}T${editCheckOut}:00`
+          : null;
+      }
+      if (editStatus !== editingRecord.status) {
+        payload.status = editStatus;
+      }
+
+      const res = await fetch("/api/attendance/records", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json();
+        addToast({ message: errJson.error || "수정에 실패했습니다.", variant: "danger" });
+        return;
+      }
+
+      addToast({ message: "출결 기록이 수정되었습니다.", variant: "success" });
+      setEditModalOpen(false);
+      fetchRecords();
+    } catch {
+      addToast({ message: "서버 오류가 발생했습니다.", variant: "danger" });
+    } finally {
+      setEditSaving(false);
+    }
+  }
 
   const fetchRecords = useCallback(async () => {
     setLoading(true);
@@ -186,8 +254,8 @@ export function RecordsTab() {
       header: "액션",
       align: "center",
       width: "80px",
-      render: () => (
-        <Button variant="ghost" size="sm" onClick={() => addToast({ message: "출결 기록 수정 기능 준비 중입니다.", variant: "info" })}>
+      render: (row) => (
+        <Button variant="ghost" size="sm" onClick={() => openEditModal(row)}>
           수정
         </Button>
       ),
@@ -214,6 +282,53 @@ export function RecordsTab() {
 
   return (
     <>
+      {/* Edit Modal */}
+      <Modal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="출결 기록 수정"
+        size="sm"
+        footer={
+          <>
+            <Button variant="secondary" size="sm" onClick={() => setEditModalOpen(false)}>
+              취소
+            </Button>
+            <Button variant="primary" size="sm" onClick={handleEditSave} disabled={editSaving}>
+              {editSaving ? "저장 중..." : "저장"}
+            </Button>
+          </>
+        }
+      >
+        {editingRecord && (
+          <div className="space-y-sp-4">
+            <div className="rounded-md bg-surface-secondary px-sp-3 py-sp-2 text-sm">
+              <span className="font-medium">{editingRecord.employeeName}</span>
+              <span className="text-text-tertiary ml-sp-2">{editingRecord.date}</span>
+            </div>
+            <Input
+              label="출근 시간"
+              type="time"
+              value={editCheckIn}
+              onChange={(e) => setEditCheckIn(e.target.value)}
+              placeholder="09:00"
+            />
+            <Input
+              label="퇴근 시간"
+              type="time"
+              value={editCheckOut}
+              onChange={(e) => setEditCheckOut(e.target.value)}
+              placeholder="18:00"
+            />
+            <Select
+              label="상태"
+              options={STATUS_OPTIONS}
+              value={editStatus}
+              onChange={(e) => setEditStatus(e.target.value)}
+            />
+          </div>
+        )}
+      </Modal>
+
       {/* Filter bar */}
       <div className="mb-sp-4 flex flex-wrap items-center gap-sp-3">
         <input
@@ -269,7 +384,7 @@ export function RecordsTab() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage(page - 1)}
-                className="flex h-7 w-7 items-center justify-center rounded-md text-xs text-text-secondary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-10 w-10 items-center justify-center rounded-md text-xs text-text-secondary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-40"
               >
                 &laquo;
               </button>
@@ -279,7 +394,7 @@ export function RecordsTab() {
                   type="button"
                   onClick={() => setPage(p)}
                   className={[
-                    "flex h-7 w-7 items-center justify-center rounded-md text-xs font-medium transition-colors",
+                    "flex h-10 w-10 items-center justify-center rounded-md text-xs font-medium transition-colors",
                     p === page
                       ? "bg-brand text-white"
                       : "text-text-secondary hover:bg-surface-secondary",
@@ -292,7 +407,7 @@ export function RecordsTab() {
                 type="button"
                 disabled={page >= pagination.totalPages}
                 onClick={() => setPage(page + 1)}
-                className="flex h-7 w-7 items-center justify-center rounded-md text-xs text-text-secondary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-10 w-10 items-center justify-center rounded-md text-xs text-text-secondary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-40"
               >
                 &raquo;
               </button>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { SkeletonCard } from "@/components/ui";
 
 interface TodayStatus {
   checkIn: string | null;
@@ -84,8 +85,10 @@ export default function EmployeeHomePage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-sp-12">
-          <span className="text-sm text-text-tertiary">불러오는 중...</span>
+        <div className="py-sp-12 grid grid-cols-1 gap-sp-6 md:grid-cols-2 lg:grid-cols-3">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-sp-6 md:grid-cols-2 lg:grid-cols-3">

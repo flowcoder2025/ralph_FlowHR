@@ -129,7 +129,7 @@ export function IntegrationsTab() {
                     variant={svc.connected ? "secondary" : "primary"}
                     size="sm"
                     className="w-full"
-                    onClick={() => addToast({ message: `${svc.name} 연동 설정 기능 준비 중입니다.`, variant: "info" })}
+                    onClick={() => addToast({ message: "외부 연동은 Enterprise 플랜에서 지원됩니다.", variant: "info" })}
                   >
                     {svc.connected ? "설정" : "연결하기"}
                   </Button>

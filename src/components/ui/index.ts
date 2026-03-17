@@ -33,3 +33,8 @@ export type { StatusBadgeProps, StatusBadgeVariant } from "./StatusBadge";
 
 export { ProgressBar } from "./ProgressBar";
 export type { ProgressBarProps, ProgressBarVariant } from "./ProgressBar";
+
+export { Skeleton, SkeletonCard, SkeletonTable } from "./Skeleton";
+
+export { Breadcrumb } from "./Breadcrumb";
+export type { BreadcrumbItem } from "./Breadcrumb";

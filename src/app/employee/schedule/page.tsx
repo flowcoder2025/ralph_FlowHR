@@ -8,6 +8,9 @@ import {
   CardBody,
   Badge,
   Button,
+  SkeletonCard,
+  SkeletonTable,
+  Breadcrumb,
 } from "@/components/ui";
 import { useToast } from "@/components/layout/Toast";
 
@@ -193,8 +196,9 @@ export default function SchedulePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-sm text-text-tertiary">일정 정보를 불러오는 중...</div>
+      <div className="py-20 space-y-sp-4">
+        <SkeletonCard />
+        <SkeletonTable rows={5} />
       </div>
     );
   }
@@ -211,7 +215,7 @@ export default function SchedulePage() {
     <div>
       {/* Page Header */}
       <div className="mb-sp-6">
-        <div className="text-sm text-text-tertiary mb-sp-1">홈 &gt; 일정 · 근태</div>
+        <Breadcrumb items={[{ label: "홈", href: "/employee" }, { label: "일정 · 근태" }]} />
         <h1 className="text-xl font-bold text-text-primary">일정 · 근태</h1>
         <p className="text-sm text-text-tertiary mt-sp-1">나의 근무 일정과 출퇴근 기록을 확인하세요</p>
       </div>

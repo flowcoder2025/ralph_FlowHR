@@ -11,6 +11,8 @@ import {
   BarChart,
   Badge,
   Button,
+  Breadcrumb,
+  SkeletonCard,
 } from "@/components/ui";
 import type { BarChartDatum } from "@/components/ui";
 import { exportToCSV } from "@/lib/export";
@@ -59,8 +61,9 @@ export default function AttendanceInsightsPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center py-sp-12">
-          <span className="text-sm text-text-tertiary">불러오는 중...</span>
+        <div className="py-sp-12 space-y-sp-4">
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       }
     >
@@ -92,8 +95,9 @@ function AttendanceInsightsContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-sp-12">
-        <span className="text-sm text-text-tertiary">불러오는 중...</span>
+      <div className="py-sp-12 space-y-sp-4">
+        <SkeletonCard />
+        <SkeletonCard />
       </div>
     );
   }
@@ -117,9 +121,7 @@ function AttendanceInsightsContent() {
     <div className="space-y-sp-6">
       {/* Page Header */}
       <div>
-        <div className="text-xs text-text-tertiary mb-sp-1">
-          Home &gt; Reports &gt; Attendance Insights
-        </div>
+        <Breadcrumb items={[{ label: "리포트 센터", href: "/admin/reports" }, { label: "근태 리포트" }]} />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-text-primary">

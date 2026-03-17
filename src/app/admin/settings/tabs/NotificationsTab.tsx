@@ -148,8 +148,8 @@ export function NotificationsTab() {
       header: "액션",
       align: "center",
       width: "80px",
-      render: (row) => (
-        <Button variant="ghost" size="sm" onClick={() => addToast({ message: `알림 규칙 편집 기능 준비 중입니다. (${row.event})`, variant: "info" })}>
+      render: (_row) => (
+        <Button variant="ghost" size="sm" onClick={() => addToast({ message: "알림 규칙 설정은 관리자에게 문의하세요.", variant: "info" })}>
           편집
         </Button>
       ),
@@ -160,7 +160,7 @@ export function NotificationsTab() {
     <Card>
       <CardHeader>
         <h2 className="text-md font-semibold text-text-primary">알림 규칙</h2>
-        <Button size="sm" onClick={() => addToast({ message: "알림 규칙 추가 기능 준비 중입니다.", variant: "info" })}>규칙 추가</Button>
+        <Button size="sm" onClick={() => addToast({ message: "알림 규칙 설정은 관리자에게 문의하세요.", variant: "info" })}>규칙 추가</Button>
       </CardHeader>
       <CardBody>
         <DataTable<NotificationRule>

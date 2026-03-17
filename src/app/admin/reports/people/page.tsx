@@ -10,6 +10,8 @@ import {
   CardBody,
   BarChart,
   Button,
+  Breadcrumb,
+  SkeletonCard,
 } from "@/components/ui";
 import type { BarChartDatum } from "@/components/ui";
 
@@ -54,8 +56,9 @@ export default function PeopleInsightsPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center py-sp-12">
-          <span className="text-sm text-text-tertiary">불러오는 중...</span>
+        <div className="py-sp-12 space-y-sp-4">
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       }
     >
@@ -87,8 +90,9 @@ function PeopleInsightsContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-sp-12">
-        <span className="text-sm text-text-tertiary">불러오는 중...</span>
+      <div className="py-sp-12 space-y-sp-4">
+        <SkeletonCard />
+        <SkeletonCard />
       </div>
     );
   }
@@ -116,9 +120,7 @@ function PeopleInsightsContent() {
     <div className="space-y-sp-6">
       {/* Page Header */}
       <div>
-        <div className="text-xs text-text-tertiary mb-sp-1">
-          Home &gt; Reports &gt; People Insights
-        </div>
+        <Breadcrumb items={[{ label: "리포트 센터", href: "/admin/reports" }, { label: "인사 리포트" }]} />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-text-primary">
