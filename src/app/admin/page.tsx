@@ -184,9 +184,9 @@ function AdminDashboardContent() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-sp-6 flex items-center justify-between">
+      <div className="mb-sp-6 flex flex-col gap-sp-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">
+          <h1 className="text-2xl font-bold text-text-primary md:text-3xl">
             안녕하세요, 관리자님
           </h1>
           <p className="mt-sp-1 text-md text-text-secondary">

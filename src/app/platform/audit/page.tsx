@@ -249,7 +249,7 @@ function AuditContent() {
       {/* Header */}
       <div className="mb-sp-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">감사 로그</h1>
+          <h1 className="text-2xl font-bold text-text-primary md:text-3xl">감사 로그</h1>
           <p className="mt-sp-1 text-md text-text-secondary">
             플랫폼 운영 감사 로그 (총 {counts.total}건)
           </p>

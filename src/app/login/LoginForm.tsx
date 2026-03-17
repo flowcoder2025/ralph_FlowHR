@@ -122,8 +122,8 @@ export function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface-canvas p-sp-8">
-      <div className="grid min-h-[600px] w-full max-w-[960px] grid-cols-1 overflow-hidden rounded-xl bg-surface-primary shadow-lg md:grid-cols-2">
+    <div className="flex min-h-screen items-center justify-center bg-surface-canvas p-4 md:p-sp-8">
+      <div className="grid w-full max-w-[960px] grid-cols-1 overflow-hidden rounded-xl bg-surface-primary shadow-lg md:min-h-[600px] md:grid-cols-2">
         {/* Left: Brand Panel */}
         <div className="hidden flex-col justify-center bg-gradient-to-br from-[#0d6a61] via-[#0b5a53] to-[#094e48] p-sp-10 text-white md:flex">
           <div className="mb-sp-6 text-3xl font-extrabold tracking-tight">
@@ -142,7 +142,7 @@ export function LoginForm() {
         </div>
 
         {/* Right: Form Panel */}
-        <div className="flex flex-col justify-center p-sp-10">
+        <div className="flex flex-col justify-center p-6 md:p-sp-10">
           <h1 className="mb-sp-2 text-3xl font-bold text-text-primary">
             로그인
           </h1>
@@ -150,7 +150,7 @@ export function LoginForm() {
             이메일과 비밀번호를 입력하세요
           </p>
 
-          <div className="max-w-[360px]">
+          <div className="w-full max-w-[360px]">
             <form onSubmit={handleSubmit}>
               <div className="mb-sp-5">
                 <label

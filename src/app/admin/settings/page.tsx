@@ -64,13 +64,13 @@ function SettingsContent() {
       </div>
 
       {/* 탭 네비게이션 */}
-      <nav className="flex gap-sp-1 border-b border-border-subtle">
+      <nav className="flex gap-sp-1 overflow-x-auto border-b border-border-subtle">
         {TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => handleTabChange(tab.key)}
             className={[
-              "px-sp-4 py-sp-2 text-sm font-medium transition-colors duration-fast -mb-px",
+              "whitespace-nowrap px-sp-4 py-sp-2 text-sm font-medium transition-colors duration-fast -mb-px",
               activeTab === tab.key
                 ? "text-brand border-b-2 border-brand"
                 : "text-text-tertiary hover:text-text-primary",
