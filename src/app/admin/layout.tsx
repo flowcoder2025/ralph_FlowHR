@@ -37,6 +37,8 @@ const ADMIN_NAV: NavSection[] = [
     label: "재무",
     items: [
       { id: "insurance", label: "보험/세금", href: "/admin/insurance" },
+      { id: "contracts", label: "근로계약서", href: "/admin/contracts" },
+      { id: "subsidies", label: "지원금", href: "/admin/payroll?tab=subsidies" },
     ],
   },
   {
@@ -109,6 +111,8 @@ const BOTTOM_NAV: BottomNavCategory[] = [
     ),
     items: [
       { id: "insurance", label: "보험/세금", href: "/admin/insurance" },
+      { id: "contracts", label: "근로계약서", href: "/admin/contracts" },
+      { id: "subsidies", label: "지원금", href: "/admin/payroll?tab=subsidies" },
     ],
   },
   {
