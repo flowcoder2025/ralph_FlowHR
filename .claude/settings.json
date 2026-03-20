@@ -18,6 +18,12 @@
             "command": "bash .claude/scripts/enforce-delegate-mode.sh",
             "timeout": 5,
             "statusMessage": "Delegate mode 검사 중..."
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/enforce-plan-approval.sh",
+            "timeout": 5,
+            "statusMessage": "Plan approval 검사 중..."
           }
         ]
       },

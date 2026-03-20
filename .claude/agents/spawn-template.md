@@ -49,6 +49,13 @@
 검증 완료 후 .claude/verification/{task_id}.md에 PASS/FAIL 작성하세요.
 ```
 
+### 7. Plan Approval (implementer만)
+```
+구현 전에 반드시 계획을 리드에게 메시지로 보내세요.
+리드가 승인하면 .claude/plans/{task_id}.md에 APPROVED가 작성됩니다.
+승인 전에 src/ 코드를 수정하면 hook이 차단합니다.
+```
+
 ## 예시: implementer spawn
 
 ```
@@ -59,6 +66,7 @@
 반드시 지켜야 할 것:
 - .claude/requirements/{파일}.md를 직접 읽고 요구사항을 확인하세요
 - .claude/memory/rag/03-api-design.md, 04-crud-business.md를 읽고 기존 패턴을 따르세요
+- 구현 전에 계획을 리드에게 메시지로 보내세요 (승인 전 src/ 수정 불가)
 - 기존 코드 구조를 깨뜨리지 마세요
 - 구현 완료 후 verifier 팀원에게 메시지로 검증 요청하세요
 - 논리적 단위마다 즉시 커밋하세요
