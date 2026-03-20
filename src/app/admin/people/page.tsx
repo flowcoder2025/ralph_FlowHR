@@ -243,6 +243,20 @@ export default function PeoplePage() {
                   }),
                 });
                 if (res.ok) {
+                  const created = await res.json();
+                  const baseSalaryValue = fd.get("baseSalary");
+                  if (baseSalaryValue && Number(baseSalaryValue) > 0 && created?.data?.id) {
+                    await fetch("/api/payroll/salary-history", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        employeeId: created.data.id,
+                        baseSalary: Number(baseSalaryValue),
+                        effectiveDate: fd.get("hireDate"),
+                        reason: "입사 시 기본급 설정",
+                      }),
+                    });
+                  }
                   setShowCreateModal(false);
                   fetchEmployees();
                 } else {
@@ -296,6 +310,10 @@ export default function PeoplePage() {
                     <option value="CONTRACT">계약직</option>
                     <option value="INTERN">인턴</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-sp-1">기본급 (월)</label>
+                  <input name="baseSalary" type="number" min="0" step="10000" placeholder="예: 3000000" className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm" />
                 </div>
               </div>
               <div className="flex justify-end gap-sp-2 pt-sp-3">
