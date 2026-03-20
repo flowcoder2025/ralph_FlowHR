@@ -34,6 +34,12 @@ const ADMIN_NAV: NavSection[] = [
     ],
   },
   {
+    label: "재무",
+    items: [
+      { id: "insurance", label: "보험/세금", href: "/admin/insurance" },
+    ],
+  },
+  {
     label: "시스템",
     items: [
       { id: "reports", label: "리포트", href: "/admin/reports" },
@@ -91,6 +97,18 @@ const BOTTOM_NAV: BottomNavCategory[] = [
       { id: "payroll", label: "급여", href: "/admin/payroll" },
       { id: "performance", label: "성과", href: "/admin/performance" },
       { id: "recruiting", label: "채용", href: "/admin/recruiting" },
+    ],
+  },
+  {
+    key: "finance",
+    label: "재무",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      </svg>
+    ),
+    items: [
+      { id: "insurance", label: "보험/세금", href: "/admin/insurance" },
     ],
   },
   {
