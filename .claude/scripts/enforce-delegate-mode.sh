@@ -28,7 +28,7 @@ fi
 # 리드가 수정하려는 파일 경로 확인
 FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.path // ""' 2>/dev/null)
 
-if echo "$FILE" | grep -q "/src/"; then
+if echo "$FILE" | grep -qi "[/\\\\]src[/\\\\]"; then
   echo "❌ [Delegate Mode] 팀이 활성화된 상태에서 리드는 소스 코드를 직접 수정할 수 없습니다." >&2
   echo "수정 대상: $FILE" >&2
   echo "팀원에게 위임하세요." >&2
