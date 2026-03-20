@@ -27,8 +27,8 @@ echo "팀원: $TEAMMATE / ID: $TASK_ID" >&2
 # ─── 검증/테스트 팀원은 자신의 태스크를 직접 완료할 수 있음 ───
 # (검증 팀원의 태스크에 또 다른 검증을 요구하면 무한루프)
 case "$TEAMMATE" in
-  *verifier*|*검증*|*judge*|*심사*|*tester*|*테스트*)
-    echo "✅ 검증/테스트 팀원 태스크 — 추가 검증 없이 완료 허용" >&2
+  *verifier*|*검증*|*judge*|*심사*|*tester*|*테스트*|*guardian*|*감시*)
+    echo "✅ 검증/감시/테스트 팀원 태스크 — 추가 검증 없이 완료 허용" >&2
     exit 0
     ;;
 esac
@@ -76,17 +76,20 @@ echo "✅ 검증 팀원 승인 확인 (PASS)" >&2
 
 # ─── 2단계: 기계적 검증 (lint/build/test) ───
 
-if ! npm run lint --silent 2>/dev/null; then
+npm run lint > /dev/null 2>&1
+if [ $? -ne 0 ]; then
   echo "❌ lint 실패. 코드 스타일 문제를 수정하세요." >&2
   exit 2
 fi
 
-if ! npm run build --silent 2>/dev/null; then
+npm run build > /dev/null 2>&1
+if [ $? -ne 0 ]; then
   echo "❌ build 실패. 컴파일 에러를 수정하세요." >&2
   exit 2
 fi
 
-if ! npm test --silent 2>/dev/null; then
+npm test > /dev/null 2>&1
+if [ $? -ne 0 ]; then
   echo "❌ test 실패. 테스트를 수정하세요." >&2
   exit 2
 fi

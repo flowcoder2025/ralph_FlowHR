@@ -15,6 +15,14 @@ TEAM=$(echo "$INPUT" | jq -r '.team_name // "unknown"')
 
 echo "=== 팀원 idle 검증: $TEAMMATE ===" >&2
 
+# ─── 읽기 전용 팀원은 코드 수정/커밋 권한이 없으므로 스킵 ───
+case "$TEAMMATE" in
+  *guardian*|*감시*|*verifier*|*검증*|*judge*|*심사*)
+    echo "✅ 읽기 전용 팀원 — idle 허용" >&2
+    exit 0
+    ;;
+esac
+
 # 1. uncommitted 변경 확인
 UNSTAGED=$(git diff --name-only 2>/dev/null | wc -l)
 STAGED=$(git diff --cached --name-only 2>/dev/null | wc -l)
@@ -24,20 +32,23 @@ if [ "$UNSTAGED" -gt 0 ] || [ "$STAGED" -gt 0 ]; then
   exit 2
 fi
 
-# 2. lint 확인
-if ! npm run lint --silent 2>/dev/null; then
+# 2. lint 확인 (exit code만 체크, stderr 오탐 방지)
+npm run lint > /dev/null 2>&1
+if [ $? -ne 0 ]; then
   echo "❌ lint 실패. 코드 스타일 문제를 수정하세요." >&2
   exit 2
 fi
 
-# 3. build 확인
-if ! npm run build --silent 2>/dev/null; then
+# 3. build 확인 (exit code만 체크, Next.js dynamic route 메시지 오탐 방지)
+npm run build > /dev/null 2>&1
+if [ $? -ne 0 ]; then
   echo "❌ build 실패. 컴파일 에러를 수정하세요." >&2
   exit 2
 fi
 
 # 4. test 확인
-if ! npm test --silent 2>/dev/null; then
+npm test > /dev/null 2>&1
+if [ $? -ne 0 ]; then
   echo "❌ test 실패. 테스트를 수정하세요." >&2
   exit 2
 fi
