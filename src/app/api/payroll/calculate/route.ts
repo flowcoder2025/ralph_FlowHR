@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
-import { calculateTotalWage } from "@/lib/payroll-calc";
+import { calculatePayroll } from "@/lib/payroll-engine";
+import type { PayrollInput } from "@/lib/payroll-engine";
+import { calculateIncomeTax, calculateLocalIncomeTax } from "@/lib/tax-calc";
 import { calculateInsurance, DEFAULT_INSURANCE_RATES } from "@/lib/insurance-calc";
 import type { InsuranceBreakdown } from "@/lib/insurance-calc";
 import type { Prisma } from "@prisma/client";
 
-// ─── POST: 월간 급여 계산 ──────────────────────────────
+// ─── POST: 월간 급여 계산 (통합 엔진) ──────────────────
 export async function POST(request: NextRequest) {
   try {
     const token = await getToken({ req: request });
@@ -77,25 +79,67 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // 보험 요율 조회
+    const rateConfig = await prisma.insuranceRateConfig.findFirst({
+      where: { tenantId, year: targetYear, isActive: true },
+    });
+    const insuranceRates = rateConfig
+      ? {
+          pensionRate: rateConfig.pensionRate,
+          healthRate: rateConfig.healthRate,
+          ltcRate: rateConfig.ltcRate,
+          employmentRate: rateConfig.employmentRate,
+          injuryRate: rateConfig.injuryRate,
+        }
+      : DEFAULT_INSURANCE_RATES;
+
     const results: { employeeId: string; employeeName: string; breakdown: Record<string, unknown> }[] = [];
 
     for (const emp of employees) {
-      // 1. 해당 직원의 최신 급여 이력 (effectiveDate 기준)
-      const latestSalary = await prisma.salaryHistory.findFirst({
-        where: {
-          tenantId,
-          employeeId: emp.id,
-          effectiveDate: { lte: monthEnd },
-        },
-        orderBy: { effectiveDate: "desc" },
+      // 1. WageConfig 조회 (fallback: SalaryHistory → STANDARD)
+      const wageConfig = await prisma.wageConfig.findUnique({
+        where: { employeeId: emp.id },
       });
 
-      if (!latestSalary) {
-        // 급여 이력이 없으면 건너뜀
-        continue;
+      let wageType: PayrollInput["wageType"] = "STANDARD";
+      let baseSalary = 0;
+      let contractedOTHours = 0;
+      let contractedNSHours = 0;
+      let contractedHDHours = 0;
+      let hourlyRate: number | undefined;
+      let annualSalary: number | undefined;
+      let fixedAllowances: { name: string; amount: number; taxable: boolean }[] = [];
+      let nonTaxableAllowances: { name: string; amount: number; monthlyLimit: number }[] = [];
+
+      if (wageConfig && wageConfig.tenantId === tenantId) {
+        wageType = wageConfig.wageType as PayrollInput["wageType"];
+        baseSalary = wageConfig.baseSalary;
+        contractedOTHours = wageConfig.contractedOTHours;
+        contractedNSHours = wageConfig.contractedNSHours;
+        contractedHDHours = wageConfig.contractedHDHours;
+        hourlyRate = wageConfig.hourlyRate ?? undefined;
+        annualSalary = wageConfig.annualSalary ?? undefined;
+        fixedAllowances = (wageConfig.fixedAllowances as { name: string; amount: number; taxable: boolean }[]) ?? [];
+        nonTaxableAllowances = (wageConfig.nonTaxableAllowances as { name: string; amount: number; monthlyLimit: number }[]) ?? [];
+      } else {
+        // Fallback: SalaryHistory
+        const latestSalary = await prisma.salaryHistory.findFirst({
+          where: {
+            tenantId,
+            employeeId: emp.id,
+            effectiveDate: { lte: monthEnd },
+          },
+          orderBy: { effectiveDate: "desc" },
+        });
+
+        if (!latestSalary) {
+          continue; // 급여 정보 없으면 건너뜀
+        }
+
+        baseSalary = latestSalary.baseSalary;
       }
 
-      // 2. 해당 월 출퇴근 기록에서 초과근무 시간 합산
+      // 2. 해당 월 출퇴근 기록에서 근무시간 집계
       const attendanceRecords = await prisma.attendanceRecord.findMany({
         where: {
           tenantId,
@@ -106,6 +150,7 @@ export async function POST(request: NextRequest) {
           overtime: true,
           checkIn: true,
           checkOut: true,
+          workMinutes: true,
         },
       });
 
@@ -114,7 +159,7 @@ export async function POST(request: NextRequest) {
         (sum, r) => sum + (r.overtime ?? 0),
         0,
       );
-      const overtimeHours = totalOvertimeMinutes / 60;
+      const actualOTHours = totalOvertimeMinutes / 60;
 
       // 야간근무시간 계산 (22:00~06:00 사이 근무)
       let nightMinutes = 0;
@@ -123,52 +168,76 @@ export async function POST(request: NextRequest) {
           nightMinutes += calculateNightMinutes(rec.checkIn, rec.checkOut);
         }
       }
-      const nightHours = nightMinutes / 60;
+      const actualNSHours = nightMinutes / 60;
 
       // 휴일근무는 현재 attendance 모델에 별도 필드가 없으므로 0 처리
-      // 향후 AttendanceRecord에 isHoliday 필드 추가 시 계산 가능
-      const holidayHours = 0;
+      const actualHDHours = 0;
 
-      // 3. 급여 계산
-      const breakdown = calculateTotalWage({
-        baseSalary: latestSalary.baseSalary,
-        overtimeHours,
-        nightHours,
-        holidayHours,
+      // 실근무일수
+      const actualWorkDays = attendanceRecords.length;
+
+      // 실근무분
+      const actualWorkMinutes = attendanceRecords.reduce(
+        (sum, r) => sum + (r.workMinutes ?? 0),
+        0,
+      );
+
+      // 3. 급여 계산 (payroll-engine)
+      const payrollResult = calculatePayroll({
+        wageType,
+        baseSalary,
+        annualSalary,
+        hourlyRate,
+        contractedOTHours,
+        contractedNSHours,
+        contractedHDHours,
+        actualOTHours,
+        actualNSHours,
+        actualHDHours,
+        actualWorkDays,
+        actualWorkMinutes,
+        fixedAllowances,
+        nonTaxableAllowances,
       });
 
-      // 4. 4대보험 공제 계산
-      const rateConfig = await prisma.insuranceRateConfig.findFirst({
-        where: { tenantId, year: targetYear, isActive: true },
-      });
-      const insuranceRates = rateConfig
-        ? {
-            pensionRate: rateConfig.pensionRate,
-            healthRate: rateConfig.healthRate,
-            ltcRate: rateConfig.ltcRate,
-            employmentRate: rateConfig.employmentRate,
-            injuryRate: rateConfig.injuryRate,
-          }
-        : DEFAULT_INSURANCE_RATES;
+      // 4. 소득세 계산 (과세분 기준)
+      const incomeTax = calculateIncomeTax(payrollResult.earnings.totalTaxable);
+      const localIncomeTax = calculateLocalIncomeTax(incomeTax);
 
-      const insurance: InsuranceBreakdown = calculateInsurance(breakdown.grossPay, insuranceRates);
-      const totalDeductions = insurance.totalEmployee;
-      const netAmount = breakdown.grossPay - totalDeductions;
+      // 5. 4대보험 계산 (과세분 기준 — 비과세 제외!)
+      const insurance: InsuranceBreakdown = calculateInsurance(
+        payrollResult.earnings.totalTaxable,
+        insuranceRates,
+      );
+
+      // 6. 공제 합계 및 실수령액
+      const totalDeductions = insurance.totalEmployee + incomeTax + localIncomeTax;
+      const netPay = payrollResult.earnings.grossPay - totalDeductions;
 
       const fullBreakdown = {
-        ...breakdown,
+        wageType: payrollResult.wageType,
+        hourlyRate: payrollResult.hourlyRate,
+        earnings: payrollResult.earnings,
+        ...(payrollResult.comprehensiveDetail ? { comprehensiveDetail: payrollResult.comprehensiveDetail } : {}),
+        tax: {
+          incomeTax,
+          localIncomeTax,
+          totalTax: incomeTax + localIncomeTax,
+        },
         deductions: {
           pension: insurance.pension.employee,
           health: insurance.health.employee,
           longTermCare: insurance.ltc.employee,
           employment: insurance.employment.employee,
+          incomeTax,
+          localIncomeTax,
           totalDeductions,
         },
         insurance,
-        netAmount,
+        netPay,
       };
 
-      // 5. Payslip 생성 또는 업데이트
+      // 7. Payslip upsert
       await prisma.payslip.upsert({
         where: {
           payrollRunId_employeeId: {
@@ -180,19 +249,65 @@ export async function POST(request: NextRequest) {
           tenantId,
           payrollRunId: payrollRun.id,
           employeeId: emp.id,
-          baseSalary: breakdown.baseSalary,
-          allowances: breakdown.totalAllowances,
+          baseSalary: payrollResult.earnings.basePay,
+          allowances: payrollResult.earnings.grossPay - payrollResult.earnings.basePay,
           deductions: totalDeductions,
-          netAmount,
+          netAmount: netPay,
           breakdown: JSON.parse(JSON.stringify(fullBreakdown)) as Prisma.InputJsonValue,
           status: "DRAFT",
         },
         update: {
-          baseSalary: breakdown.baseSalary,
-          allowances: breakdown.totalAllowances,
+          baseSalary: payrollResult.earnings.basePay,
+          allowances: payrollResult.earnings.grossPay - payrollResult.earnings.basePay,
           deductions: totalDeductions,
-          netAmount,
+          netAmount: netPay,
           breakdown: JSON.parse(JSON.stringify(fullBreakdown)) as Prisma.InputJsonValue,
+        },
+      });
+
+      // 8. InsuranceContribution upsert
+      await prisma.insuranceContribution.upsert({
+        where: {
+          tenantId_employeeId_year_month: {
+            tenantId,
+            employeeId: emp.id,
+            year: targetYear,
+            month: targetMonth,
+          },
+        },
+        create: {
+          tenantId,
+          employeeId: emp.id,
+          year: targetYear,
+          month: targetMonth,
+          grossSalary: payrollResult.earnings.totalTaxable,
+          pensionEmployee: insurance.pension.employee,
+          pensionEmployer: insurance.pension.employer,
+          healthEmployee: insurance.health.employee,
+          healthEmployer: insurance.health.employer,
+          ltcEmployee: insurance.ltc.employee,
+          ltcEmployer: insurance.ltc.employer,
+          employmentEmployee: insurance.employment.employee,
+          employmentEmployer: insurance.employment.employer,
+          injuryEmployer: insurance.injury.employer,
+          totalEmployee: insurance.totalEmployee,
+          totalEmployer: insurance.totalEmployer,
+          status: "CALCULATED",
+        },
+        update: {
+          grossSalary: payrollResult.earnings.totalTaxable,
+          pensionEmployee: insurance.pension.employee,
+          pensionEmployer: insurance.pension.employer,
+          healthEmployee: insurance.health.employee,
+          healthEmployer: insurance.health.employer,
+          ltcEmployee: insurance.ltc.employee,
+          ltcEmployer: insurance.ltc.employer,
+          employmentEmployee: insurance.employment.employee,
+          employmentEmployer: insurance.employment.employer,
+          injuryEmployer: insurance.injury.employer,
+          totalEmployee: insurance.totalEmployee,
+          totalEmployer: insurance.totalEmployer,
+          status: "CALCULATED",
         },
       });
 
@@ -204,11 +319,22 @@ export async function POST(request: NextRequest) {
     }
 
     // PayrollRun 총 금액 업데이트
-    const totalAmount = results.reduce((sum, r) => sum + ((r.breakdown.grossPay as number) ?? 0), 0);
+    const totalAmount = results.reduce(
+      (sum, r) => sum + ((r.breakdown.netPay as number) ?? 0),
+      0,
+    );
+    const totalGross = results.reduce(
+      (sum, r) => {
+        const earnings = r.breakdown.earnings as { grossPay?: number } | undefined;
+        return sum + (earnings?.grossPay ?? 0);
+      },
+      0,
+    );
+
     await prisma.payrollRun.update({
       where: { id: payrollRun.id },
       data: {
-        totalAmount,
+        totalAmount: totalGross,
         totalEmployees: results.length,
       },
     });
@@ -218,7 +344,8 @@ export async function POST(request: NextRequest) {
         processed: results.length,
         year: targetYear,
         month: targetMonth,
-        totalAmount,
+        totalGross,
+        totalNetPay: totalAmount,
         results: results.map((r) => ({
           employeeId: r.employeeId,
           employeeName: r.employeeName,
