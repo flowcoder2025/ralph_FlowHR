@@ -71,3 +71,50 @@ export const HOLIDAY_BASE_HOURS = 8;
 
 /** 주 법정근로시간 (분) */
 export const WEEKLY_WORK_LIMIT_MINUTES = 40 * 60;
+
+// ─── 급여 엔진 ────────────────────────────────────────
+
+/** 월 소정근로시간 (209시간) — MONTHLY_WORK_HOURS와 동일, 명시적 별칭 */
+export const MONTHLY_STATUTORY_HOURS = 209;
+
+/** 1일 소정근로시간 (8시간) */
+export const DAILY_WORK_HOURS = 8;
+
+/** 연장근무 승수 (1.5배) */
+export const OVERTIME_MULTIPLIER = 1.5;
+
+/** 야간근무 승수 (0.5배 추가) */
+export const NIGHT_SHIFT_MULTIPLIER = 0.5;
+
+/** 휴일근무 승수 — 8시간 이하 (1.5배) */
+export const HOLIDAY_MULTIPLIER_NORMAL = 1.5;
+
+/** 휴일근무 승수 — 8시간 초과 (2.0배) */
+export const HOLIDAY_MULTIPLIER_EXTENDED = 2.0;
+
+/** 휴일근무 기본 시간 상한 (시간) */
+export const HOLIDAY_BASE_HOURS_LIMIT = 8;
+
+// ─── 세금 ──────────────────────────────────────────────
+
+/** 지방소득세율 (소득세의 10%) */
+export const LOCAL_TAX_RATE = 0.1;
+
+/** 기본 부양가족 수 (본인 포함) */
+export const DEFAULT_DEPENDENTS = 1;
+
+// ─── 퇴직금 ────────────────────────────────────────────
+
+/** 퇴직금 지급 기준 최소 근무일수 (365일) */
+export const MIN_SEVERANCE_DAYS = 365;
+
+/** 퇴직금 산정 기준 일수 (30일) */
+export const SEVERANCE_DAYS_PER_YEAR = 30;
+
+// ─── 비과세 한도 ───────────────────────────────────────
+
+/** 식대 비과세 월 한도 (원) */
+export const NON_TAXABLE_MEAL_LIMIT = 200000;
+
+/** 교통비 비과세 월 한도 (원) */
+export const NON_TAXABLE_TRANSPORT_LIMIT = 200000;
