@@ -20,8 +20,16 @@ if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
 fi
 
 # 2. 요구사항 파일 확인
+# 브랜치명에서 WI 번호 추출하여 해당 requirements만 체크
+# 매칭 안 되면 전체 requirements 체크
 REQ_DIR=".claude/requirements"
-REQ_FILES=$(find "$REQ_DIR" -name "*.md" 2>/dev/null)
+WI_NUM=$(echo "$CURRENT_BRANCH" | grep -oP 'WI-\d+' | head -1)
+if [ -n "$WI_NUM" ]; then
+  # 브랜치에 WI 번호가 있으면 해당 requirements만 + 글로벌(global-system-cleanup 등)
+  REQ_FILES=$(find "$REQ_DIR" -name "*.md" 2>/dev/null | grep -v "global-system" || true)
+else
+  REQ_FILES=$(find "$REQ_DIR" -name "*.md" 2>/dev/null)
+fi
 if [ -z "$REQ_FILES" ]; then
   exit 0
 fi
