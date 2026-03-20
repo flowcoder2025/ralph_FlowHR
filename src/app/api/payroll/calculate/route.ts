@@ -3,7 +3,8 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { calculateTotalWage } from "@/lib/payroll-calc";
-import type { WageBreakdown } from "@/lib/payroll-calc";
+import { calculateInsurance, DEFAULT_INSURANCE_RATES } from "@/lib/insurance-calc";
+import type { InsuranceBreakdown } from "@/lib/insurance-calc";
 import type { Prisma } from "@prisma/client";
 
 // ─── POST: 월간 급여 계산 ──────────────────────────────
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const results: { employeeId: string; employeeName: string; breakdown: WageBreakdown }[] = [];
+    const results: { employeeId: string; employeeName: string; breakdown: Record<string, unknown> }[] = [];
 
     for (const emp of employees) {
       // 1. 해당 직원의 최신 급여 이력 (effectiveDate 기준)
@@ -136,7 +137,38 @@ export async function POST(request: NextRequest) {
         holidayHours,
       });
 
-      // 4. Payslip 생성 또는 업데이트
+      // 4. 4대보험 공제 계산
+      const rateConfig = await prisma.insuranceRateConfig.findFirst({
+        where: { tenantId, year: targetYear, isActive: true },
+      });
+      const insuranceRates = rateConfig
+        ? {
+            pensionRate: rateConfig.pensionRate,
+            healthRate: rateConfig.healthRate,
+            ltcRate: rateConfig.ltcRate,
+            employmentRate: rateConfig.employmentRate,
+            injuryRate: rateConfig.injuryRate,
+          }
+        : DEFAULT_INSURANCE_RATES;
+
+      const insurance: InsuranceBreakdown = calculateInsurance(breakdown.grossPay, insuranceRates);
+      const totalDeductions = insurance.totalEmployee;
+      const netAmount = breakdown.grossPay - totalDeductions;
+
+      const fullBreakdown = {
+        ...breakdown,
+        deductions: {
+          pension: insurance.pension.employee,
+          health: insurance.health.employee,
+          longTermCare: insurance.ltc.employee,
+          employment: insurance.employment.employee,
+          totalDeductions,
+        },
+        insurance,
+        netAmount,
+      };
+
+      // 5. Payslip 생성 또는 업데이트
       await prisma.payslip.upsert({
         where: {
           payrollRunId_employeeId: {
@@ -150,28 +182,29 @@ export async function POST(request: NextRequest) {
           employeeId: emp.id,
           baseSalary: breakdown.baseSalary,
           allowances: breakdown.totalAllowances,
-          deductions: 0,
-          netAmount: breakdown.grossPay,
-          breakdown: JSON.parse(JSON.stringify(breakdown)) as Prisma.InputJsonValue,
+          deductions: totalDeductions,
+          netAmount,
+          breakdown: JSON.parse(JSON.stringify(fullBreakdown)) as Prisma.InputJsonValue,
           status: "DRAFT",
         },
         update: {
           baseSalary: breakdown.baseSalary,
           allowances: breakdown.totalAllowances,
-          netAmount: breakdown.grossPay,
-          breakdown: JSON.parse(JSON.stringify(breakdown)) as Prisma.InputJsonValue,
+          deductions: totalDeductions,
+          netAmount,
+          breakdown: JSON.parse(JSON.stringify(fullBreakdown)) as Prisma.InputJsonValue,
         },
       });
 
       results.push({
         employeeId: emp.id,
         employeeName: emp.name,
-        breakdown,
+        breakdown: fullBreakdown,
       });
     }
 
     // PayrollRun 총 금액 업데이트
-    const totalAmount = results.reduce((sum, r) => sum + r.breakdown.grossPay, 0);
+    const totalAmount = results.reduce((sum, r) => sum + ((r.breakdown.grossPay as number) ?? 0), 0);
     await prisma.payrollRun.update({
       where: { id: payrollRun.id },
       data: {
