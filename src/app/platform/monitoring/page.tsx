@@ -40,32 +40,6 @@ const SERVICE_STATUS_BADGE: Record<string, { label: string; variant: BadgeVarian
   down: { label: "중단", variant: "danger" },
 };
 
-// ─── Static data (모니터링 전용 API 없으므로 정적 표시) ──────
-
-function generateMetrics(): SystemMetrics {
-  return {
-    uptime: 99.95,
-    avgResponseTime: 142,
-    errorRate: 0.12,
-    activeUsers: 87,
-    totalRequests24h: 45230,
-    dbConnections: 18,
-    memoryUsage: 62,
-    cpuUsage: 34,
-  };
-}
-
-function generateServices(): ServiceStatus[] {
-  return [
-    { name: "웹 애플리케이션", status: "operational", latency: 89, uptime: 99.99 },
-    { name: "API 서버", status: "operational", latency: 42, uptime: 99.97 },
-    { name: "데이터베이스", status: "operational", latency: 12, uptime: 99.99 },
-    { name: "파일 스토리지", status: "operational", latency: 156, uptime: 99.95 },
-    { name: "이메일 서비스", status: "operational", latency: 320, uptime: 99.90 },
-    { name: "알림 서비스", status: "operational", latency: 68, uptime: 99.98 },
-  ];
-}
-
 // ─── Component ──────────────────────────────────────────────
 
 export default function MonitoringPage() {
@@ -89,19 +63,32 @@ function MonitoringContent() {
   const [lastUpdated, setLastUpdated] = useState<string>("");
 
   useEffect(() => {
-    setMetrics(generateMetrics());
-    setServices(generateServices());
-    setLastUpdated(
-      new Date().toLocaleString("ko-KR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      }),
-    );
-    setLoading(false);
+    async function fetchMonitoring() {
+      try {
+        const res = await fetch("/api/platform/monitoring");
+        if (res.ok) {
+          const json = await res.json();
+          setMetrics(json.data.metrics);
+          setServices(json.data.services);
+        }
+      } catch {
+        // 에러 시 기본값 유지 (null)
+      } finally {
+        setLastUpdated(
+          new Date().toLocaleString("ko-KR", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
+        );
+        setLoading(false);
+      }
+    }
+
+    fetchMonitoring();
   }, []);
 
   if (loading || !metrics) {
