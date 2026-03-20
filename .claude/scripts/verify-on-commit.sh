@@ -19,11 +19,23 @@ if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
   exit 2
 fi
 
+# 1-2. src/ 변경 시 활성 팀 필수 (lead-workflow 강제)
+SRC_IN_COMMIT=$(git diff --cached --name-only 2>/dev/null | grep "^src/" | head -1)
+TEAM_DIR="$HOME/.claude/teams"
+ACTIVE_TEAM=$(ls "$TEAM_DIR" 2>/dev/null | head -1)
+
+if [ -n "$SRC_IN_COMMIT" ] && [ -z "$ACTIVE_TEAM" ]; then
+  echo "❌ src/ 파일을 변경하려면 코워크 팀을 구성해야 합니다." >&2
+  echo "lead-workflow를 따라 팀을 구성한 후 작업하세요:" >&2
+  echo "  1. 요구사항 확정 → 2. 설계 → 3. 팀 구성 → 4. 실행 → 5. 마무리" >&2
+  exit 2
+fi
+
 # 2. 요구사항 파일 확인
 # 브랜치명에서 WI 번호 추출하여 해당 requirements만 체크
 # 매칭 안 되면 전체 requirements 체크
 REQ_DIR=".claude/requirements"
-WI_NUM=$(echo "$CURRENT_BRANCH" | grep -oP 'WI-\d+' | head -1)
+WI_NUM=$(echo "$CURRENT_BRANCH" | grep -oE 'WI-[0-9]+' | head -1)
 if [ -n "$WI_NUM" ]; then
   # 브랜치에 WI 번호가 있으면 해당 requirements만 + 글로벌(global-system-cleanup 등)
   REQ_FILES=$(find "$REQ_DIR" -name "*.md" 2>/dev/null | grep -v "global-system" || true)
