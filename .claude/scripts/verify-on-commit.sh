@@ -66,8 +66,9 @@ if [ "$SHELL_COUNT" -gt 0 ]; then
   FAIL=1
 fi
 
-# 4-2. 외부 API 연동 체크
-if echo "$REQUIREMENTS" | grep -q "외부.*API\|API.*연동"; then
+# 4-2. 외부 API 연동 체크 (소스 코드 변경이 있을 때만)
+SRC_CHANGED=$(git diff --cached --name-only 2>/dev/null | grep "^src/" | head -1)
+if [ -n "$SRC_CHANGED" ] && echo "$REQUIREMENTS" | grep -q "외부.*API\|API.*연동"; then
   FETCH_COUNT=$(echo "$DIFF_CONTENT" | grep -c "fetch(\|axios\.\|http\.get\|http\.post" 2>/dev/null || true)
   FETCH_COUNT=${FETCH_COUNT:-0}
   if [ "$FETCH_COUNT" -eq 0 ]; then

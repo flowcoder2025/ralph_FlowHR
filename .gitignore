@@ -37,6 +37,8 @@ desktop.ini
 
 # Claude Code local memory (RAG, logs, session data)
 .claude/memory/
+# Cowork verification results (local state)
+.claude/verification/
 
 # Ralph Loop logs (local only)
 .ralph/logs/
