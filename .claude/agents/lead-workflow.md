@@ -34,12 +34,13 @@
    - Implementer 태스크(들): 구현 단위별
    - Verifier 태스크(들): 구현 태스크에 의존
    - Tester 태스크: 전체 구현 완료 후
-   - DocOps 태스크: 모든 작업 완료 후
+   - DocOps 태스크: 모든 작업 완료 후 (필수 — 빠뜨리지 않는다)
 2. 팀 생성 (TeamCreate)
 3. `.claude/agents/spawn-template.md`에 따라 팀원 spawn
    - 각 팀원에게 역할별 knowledge 슬라이스 전달
    - 요구사항 파일 경로 전달
    - Implementer는 plan approval 포함
+4. **자체 점검**: "DocOps 태스크가 포함되었는가? 태스크 의존성이 올바른가? spawn 프롬프트에 필수 항목이 빠지지 않았는가?"
 
 ## Phase 4: 실행 + 감시
 
@@ -49,15 +50,18 @@
 4. Verifier 결과 확인 — FAIL이면 Implementer에게 수정 지시
 5. Tester 결과 확인 — 실패하면 Implementer에게 수정 지시
 6. 전체 PASS까지 반복
+7. **자체 점검**: "모든 태스크가 completed인가? FAIL→수정→PASS 루프가 남아있지 않은가? 설계 대비 구현 대조표에 ❌가 없는가?"
 
 ## Phase 5: 마무리
 
-1. DocOps 팀원에게 knowledge/ 업데이트 지시
+1. DocOps 팀원에게 knowledge/ 업데이트 지시 (현재 작업 브랜치에서 커밋)
 2. 테스트 파일/verification/plans 정리
 3. 커밋 + PR 생성 + enqueue
-4. **사용자에게 완료 보고**:
+4. **자체 점검**: "PR에 빠진 파일이 없는가? knowledge/가 최신인가? 요구사항 전체가 충족되었는가?"
+5. **사용자에게 완료 보고**:
    - 구현된 기능 요약
    - PR 번호 + 링크
    - 검증 결과 (Guardian/Verifier/Tester)
+   - 발견된 gap이 있으면 함께 보고
    - 다음 작업 제안
-5. 팀 shutdown + cleanup
+6. 팀 shutdown + cleanup
