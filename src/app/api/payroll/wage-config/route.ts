@@ -20,7 +20,11 @@ export async function GET(request: NextRequest) {
       Math.max(1, parseInt(searchParams.get("pageSize") ?? String(DEFAULT_PAGE_SIZE), 10)),
     );
 
-    const where = { tenantId };
+    const employeeId = searchParams.get("employeeId");
+    const where: Record<string, unknown> = { tenantId };
+    if (employeeId) {
+      where.employeeId = employeeId;
+    }
 
     const [configs, total] = await Promise.all([
       prisma.wageConfig.findMany({
