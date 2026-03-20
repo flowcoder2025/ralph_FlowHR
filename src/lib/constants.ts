@@ -49,3 +49,25 @@ export const DEFAULT_PAGE_SIZE = 10;
 // ─── SLA ─────────────────────────────────────────────
 /** 승인 요청 SLA 초과 기준 (일) */
 export const APPROVAL_SLA_DAYS = 3;
+
+// ─── 급여 계산 ───────────────────────────────────────
+/** 월 소정근로시간 (209시간 = 주 40시간 + 주휴 8시간, 월 환산) */
+export const MONTHLY_WORK_HOURS = 209;
+
+/** 연장근무 할증율 (통상시급 × 1.5) */
+export const OVERTIME_PAY_RATE = 1.5;
+
+/** 야간근무 할증율 (통상시급 × 0.5 추가) */
+export const NIGHT_SHIFT_PAY_RATE = 0.5;
+
+/** 휴일근무 할증율 — 8시간 이하 */
+export const HOLIDAY_PAY_RATE_NORMAL = 1.5;
+
+/** 휴일근무 할증율 — 8시간 초과 */
+export const HOLIDAY_PAY_RATE_EXTENDED = 2.0;
+
+/** 휴일근무 기본 시간 기준 (시간) */
+export const HOLIDAY_BASE_HOURS = 8;
+
+/** 주 법정근로시간 (분) */
+export const WEEKLY_WORK_LIMIT_MINUTES = 40 * 60;
