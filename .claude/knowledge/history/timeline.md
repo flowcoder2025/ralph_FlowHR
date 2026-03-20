@@ -1,6 +1,6 @@
 ---
 name: session-timeline
-description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-20)
+description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-21)
 type: reference
 ---
 
@@ -14,6 +14,7 @@ type: reference
 | S25 | 03-16~17 | PR #148~158 (UTC, GPS, 보안, UX) |
 | S26 | 03-17 | PR #159~165 (다크모드, 복합기능, 접근제어, 테스트, 직급) |
 | S27 | 03-17~20 | PR #166~174 (정정신청, 문서발송, GPS지도, PWA, 모바일UI, 포괄임금) |
+| S29 | 03-21 | PR #185~192 (코워크 시스템 + knowledge 재설계 + 글로벌 통합 재편) |
 
 ## S26 PR 이력 (18개)
 | PR | 내용 |
@@ -67,3 +68,22 @@ type: reference
 - Hook 검증 시스템 구축 (요구사항 보호 + 커밋 검증)
 - Claude Code 체인지로그 RAG 생성 (글로벌)
 - 코워크 검증 시스템 설계
+
+## S29 PR 이력 (03-21, PR #185~192)
+| PR | WI | 내용 |
+|----|-----|------|
+| #185 | WI-160 | 코워크 검증 시스템 구축 (Agent Teams + settings.json) |
+| #186 | WI-160 | 코워크 hook 버그 4건 수정 + guardian 에이전트 정의 |
+| #187 | WI-160 | 코워크 누락 항목 6건 해결 |
+| #188 | WI-160 | delegate mode hook Windows 경로 호환 |
+| #189 | WI-160 | plan approval hook + spawn 템플릿 업데이트 |
+| #190 | WI-160 | knowledge 시스템 전면 재설계 (RAG 12개 → 7카테고리) |
+| #191 | WI-160 | 리드 워크플로우 5단계 정의 |
+| #192 | WI-160 | 글로벌 시스템 통합 재편 (CLAUDE.md 슬림화, auto memory 개편) |
+
+### S29 주요 성과
+- 코워크 팀 구조: lead-workflow + 6 에이전트 (guardian, verifier, judge, tester, docops, spawn-template)
+- Hook 6종: PreToolUse(Write/Edit/Bash), TaskCompleted, TeammateIdle, Stop
+- 스크립트 8개: protect-requirements, enforce-delegate-mode, enforce-plan-approval, verify-on-commit, verify-task-completion, verify-teammate-idle, update-knowledge-on-stop, check-version
+- knowledge/ 체계: state, history, decisions, patterns, issues, reference, lessons, testing (7카테고리 15파일)
+- 글로벌 재편: CLAUDE.md 최소화, wi-global.md 규칙 정리, auto memory 인덱스 개편

@@ -1,6 +1,6 @@
 ---
 name: unresolved-issues
-description: 남은 작업 — 2026-03-21 기준 (PR #184까지 반영)
+description: 남은 작업 — 2026-03-21 기준 (PR #192까지 반영)
 type: reference
 ---
 
@@ -22,18 +22,33 @@ type: reference
 - 현재: 내부 매칭 엔진만 구현, 실제 외부 API 호출 없음
 - hook 검증에서 차단 확인됨
 
-## Hook 검증 시스템
-- ✅ 요구사항 파일 수정 차단 (PreToolUse Write)
+## Hook 검증 시스템 — ✅ 구축 완료
+- ✅ 요구사항 파일 수정 차단 (PreToolUse Write/Edit/MultiEdit)
 - ✅ git commit 시 패턴 검증 (PreToolUse Bash)
-- ✅ 글로벌 버전 체크 (SessionStart)
-- ❌ AI 판단 검증 (코워크로 해결 예정)
+- ✅ delegate mode 강제 (PreToolUse Write/Edit/MultiEdit)
+- ✅ plan approval 강제 (PreToolUse Write/Edit/MultiEdit)
+- ✅ TaskCompleted 검증 (태스크 완료 시 품질 게이트)
+- ✅ TeammateIdle 검증 (팀원 유휴 시 품질 확인)
+- ✅ Stop hook (knowledge 동기화 제안)
+- ✅ 글로벌 버전 체크 (check-version.sh)
 
-## 코워크 검증 시스템
-- 설계 완료, 구현 전
-- 활성화: CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS
-- 구조: 리드(delegate) + 구현 + 검증 + 테스트
-- TeammateIdle + TaskCompleted hook으로 강제
+## 코워크 검증 시스템 — ✅ 구축 완료 (PR #185~189)
+- ✅ Agent Teams 활성화
+- ✅ 에이전트 7개 정의 (lead-workflow, spawn-template, guardian, verifier, judge, tester, docops)
+- ✅ Hook 6종 연결
+- ✅ 스크립트 8개 구현
+- ✅ Windows 경로 호환 (delegate mode hook)
+- 미검증: 실전 코워크 워크플로우 (첫 실전 대기 중)
+
+## knowledge 시스템 — ✅ 재설계 완료 (PR #190)
+- ✅ RAG 12파일 → knowledge/ 7카테고리 15파일
+- ✅ index.md 주제별 매핑 + 코워크 팀원별 기본 로드
+- ✅ rag-context.md 업데이트
+
+## 글로벌 시스템 통합 — ✅ 재편 완료 (PR #192)
+- ✅ CLAUDE.md 슬림화
+- ✅ auto memory 인덱스 개편
 
 ## 기타
 - console.error 정리 (프로덕션 배포 전)
-- CLAUDE.md 규칙 축소 (hook으로 이관)
+- 코워크 첫 실전 검증 필요 (WI-159 외부 API 연동 시)
