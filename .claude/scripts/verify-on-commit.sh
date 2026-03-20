@@ -10,6 +10,15 @@ if ! echo "$COMMAND" | grep -q "git commit"; then
   exit 0
 fi
 
+# 1-1. main/master 브랜치 직접 커밋 차단
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+  echo "❌ main/master 브랜치에 직접 커밋할 수 없습니다." >&2
+  echo "브랜치를 생성한 후 작업하세요." >&2
+  echo "현재 브랜치: $CURRENT_BRANCH" >&2
+  exit 2
+fi
+
 # 2. 요구사항 파일 확인
 REQ_DIR=".claude/requirements"
 REQ_FILES=$(find "$REQ_DIR" -name "*.md" 2>/dev/null)
