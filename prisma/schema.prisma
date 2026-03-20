@@ -282,6 +282,38 @@ enum PlatformAuditResult {
   FAILURE
 }
 
+enum WageType {
+  COMPREHENSIVE
+  STANDARD
+  HOURLY
+  DAILY
+  ANNUAL
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING_SIGN
+  SIGNED
+  EXPIRED
+  TERMINATED
+}
+
+enum SubsidyStatus {
+  ELIGIBLE
+  APPLIED
+  APPROVED
+  REJECTED
+  RECEIVING
+  COMPLETED
+  EXPIRED
+}
+
+enum SeveranceStatus {
+  ESTIMATED
+  CONFIRMED
+  PAID
+}
+
 // ─── Tenant ───────────────────────────────────────────────
 
 model Tenant {
@@ -333,6 +365,11 @@ model Tenant {
   salaryHistories      SalaryHistory[]
   insuranceRateConfigs   InsuranceRateConfig[]
   insuranceContributions InsuranceContribution[]
+  wageConfigs              WageConfig[]
+  severanceCalculations    SeveranceCalculation[]
+  employmentContracts      EmploymentContract[]
+  subsidyPrograms          SubsidyProgram[]
+  subsidyMatches           SubsidyMatch[]
 }
 
 // ─── Role ─────────────────────────────────────────────────
@@ -483,6 +520,8 @@ model Employee {
   resignDate     DateTime?
   status         EmployeeStatus  @default(ACTIVE)
   type           EmploymentType  @default(FULL_TIME)
+  birthDate      DateTime?
+  disabilityStatus Boolean       @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -516,6 +555,10 @@ model Employee {
   notifications          Notification[]
   salaryHistories        SalaryHistory[]
   insuranceContributions InsuranceContribution[]
+  wageConfig             WageConfig?
+  severanceCalculations  SeveranceCalculation[]
+  employmentContracts    EmploymentContract[]
+  subsidyMatches         SubsidyMatch[]
 
   @@unique([tenantId, employeeNumber])
 }
@@ -1309,4 +1352,187 @@ model InsuranceContribution {
   employee Employee @relation(fields: [employeeId], references: [id])
 
   @@unique([tenantId, employeeId, year, month])
+}
+
+// ─── WageConfig ──────────────────────────────────────────
+
+model WageConfig {
+  id         String   @id @default(cuid())
+  tenantId   String
+  employeeId String   @unique
+  wageType   WageType @default(STANDARD)
+
+  baseSalary          Float
+  contractedOTHours   Float @default(0)
+  contractedNSHours   Float @default(0)
+  contractedHDHours   Float @default(0)
+  hourlyRate          Float?
+  annualSalary        Float?
+
+  fixedAllowances      Json @default("[]")
+  nonTaxableAllowances Json @default("[]")
+  mealAllowanceLimit      Float @default(200000)
+  transportAllowanceLimit Float @default(200000)
+
+  effectiveDate DateTime
+  isActive      Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, employeeId])
+}
+
+// ─── SeveranceCalculation ────────────────────────────────
+
+model SeveranceCalculation {
+  id         String @id @default(cuid())
+  tenantId   String
+  employeeId String
+
+  startDate        DateTime
+  endDate          DateTime
+  totalServiceDays Int
+  totalServiceYears Float
+  avgDailySalary   Float
+  last3MonthsTotal Float
+  last3MonthsDays  Int
+  severanceAmount  Float
+  status           SeveranceStatus @default(ESTIMATED)
+
+  calculatedBy String?
+  confirmedBy  String?
+  confirmedAt  DateTime?
+  paidAt       DateTime?
+  note         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, employeeId])
+}
+
+// ─── EmploymentContract ──────────────────────────────────
+
+model EmploymentContract {
+  id             String @id @default(cuid())
+  tenantId       String
+  employeeId     String
+  contractNumber String
+
+  contractType String
+  startDate    DateTime
+  endDate      DateTime?
+
+  wageType     WageType
+  baseSalary   Float
+  annualSalary Float?
+  hourlyRate   Float?
+
+  workHoursPerWeek Float @default(40)
+  workDaysPerWeek  Int   @default(5)
+  workStartTime    String @default("09:00")
+  workEndTime      String @default("18:00")
+  breakMinutes     Int    @default(60)
+
+  contractedOTHours Float?
+  contractedNSHours Float?
+  contractedHDHours Float?
+
+  allowances   Json    @default("[]")
+  benefits     Json    @default("[]")
+  specialTerms String? @db.Text
+
+  status ContractStatus @default(DRAFT)
+
+  signedAt          DateTime?
+  signedByEmployee  Boolean   @default(false)
+  signedByEmployer  Boolean   @default(false)
+  signatureData     String?   @db.Text
+  documentId        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, contractNumber])
+  @@index([tenantId, employeeId])
+}
+
+// ─── SubsidyProgram ──────────────────────────────────────
+
+model SubsidyProgram {
+  id       String @id @default(cuid())
+  tenantId String
+
+  name        String
+  provider    String
+  category    String
+  description String? @db.Text
+
+  eligibilityCriteria Json @default("{}")
+
+  monthlyAmount    Float
+  maxDurationMonths Int
+  totalMaxAmount   Float?
+
+  applicationStart DateTime?
+  applicationEnd   DateTime?
+
+  isActive Boolean @default(true)
+
+  externalApiUrl    String?
+  externalProgramId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  matches SubsidyMatch[]
+
+  @@unique([tenantId, name])
+}
+
+// ─── SubsidyMatch ────────────────────────────────────────
+
+model SubsidyMatch {
+  id         String @id @default(cuid())
+  tenantId   String
+  programId  String
+  employeeId String
+
+  status       SubsidyStatus @default(ELIGIBLE)
+  matchScore   Float?
+  matchDetails Json          @default("{}")
+
+  appliedAt         DateTime?
+  applicationNumber String?
+  approvedAt        DateTime?
+  rejectedAt        DateTime?
+  rejectedReason    String?
+
+  receivingStartDate DateTime?
+  receivingEndDate   DateTime?
+  totalReceived      Float     @default(0)
+  monthlyAmount      Float     @default(0)
+
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  program  SubsidyProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  employee Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, programId, employeeId])
+  @@index([tenantId, employeeId])
 }
