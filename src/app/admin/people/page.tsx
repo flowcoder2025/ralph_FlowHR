@@ -413,6 +413,7 @@ export default function PeoplePage() {
       <EmployeeDetailDrawer
         employeeId={selectedEmployeeId}
         onClose={() => setSelectedEmployeeId(null)}
+        onRefresh={fetchEmployees}
       />
     </div>
   );
