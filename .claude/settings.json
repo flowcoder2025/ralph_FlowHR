@@ -12,6 +12,12 @@
             "command": "bash .claude/scripts/protect-requirements.sh",
             "timeout": 10,
             "statusMessage": "요구사항 보호 검사 중..."
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/enforce-delegate-mode.sh",
+            "timeout": 5,
+            "statusMessage": "Delegate mode 검사 중..."
           }
         ]
       },
