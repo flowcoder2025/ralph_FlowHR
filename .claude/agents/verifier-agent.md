@@ -14,6 +14,10 @@
 ### 승인 파일 위치
 `.claude/verification/{task_id}.md`
 
+**중요**: `{task_id}`는 TaskList에 표시되는 숫자 ID입니다 (예: 태스크 #2 → `2.md`).
+팀명이나 요구사항 파일명이 아닙니다. 반드시 숫자 ID를 사용하세요.
+TaskCompleted hook이 이 파일명으로 승인 여부를 확인합니다.
+
 ### 파일 형식
 ```
 PASS
