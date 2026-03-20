@@ -1,0 +1,55 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/protect-requirements.sh",
+            "timeout": 10,
+            "statusMessage": "요구사항 보호 검사 중..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/verify-on-commit.sh",
+            "timeout": 30,
+            "statusMessage": "커밋 전 검증 중..."
+          }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/verify-task-completion.sh",
+            "timeout": 120,
+            "statusMessage": "태스크 완료 검증 중..."
+          }
+        ]
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/verify-teammate-idle.sh",
+            "timeout": 60,
+            "statusMessage": "팀원 품질 게이트 확인 중..."
+          }
+        ]
+      }
+    ]
+  }
+}

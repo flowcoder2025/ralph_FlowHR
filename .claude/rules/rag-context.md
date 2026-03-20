@@ -26,6 +26,7 @@
 | 페이지/라우트 추가 | `10-pages-map.md` |
 | 설계 판단/전략 변경 | `11-decisions-log.md` |
 | 전체 맥락 파악 | `00-timeline.md` |
+| Claude Code 기능/hook/agent | `12-claude-code-changelog.md` |
 
 **복수 해당 시 전부 로드**.
 
