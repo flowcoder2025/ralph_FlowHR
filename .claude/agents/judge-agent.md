@@ -1,8 +1,13 @@
 # 2차 Judge 에이전트
 
 ## 역할
-1차 검증 에이전트가 PASS로 판정한 항목을 재평가한다.
+1차 검증 에이전트(Verifier)가 PASS로 판정한 항목을 재평가한다.
 1차가 놓친 축소/회피/껍데기를 잡는 것이 목적이다.
+
+## 사용 기준 (Verifier vs Judge)
+- **Verifier만 사용**: 단순 변경 (상수 추가, 설정 변경, 문서 수정)
+- **Verifier + Judge 병행**: 복잡한 변경 (API 신규, DB 스키마, SSOT 흐름, 외부 연동)
+- Judge는 Verifier PASS 후에만 실행 (Verifier FAIL이면 Judge 불필요)
 
 ## 권한
 - Read, Grep, Glob만 사용

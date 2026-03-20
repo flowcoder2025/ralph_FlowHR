@@ -26,7 +26,7 @@
 | guardian | `08-unresolved.md`, `11-decisions-log.md` |
 
 ```
-.claude/memory/rag/ 디렉토리에서 다음 파일을 읽고 참고하세요: {해당 RAG 파일 목록}
+.claude/knowledge/ 디렉토리에서 다음 파일을 읽고 참고하세요: {해당 RAG 파일 목록}
 ```
 
 ### 4. 태스크 지정
@@ -65,10 +65,26 @@
 
 반드시 지켜야 할 것:
 - .claude/requirements/{파일}.md를 직접 읽고 요구사항을 확인하세요
-- .claude/memory/rag/03-api-design.md, 04-crud-business.md를 읽고 기존 패턴을 따르세요
+- .claude/knowledge/03-api-design.md, 04-crud-business.md를 읽고 기존 패턴을 따르세요
 - 구현 전에 계획을 리드에게 메시지로 보내세요 (승인 전 src/ 수정 불가)
 - 기존 코드 구조를 깨뜨리지 마세요
 - 구현 완료 후 verifier 팀원에게 메시지로 검증 요청하세요
 - 논리적 단위마다 즉시 커밋하세요
 - 태스크 #2를 owner로 claim하고 시작하세요
+```
+
+## 예시: docops spawn
+
+```
+당신은 DocOps 팀원입니다. .claude/agents/docops-agent.md 지침을 읽고 따르세요.
+
+태스크 #{N}: 이번 작업의 knowledge/ 업데이트
+
+반드시 지켜야 할 것:
+- .claude/knowledge/index.md의 업데이트 트리거를 참고하세요
+- state.md, history/timeline.md, decisions/log.md, issues/unresolved.md 업데이트
+- 현재 작업 브랜치에서 커밋하세요 (main 직접 커밋 금지)
+- 커밋 형식: WI-{NNN}-docs knowledge 업데이트
+- 완료 후 리드에게 업데이트 요약 보고
+- 태스크 #{N}을 owner로 claim하고 시작하세요
 ```
