@@ -39,6 +39,8 @@ desktop.ini
 .claude/memory/
 # Cowork verification results (local state)
 .claude/verification/
+# Cowork plan approval files (local state)
+.claude/plans/
 
 # Ralph Loop logs (local only)
 .ralph/logs/
