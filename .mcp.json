@@ -2,8 +2,10 @@
   "mcpServers": {
     "context7": {
       "type": "stdio",
-      "command": "npx",
+      "command": "cmd",
       "args": [
+        "/c",
+        "npx",
         "-y",
         "@anthropic/context7-mcp@latest"
       ],
@@ -11,8 +13,10 @@
     },
     "postgres-mcp": {
       "type": "stdio",
-      "command": "npx",
+      "command": "cmd",
       "args": [
+        "/c",
+        "npx",
         "-y",
         "@anthropic/postgres-mcp@latest"
       ],
@@ -20,8 +24,10 @@
     },
     "playwright-mcp": {
       "type": "stdio",
-      "command": "npx",
+      "command": "cmd",
       "args": [
+        "/c",
+        "npx",
         "-y",
         "@anthropic/mcp-playwright@latest"
       ],
@@ -29,8 +35,10 @@
     },
     "supabase": {
       "type": "stdio",
-      "command": "npx",
+      "command": "cmd",
       "args": [
+        "/c",
+        "npx",
         "-y",
         "@supabase/mcp-server"
       ],
