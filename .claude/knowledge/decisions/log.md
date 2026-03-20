@@ -1,6 +1,6 @@
 ---
 name: key-decisions
-description: 프로젝트 주요 의사결정 로그 — 2026-03-20 업데이트
+description: 프로젝트 주요 의사결정 로그 — 2026-03-21 업데이트
 type: reference
 ---
 
@@ -103,3 +103,18 @@ type: reference
 | Hook 검증 시스템 | PreToolUse command hook (요구사항 보호 + 커밋 검증) | 속도>충실함 패턴 방지 |
 | 코워크 검증 구조 | 리드(조율)+구현+검증+테스트 4팀원 | AI 판단 기반 검증 |
 | Claude Code 체인지로그 RAG | 글로벌 + SessionStart 버전 체크 | 업데이트 추적 |
+
+## S29 의사결정 (2026-03-21)
+
+| 결정 | 내용 | 사유 |
+|------|------|------|
+| 코워크 6+1 에이전트 체계 | Guardian/Verifier/Judge/Tester/DocOps + spawn-template | 역할 분리로 검증 품질 향상 |
+| Hook 6종 강제 실행 | PreToolUse(3), TaskCompleted, TeammateIdle, Stop | 자동 품질 게이트 (수동 의존 제거) |
+| delegate mode hook | 리드가 직접 구현하지 않고 팀원에게 위임 강제 | 역할 분리 원칙 준수 |
+| plan approval hook | 구현 전 리드 승인 필수 | 설계→구현 분리, 무검토 구현 방지 |
+| knowledge/ 재설계 | RAG 12파일 → 7카테고리 15파일 | 주제별 분류로 로드 효율화 + 중복 제거 |
+| CLAUDE.md 슬림화 | 규칙을 rules/ + hooks로 이관, CLAUDE.md는 프로젝트 정보만 | 컨텍스트 소비 최소화 |
+| auto memory 인덱스 개편 | RAG 참조를 knowledge/ 기반으로 재매핑 | 이중 관리 제거 |
+| 리드 워크플로우 5단계 | 요구사항분석→팀원배정→진행관리→결과검증→보고 | 코워크 실행 표준화 |
+| Stop hook으로 knowledge 동기화 | 3+ 소스파일 변경 시 DocOps 제안 | 문서 갱신 누락 방지 |
+| Windows 경로 호환 | delegate mode hook에서 `\` → `/` 변환 | Git Bash 환경 호환 |

@@ -95,5 +95,25 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "✅ 기계적 검증 통과 (lint/build/test)" >&2
+
+# ─── 3단계: knowledge/ stale 체크 (DocOps 안전장치) ───
+
+KNOWLEDGE_DIR=".claude/knowledge"
+if [ -d "$KNOWLEDGE_DIR" ]; then
+  STATE_FILE="$KNOWLEDGE_DIR/state.md"
+  if [ -f "$STATE_FILE" ]; then
+    # state.md의 마지막 수정 시각과 최근 커밋 시각 비교
+    STATE_MOD=$(stat -c %Y "$STATE_FILE" 2>/dev/null || stat -f %m "$STATE_FILE" 2>/dev/null || echo 0)
+    LATEST_COMMIT=$(git log -1 --format=%ct 2>/dev/null || echo 0)
+    # state.md가 최근 커밋보다 1시간 이상 오래됐으면 stale
+    DIFF_SEC=$((LATEST_COMMIT - STATE_MOD))
+    if [ "$DIFF_SEC" -gt 3600 ]; then
+      echo "⚠️ knowledge/state.md가 stale입니다 (${DIFF_SEC}초 전 업데이트). DocOps가 업데이트해야 합니다." >&2
+      echo "DocOps 팀원이 없다면 리드가 직접 업데이트하세요." >&2
+      # 경고만 — 차단하지 않음 (DocOps가 나중에 업데이트 가능)
+    fi
+  fi
+fi
+
 echo "✅ 태스크 '$TASK_SUBJECT' 완료 승인" >&2
 exit 0
