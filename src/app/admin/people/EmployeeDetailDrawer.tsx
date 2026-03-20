@@ -82,6 +82,27 @@ interface WageDetailData {
   } | null;
 }
 
+interface WageConfigAllowanceItem {
+  name: string;
+  amount: number;
+}
+
+interface WageConfigData {
+  id: string;
+  employeeId: string;
+  wageType: string;
+  baseSalary: number;
+  contractedOTHours: number;
+  contractedNSHours: number;
+  contractedHDHours: number;
+  hourlyRate: number | null;
+  annualSalary: number | null;
+  fixedAllowances: WageConfigAllowanceItem[];
+  nonTaxableAllowances: WageConfigAllowanceItem[];
+  effectiveDate: string;
+  isActive: boolean;
+}
+
 interface EditFormState {
   name: string;
   email: string;
@@ -229,6 +250,7 @@ export function EmployeeDetailDrawer({ employeeId, onClose, onRefresh }: Employe
 
   const [salaryHistory, setSalaryHistory] = useState<SalaryHistoryRow[]>([]);
   const [wageDetail, setWageDetail] = useState<WageDetailData | null>(null);
+  const [wageConfig, setWageConfig] = useState<WageConfigData | null>(null);
   const [payrollLoading, setPayrollLoading] = useState(false);
 
   // ─── Fetch employee detail ─────────────────────────────────
@@ -418,9 +440,10 @@ export function EmployeeDetailDrawer({ employeeId, onClose, onRefresh }: Employe
       const year = now.getFullYear();
       const month = now.getMonth() + 1;
 
-      const [salaryRes, wageRes] = await Promise.all([
+      const [salaryRes, wageRes, wageConfigRes] = await Promise.all([
         fetch(`/api/payroll/salary-history?employeeId=${id}`),
         fetch(`/api/payroll/wage-detail?employeeId=${id}&year=${year}&month=${month}`),
+        fetch(`/api/payroll/wage-config?employeeId=${id}&pageSize=1`),
       ]);
 
       if (salaryRes.ok) {
@@ -431,6 +454,14 @@ export function EmployeeDetailDrawer({ employeeId, onClose, onRefresh }: Employe
       if (wageRes.ok) {
         const wageJson = await wageRes.json();
         setWageDetail(wageJson.data || null);
+      }
+
+      if (wageConfigRes.ok) {
+        const wageConfigJson = await wageConfigRes.json();
+        const configs = wageConfigJson.data || [];
+        setWageConfig(configs.length > 0 ? configs[0] : null);
+      } else {
+        setWageConfig(null);
       }
     } finally {
       setPayrollLoading(false);
@@ -614,6 +645,7 @@ export function EmployeeDetailDrawer({ employeeId, onClose, onRefresh }: Employe
             <PayrollTab
               salaryHistory={salaryHistory}
               wageDetail={wageDetail}
+              wageConfig={wageConfig}
               loading={payrollLoading}
               onClose={onClose}
             />
@@ -950,11 +982,13 @@ function LeaveTab({
 function PayrollTab({
   salaryHistory,
   wageDetail,
+  wageConfig,
   loading,
   onClose,
 }: {
   salaryHistory: SalaryHistoryRow[];
   wageDetail: WageDetailData | null;
+  wageConfig: WageConfigData | null;
   loading: boolean;
   onClose: () => void;
 }) {
@@ -966,8 +1000,85 @@ function PayrollTab({
 
   const currentSalary = wageDetail?.salary?.baseSalary ?? (salaryHistory.length > 0 ? salaryHistory[0].baseSalary : null);
 
+  const WAGE_TYPE_LABEL: Record<string, string> = {
+    COMPREHENSIVE: "포괄임금",
+    STANDARD: "통상임금",
+    HOURLY: "시급",
+    DAILY: "일급",
+    ANNUAL: "연봉",
+  };
+
+  const WAGE_TYPE_VARIANT: Record<string, BadgeVariant> = {
+    COMPREHENSIVE: "info",
+    STANDARD: "neutral",
+    HOURLY: "warning",
+    DAILY: "warning",
+    ANNUAL: "success",
+  };
+
+  const wageConfigAllowances = wageConfig
+    ? [
+        ...(Array.isArray(wageConfig.fixedAllowances) ? wageConfig.fixedAllowances : []),
+        ...(Array.isArray(wageConfig.nonTaxableAllowances) ? wageConfig.nonTaxableAllowances : []),
+      ]
+    : [];
+
   return (
     <div className="space-y-sp-5">
+      {/* Wage Type & Config */}
+      {wageConfig && (
+        <div>
+          <h4 className="mb-sp-2 text-sm font-semibold text-text-primary">임금 유형</h4>
+          <div className="space-y-sp-2 rounded-md border border-border p-sp-3">
+            <div className="flex items-center justify-between py-sp-1">
+              <span className="text-sm text-text-secondary">임금유형</span>
+              <Badge variant={WAGE_TYPE_VARIANT[wageConfig.wageType] ?? "neutral"}>
+                {WAGE_TYPE_LABEL[wageConfig.wageType] ?? wageConfig.wageType}
+              </Badge>
+            </div>
+
+            {wageConfig.wageType === "COMPREHENSIVE" && (
+              <>
+                {wageConfig.contractedOTHours > 0 && (
+                  <StatRow
+                    label="약정 연장근무"
+                    value={`${wageConfig.contractedOTHours}시간`}
+                  />
+                )}
+                {wageConfig.contractedNSHours > 0 && (
+                  <StatRow
+                    label="약정 야간근무"
+                    value={`${wageConfig.contractedNSHours}시간`}
+                  />
+                )}
+                {wageConfig.contractedHDHours > 0 && (
+                  <StatRow
+                    label="약정 휴일근무"
+                    value={`${wageConfig.contractedHDHours}시간`}
+                  />
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Non-taxable / Fixed Allowances from Wage Config */}
+      {wageConfigAllowances.length > 0 && (
+        <div>
+          <h4 className="mb-sp-2 text-sm font-semibold text-text-primary">비과세 수당</h4>
+          <div className="space-y-sp-2 rounded-md border border-border p-sp-3">
+            {wageConfigAllowances.map((a, i) => (
+              <StatRow
+                key={`allow-${i}`}
+                label={a.name}
+                value={formatCurrency(a.amount)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Current Base Salary */}
       <div>
         <h4 className="mb-sp-2 text-sm font-semibold text-text-primary">현재 기본급</h4>
