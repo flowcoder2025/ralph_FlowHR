@@ -1,6 +1,6 @@
 #!/bin/bash
-# Stop hook — 세션 종료 시 knowledge/ 업데이트 안내
-# Stop hook은 차단 불가 → 안내만 제공
+# Stop hook — 세션 종료 시 knowledge/ 업데이트 확인
+# exit 2 = 세션 종료 차단 + 피드백 (knowledge/ 업데이트 요구)
 # 코워크 모드에서는 DocOps 팀원이 담당하므로 스킵
 
 export LANG=en_US.UTF-8
@@ -21,12 +21,24 @@ if [ -n "$ACTIVE_TEAM" ]; then
   exit 0
 fi
 
-# 단독 모드: 변경사항 확인
-CHANGED=$(git diff --name-only 2>/dev/null | grep "^src/" | wc -l)
+# 단독 모드: 커밋된 변경이 있는지 확인 (이번 세션에서)
+STATE_FILE="$KNOWLEDGE_DIR/state.md"
+if [ ! -f "$STATE_FILE" ]; then
+  exit 0
+fi
 
-if [ "$CHANGED" -gt 0 ]; then
-  echo "[DocOps] src/ 변경 ${CHANGED}개 감지. knowledge/ 업데이트가 필요합니다." >&2
-  echo "다음 세션에서 knowledge/state.md와 관련 파일을 업데이트하세요." >&2
+# state.md의 마지막 수정 시각과 최근 커밋 시각 비교
+STATE_MOD=$(stat -c %Y "$STATE_FILE" 2>/dev/null || stat -f %m "$STATE_FILE" 2>/dev/null || echo 0)
+LATEST_COMMIT=$(git log -1 --format=%ct 2>/dev/null || echo 0)
+
+DIFF_SEC=$((LATEST_COMMIT - STATE_MOD))
+
+# 최근 커밋이 state.md보다 새로우면 → knowledge/ 미업데이트
+if [ "$DIFF_SEC" -gt 300 ]; then
+  echo "❌ [DocOps] knowledge/state.md가 최신 커밋보다 오래됐습니다 (${DIFF_SEC}초 차이)." >&2
+  echo "세션을 종료하기 전에 knowledge/ 파일을 업데이트하세요." >&2
+  echo "최소: state.md, history/timeline.md" >&2
+  exit 2
 fi
 
 exit 0
