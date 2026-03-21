@@ -1,6 +1,6 @@
 ---
 name: unresolved-issues
-description: 남은 작업 — 2026-03-21 기준 (S30 반영, 코워크 테스트 완료)
+description: 남은 작업 — 2026-03-21 기준 (S31 반영, WI-161 hook 강화 진행 중)
 type: reference
 ---
 
@@ -52,6 +52,11 @@ type: reference
 ## 글로벌 시스템 통합 — ✅ 재편 완료 (PR #192)
 - ✅ CLAUDE.md 슬림화
 - ✅ auto memory 인덱스 개편
+
+## WI-161 — verify-on-commit.sh hook 강화 (진행 중)
+- WI 번호 중복 차단: 임계값 10 → 0, 경고 → exit 2
+- 빈 팀 우회 차단: Guardian/DocOps 필수 멤버 확인
+- 브랜치: fix/WI-161-fix-empty-team-bypass
 
 ## 기타
 - console.error 정리 (프로덕션 배포 전)

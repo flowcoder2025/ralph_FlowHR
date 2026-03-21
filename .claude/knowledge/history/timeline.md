@@ -116,3 +116,18 @@ type: reference
 - 전 에이전트 모델 Opus 통일
 - discussions/ 작성 정책: session JSONL이 원천, 리드 요약에 의존하지 않음
 - TaskCompleted hook build false positive 발견 (Next.js dynamic route 메시지를 실패로 오판)
+
+## S31 (03-21, WI-161 hook 강화)
+
+### 브랜치: fix/WI-161-fix-empty-team-bypass
+
+### 주요 변경
+- verify-on-commit.sh hook 강화 2건:
+  1. **WI 번호 중복 차단 강화**: 임계값 10개 → 0개 (이미 머지된 WI 번호 재사용 즉시 차단), 경고(echo) → 차단(exit 2)
+  2. **빈 팀 우회 방지**: 팀 config.json에서 Guardian/DocOps 필수 멤버 존재 확인, 없으면 커밋 차단
+- Guardian이 WI-161 요구사항 검증 완료 (WI 번호 적절성 + 요구사항 커버 확인)
+
+### 사용자 피드백
+- WI 번호가 160으로 커밋되는 문제 지적 → WI 번호 분리 규칙 재강조
+- hook 임계값 10개 설정에 강한 불만 → "설계할 때부터 구멍을 만들지 말 것"
+- CLAUDE.md 내용 누락 여부 확인 요청 → 규칙 준수 강화
