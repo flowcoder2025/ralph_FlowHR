@@ -3,7 +3,7 @@
 ## 마지막 업데이트: 2026-03-22 (S37)
 
 ### 진행 현황
-- PR #148~220 (73개 PR)
+- PR #148~221 (74개 PR)
 - S29~S30: 코워크 검증 시스템 완전 구축 (PR #185~204)
   - 7개 시스템 통합 아키텍처 확정 (Hook/코워크/CI/Rules/Auto memory/Knowledge/CLAUDE.md)
   - 코워크 실전 테스트 5회 (Guardian/Implementer/Verifier/Judge/Tester/DocOps 전원 확인)
@@ -36,8 +36,11 @@
 - S37: WI-174 DocOps PR 상태 자동 갱신 — 완료 (PR #220)
   - docops-agent.md: PR 상태 자동 갱신 정책 추가
   - hook 스크립트 변경 시도 후 원복
-- S37: WI-175 프로젝트 permissions Write/Edit allow 추가 — PR 오픈
+- S37: WI-175 프로젝트 permissions Write/Edit allow 추가 — 완료 (PR #221)
   - .claude/settings.json: permissions.allow에 Write/Edit 추가 (팀원 도구 승인 자동화)
+- S37: WI-176 커밋 구조 변경 + Guardian 상시 감시 강제 — PR 오픈
+  - lead-workflow.md: Implementer는 코드 수정만, 커밋은 DocOps가 전체 변경사항을 한 번에 처리
+  - verify-teammate-idle.sh: Guardian idle 차단 (상시 감시 역할이므로 idle 불가)
 
 ### 미완료 항목 (상세)
 
@@ -90,3 +93,5 @@
 - 팀원 워크플로우 위반 거부 시 사용자에게 즉시 보고 — 우회하거나 다른 팀원에게 재할당 금지
 - DocOps 커밋 타이밍 — PR push 전에 커밋, 머지 후 같은 브랜치에 추가 커밋 금지
 - DocOps PR 상태 자동 갱신 — 세션 시작 시 "PR 오픈" 항목을 git log 기준으로 실제 상태 갱신
+- DocOps가 유일한 커밋 주체 — Implementer는 코드 수정만, 커밋+push+PR은 DocOps가 처리
+- Guardian 상시 감시 — idle hook에서 즉시 차단, 세션 내내 리드 행동 감시

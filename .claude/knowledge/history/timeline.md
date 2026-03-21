@@ -248,18 +248,23 @@ type: reference
 - enqueue 전에 DocOps 커밋이 반드시 push되어야 함 (머지큐 진입 후 브랜치 수정 불가)
 - WI-172에서 발생한 머지큐 push 차단 사고 재발 방지
 
-## S37 (03-22, WI-174 DocOps PR 상태 자동 갱신 + WI-175 permissions)
+## S37 (03-22, WI-174/175/176)
 
 ### PR 이력
 | PR | WI | 내용 |
 |----|-----|------|
 | #220 | WI-174 | DocOps PR 상태 자동 갱신 정책 (hook 원복) |
-| TBD | WI-175 | 프로젝트 permissions Write/Edit allow 추가 |
+| #221 | WI-175 | 프로젝트 permissions Write/Edit allow 추가 |
+| TBD | WI-176 | 커밋 구조 변경 + Guardian 상시 감시 강제 |
 
 ### WI-174 주요 변경 (PR #220, 머지 완료)
 - **docops-agent.md PR 상태 자동 갱신 정책 추가**: 세션 시작 시 state.md/unresolved.md에서 "PR 오픈" 항목을 git log 기준으로 실제 상태 갱신
 - **hook 스크립트 변경 시도 후 원복**: /dev/null→mktemp 시도했으나 build false positive 원인이 아닌 것으로 판명
 - **WI-173 PR 오픈 → 완료 PR #219 갱신**: PR 상태 자동 갱신 정책의 첫 적용
 
-### WI-175 주요 변경 (PR 오픈)
+### WI-175 주요 변경 (PR #221, 머지 완료)
 - **.claude/settings.json permissions 추가**: Write/Edit 도구를 allow 목록에 추가 — 팀원이 파일 수정 시 매번 수동 승인 불필요
+
+### WI-176 주요 변경 (PR 오픈)
+- **lead-workflow.md 커밋 구조 변경**: Implementer는 코드 수정만, DocOps가 유일한 커밋 주체로 전체 변경사항을 한 번에 커밋+push+PR 생성
+- **verify-teammate-idle.sh Guardian idle 차단**: Guardian은 상시 감시 역할이므로 idle 불가 (exit 2)
