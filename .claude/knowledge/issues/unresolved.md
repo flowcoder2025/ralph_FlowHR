@@ -1,6 +1,6 @@
 ---
 name: unresolved-issues
-description: 남은 작업 — 2026-03-21 기준 (S32 반영, WI-161 완료, knowledge 동기화)
+description: 남은 작업 — 2026-03-21 기준 (S33 반영, WI-163 Stop hook 미커밋 차단)
 type: reference
 ---
 
@@ -17,6 +17,8 @@ type: reference
 | WI-159 | 근로계약서 + 지원금 | 부분 완료 PR #184 (외부 API 미구현) |
 | WI-160 | 코워크 시스템 구축 + 통합 검증 | 완료 PR #185~204 |
 | WI-161 | verify-on-commit.sh hook 강화 | 완료 PR #205 (빈 팀 우회 방지 + WI 중복 차단 + CLAUDE.md 행동 가이드) |
+| WI-162 | knowledge 동기화 | 완료 PR #206 |
+| WI-163 | Stop hook 미커밋 파일 차단 + 세션 규칙 | 진행 중 (브랜치: fix/WI-163-fix-uncommitted-check) |
 
 ## 외부 API 연동 미구현
 - 고용지원금: 사용자 결정 "외부 API 연동(고용24 등)"
@@ -30,10 +32,11 @@ type: reference
 - plan approval 강제 (PreToolUse Write/Edit/MultiEdit)
 - TaskCompleted 검증 (태스크 완료 시 품질 게이트)
 - TeammateIdle 검증 (팀원 유휴 시 품질 확인)
-- Stop hook (knowledge 동기화 제안)
+- Stop hook (knowledge 동기화 제안 + .claude/ 미커밋 파일 차단)
 - 글로벌 버전 체크 (check-version.sh)
 - WI 번호 중복 즉시 차단 (PR #205)
 - 빈 팀 필수 멤버(Guardian/DocOps) 확인 (PR #205)
+- Claude Code 버전 변경 감지 (check-version.sh)
 
 ## 코워크 검증 시스템 — 완료 (PR #185~205)
 - Agent Teams 활성화
@@ -98,4 +101,4 @@ type: reference
 - S30 결정: DocOps 자동 관리로 일원화
 
 ## 기타
-- DocOps Stop hook 간헐적 미동작 (사용자 지적: "docops가 계속 안도는거같은데") — PR #198에서 강제화했으나 모니터링 필요
+- DocOps Stop hook 간헐적 미동작 (사용자 지적: "docops가 계속 안도는거같은데") — PR #198에서 강제화, WI-163에서 미커밋 파일 차단 추가

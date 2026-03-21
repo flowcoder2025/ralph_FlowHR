@@ -1,6 +1,6 @@
 ---
 name: session-timeline
-description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-21, S32 반영)
+description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-21, S33 반영)
 type: reference
 ---
 
@@ -135,10 +135,20 @@ type: reference
 - "코워크 마무리가 기능 작업보다 먼저" → 범용적 논리 설계 필요
 - "니가 규칙을 따를수밖에 없게 만드는게 최우선과제" → 기계적 강제 우선
 
-## S32 (03-21, knowledge 동기화)
+## S32 (03-21, knowledge 동기화 — PR #206)
 
 ### 주요 변경
 - DocOps: state.md ↔ issues/unresolved.md 동기화
   - WI-161 완료 반영 (PR #205 머지)
   - 미완료 항목 전수 반영 (SessionStart hook 검증, 다중 Implementer 병렬, SSOT 흐름 등)
   - CLAUDE.md 행동 가이드 추가 완료 반영
+
+## S33 (03-21, WI-163 Stop hook 미커밋 파일 차단)
+
+### 브랜치: fix/WI-163-fix-uncommitted-check
+
+### 주요 변경
+- **update-knowledge-on-stop.sh 강화**: .claude/ 하위 커밋 안 된 파일(modified + untracked) 감지 시 세션 종료 차단 (exit 2)
+- **process.md 세션 시작 규칙 추가**: SessionStart hook 주입 내용 활용 규칙, "이어서 진행해" 시 묻지 않고 바로 시작
+- **check-version.sh 신규**: Claude Code 버전 변경 감지 시 체인지로그 업데이트 알림
+- **last-known-version.txt 신규**: 현재 Claude Code 버전 기록 (2.1.80)

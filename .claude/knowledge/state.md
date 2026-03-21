@@ -1,9 +1,9 @@
 # 프로젝트 현재 상태
 
-## 마지막 업데이트: 2026-03-21 (S32)
+## 마지막 업데이트: 2026-03-21 (S33)
 
 ### 진행 현황
-- PR #148~205 (58개 PR)
+- PR #148~206 (59개 PR)
 - S29~S30: 코워크 검증 시스템 완전 구축 (PR #185~204)
   - 7개 시스템 통합 아키텍처 확정 (Hook/코워크/CI/Rules/Auto memory/Knowledge/CLAUDE.md)
   - 코워크 실전 테스트 5회 (Guardian/Implementer/Verifier/Judge/Tester/DocOps 전원 확인)
@@ -15,7 +15,11 @@
   - WI 번호 중복 차단 강화 (임계값 10 → 0, 경고 → 차단)
   - 빈 팀 우회 방지 (Guardian/DocOps 필수 멤버 확인)
   - CLAUDE.md 행동 가이드 추가
-- S32: knowledge/ 동기화 (DocOps)
+- S32: knowledge/ 동기화 (DocOps) — 완료 (PR #206)
+- S33: WI-163 Stop hook 미커밋 파일 차단 + process.md 세션 규칙
+  - update-knowledge-on-stop.sh: .claude/ 하위 커밋 안 된 파일 감지 시 세션 종료 차단
+  - process.md: 세션 시작 시 규칙 추가 (주입 내용 활용, 묻지 않고 바로 시작)
+  - check-version.sh + last-known-version.txt: Claude Code 버전 변경 감지
 
 ### 미완료 항목 (상세)
 
