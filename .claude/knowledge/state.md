@@ -3,7 +3,7 @@
 ## 마지막 업데이트: 2026-03-22 (S36)
 
 ### 진행 현황
-- PR #148~214 (67개 PR)
+- PR #148~217 (70개 PR)
 - S29~S30: 코워크 검증 시스템 완전 구축 (PR #185~204)
   - 7개 시스템 통합 아키텍처 확정 (Hook/코워크/CI/Rules/Auto memory/Knowledge/CLAUDE.md)
   - 코워크 실전 테스트 5회 (Guardian/Implementer/Verifier/Judge/Tester/DocOps 전원 확인)
@@ -24,9 +24,12 @@
   - 팀원 역할별 권한 제한: guardian/judge 읽기전용, verifier/tester verification만, docops src/ 차단, implementer 제한없음
   - lead-workflow.md: requirements 작성을 DocOps에게 위임
   - CLAUDE.md 행동 금지 항목에 "리드의 직접 파일 수정" 추가
-- S36: WI-170 DocOps 커밋 타이밍 규칙 + knowledge 동기화 — 진행중
-  - docops-agent.md Git 규칙에 "PR 머지 후 같은 브랜치에 추가 커밋 금지" 추가
-  - DocOps가 PR 머지 후 같은 브랜치에 커밋하여 main에 반영되지 않는 사고 발생 → 규칙화
+- S36: WI-170 DocOps 커밋 타이밍 규칙 + knowledge 동기화 — 완료 (PR #216)
+  - docops-agent.md Git 규칙 + requirements 쓰기 권한 추가
+- S36: WI-171 팀 멤버 전원 상시 필수 — 완료 (PR #217)
+  - lead-workflow.md Phase 3: Guardian+DocOps만 즉시 spawn → 전원(6명) 즉시 spawn
+  - verify-on-commit.sh: Guardian+DocOps 필수 → 전원(Guardian, DocOps, Implementer, Verifier, Tester, Judge) 필수
+  - src/ 변경 여부와 무관하게 모든 커밋에 6명 전원이 있어야 함
 
 ### 미완료 항목 (상세)
 
@@ -72,7 +75,7 @@
 - 코워크 마무리 우선 — 기능 작업보다 코워크(인프라) 완성이 먼저
 - rules 강제주입은 유저 메시지 취급 — 작업 압박 시 무시될 수 있으므로 코워크+hook으로 보완 필수
 - 작업 전 파일 숙지 검증 — Guardian이 리드의 파일 읽기 여부를 크로스체킹
-- 팀은 세션 단위 운영 — 태스크마다 생성/해체하지 않고 세션 내내 상시 가동
+- 팀은 세션 단위 운영 — 태스크마다 생성/해체하지 않고 세션 내내 상시 가동, 전원(6명) 즉시 spawn
 - Tester 결과 파일은 verification/{task_id}-test.md에 작성 — hook이 자동 확인
 - 리드는 모든 파일 수정 불가 (delegate mode 확장) — 팀원에게 위임 필수
 - 팀원 역할별 권한 제한 — guardian/judge 읽기전용, verifier/tester verification만, docops src/ 차단
