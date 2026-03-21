@@ -1,6 +1,6 @@
 ---
 name: unresolved-issues
-description: 남은 작업 — 2026-03-22 기준 (S35 반영, WI-167 세션 단위 팀 + Tester gate)
+description: 남은 작업 — 2026-03-22 기준 (S36 반영, WI-169 delegate mode 확장)
 type: reference
 ---
 
@@ -22,7 +22,9 @@ type: reference
 | WI-164 | knowledge 동기화 (S33) | 완료 PR #208 |
 | WI-165 | Guardian 파일 숙지 크로스체킹 Step 추가 | 완료 PR #209 |
 | WI-166 | knowledge 동기화 (S34) | 완료 PR #210 |
-| WI-167 | 세션 단위 팀 운영 + Tester completion gate 연동 | PR #211 오픈 |
+| WI-167 | 세션 단위 팀 운영 + Tester completion gate 연동 | 완료 PR #211 |
+| WI-167 | knowledge 동기화 (S35) | 완료 PR #212 |
+| WI-169 | 리드 전체 파일 수정 차단 + 역할별 권한 제한 | 완료 PR #214 |
 
 ## 외부 API 연동 미구현
 - 고용지원금: 사용자 결정 "외부 API 연동(고용24 등)"
@@ -56,6 +58,8 @@ type: reference
 - CLAUDE.md 행동 가이드 추가 (PR #205)
 - 세션 단위 팀 운영 전환 (PR #211) — Guardian+DocOps 상시 가동
 - Tester completion gate 연동 (PR #211) — TEST-PASS/TEST-FAIL 파일로 hook 연결
+- delegate mode 전면 확장 (PR #214) — 리드 모든 파일 수정 차단 + 팀원 역할별 권한 제한
+- 리드 완전 위임 모델 — requirements 작성도 DocOps에게 지시
 
 ## knowledge 시스템 — 완료 (PR #190, #198)
 - RAG 12파일 → knowledge/ 7카테고리 16파일 (discussions/ 추가)

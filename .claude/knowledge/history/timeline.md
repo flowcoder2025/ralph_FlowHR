@@ -1,6 +1,6 @@
 ---
 name: session-timeline
-description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-22, S35 반영)
+description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-22, S36 반영)
 type: reference
 ---
 
@@ -199,3 +199,30 @@ type: reference
 - "첫 커밋에서 차단시키면된다는 거잖아" — 코워크 항상 활성화 방향
 - "작업전 파일을 다안읽고 시작한걸 검증하는 단계도있어야겠네" — Guardian 크로스체킹 (WI-165에서 구현)
 - rules 강제주입이 유저 메시지 취급 → 코워크+hook으로 보완 필수 확정
+
+## S36 (03-22, WI-169 delegate mode 확장 — 리드 전체 파일 수정 차단)
+
+### 브랜치: fix/WI-169-fix-delegate-mode-full → PR #214 머지
+
+### 주요 변경
+- **delegate mode 전면 확장**:
+  - 기존: 리드가 src/ 수정만 차단
+  - 변경: 리드가 팀 활성 시 모든 파일 수정 차단 (requirements, settings, knowledge, CLAUDE.md 포함)
+  - 모든 파일 수정은 팀원에게 위임
+- **팀원 역할별 권한 제한** (enforce-delegate-mode.sh):
+  - guardian, judge: Write/Edit 전부 차단 (읽기전용)
+  - verifier, tester: .claude/verification/ 만 허용
+  - docops: src/ 차단, .claude/ 및 기타 허용
+  - implementer: 제한 없음
+- **lead-workflow.md 변경**: requirements 파일 작성을 DocOps 팀원에게 지시하도록 변경
+- **CLAUDE.md 행동 금지 항목 추가**: "리드의 직접 파일 수정 — 모든 파일 수정은 팀원에게 위임"
+
+### 사건: DocOps 위반 거부 사례
+- 리드가 src/ 외 파일을 직접 수정하려 했으나 DocOps가 워크플로우 위반으로 거부
+- 사용자 판단: "docops가 잘했네", "오히려 니가 위반인데도 불구하고 독옵스의 만류를 내게 보고하지않은게 잘못이지"
+- 교훈: 팀원 거부 시 사용자에게 즉시 보고, 우회 금지
+
+### 사용자 피드백
+- "src 외에도 팀생성없이 하면 금지인데 왜 커밋이된거지?" — delegate mode 구멍 발견
+- "리드의 직접 커밋자체를 금지하고 요구사항 작성이나 설정변경하는건 독옵스에서 맡으면 되는거아닌가?" — 리드 완전 위임 방향
+- "모든작업은 WI 할당해서 처리하는건데 이건 태스크로 잡혀야하는데?" — DocOps 작업도 WI+태스크 체계 준수

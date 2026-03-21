@@ -1,9 +1,9 @@
 # 프로젝트 현재 상태
 
-## 마지막 업데이트: 2026-03-22 (S35)
+## 마지막 업데이트: 2026-03-22 (S36)
 
 ### 진행 현황
-- PR #148~211 (64개 PR)
+- PR #148~214 (67개 PR)
 - S29~S30: 코워크 검증 시스템 완전 구축 (PR #185~204)
   - 7개 시스템 통합 아키텍처 확정 (Hook/코워크/CI/Rules/Auto memory/Knowledge/CLAUDE.md)
   - 코워크 실전 테스트 5회 (Guardian/Implementer/Verifier/Judge/Tester/DocOps 전원 확인)
@@ -12,40 +12,37 @@
   - knowledge/ 재설계 완료 (RAG 12개 → 7카테고리)
   - 글로벌 시스템 통합 재편 (CLAUDE.md 슬림화, rules 통합)
 - S31: WI-161 verify-on-commit.sh hook 강화 — 완료 (PR #205)
-  - WI 번호 중복 차단 강화 (임계값 10 → 0, 경고 → 차단)
-  - 빈 팀 우회 방지 (Guardian/DocOps 필수 멤버 확인)
-  - CLAUDE.md 행동 가이드 추가
 - S32: knowledge/ 동기화 (DocOps) — 완료 (PR #206)
 - S33: WI-163 Stop hook 미커밋 파일 차단 + process.md 세션 규칙 — 완료 (PR #207)
 - S33: WI-164 knowledge 동기화 — 완료 (PR #208)
 - S34: WI-165 Guardian 파일 숙지 크로스체킹 Step 추가 — 완료 (PR #209)
-  - guardian-agent.md에 Step 4 "리드 파일 숙지 크로스체킹" 추가
-  - 리드가 작업 전 관련 파일을 실제로 읽었는지 검증
-  - rules 강제주입이 유저 메시지 취급되어 무시될 수 있는 문제 대응
 - S34: WI-166 knowledge 동기화 — 완료 (PR #210)
-- S35: WI-167 세션 단위 팀 운영 + Tester completion gate 연동 — PR #211 오픈
-  - lead-workflow.md: 세션 단위 팀 운영으로 전환 (태스크마다 생성/해체 → 세션 내내 상시 가동)
-  - tester-agent.md: Tester 결과 파일 작성 Step 추가 (TEST-PASS/TEST-FAIL → verification/)
-  - verify-task-completion.sh: Tester completion gate 연동 (tester 결과 파일을 hook에서 확인)
+- S35: WI-167 세션 단위 팀 운영 + Tester completion gate 연동 — 완료 (PR #211)
+- S35: WI-167 knowledge 동기화 — 완료 (PR #212)
+- S36: WI-169 리드 전체 파일 수정 차단 + 역할별 권한 제한 — 완료 (PR #214)
+  - delegate mode 확장: 리드가 src/ 뿐만 아니라 모든 파일 수정 불가 (requirements, settings, knowledge 포함)
+  - 팀원 역할별 권한 제한: guardian/judge 읽기전용, verifier/tester verification만, docops src/ 차단, implementer 제한없음
+  - lead-workflow.md: requirements 작성을 DocOps에게 위임
+  - CLAUDE.md 행동 금지 항목에 "리드의 직접 파일 수정" 추가
+  - 사용자 확정: 리드의 직접 커밋 자체를 금지하고 요구사항 작성도 DocOps가 담당
 
 ### 미완료 항목 (상세)
 
 #### 높음
 1. **end-to-end 전체 플로우 테스트** — 5단계 워크플로우를 실제 기능으로 처음부터 끝까지 실행
-2. ~~**Tester → completion gate 연동**~~ — **WI-167에서 구현 완료** (PR #211)
-3. **SessionStart hook 검증** — 오토컴팩트/clear 양쪽에서 knowledge 주입 정상 동작 검증 필요
-4. **WI-159 외부 API 연동** — 고용지원금 외부 API(고용24 등), hook에서 차단 확인됨
-5. **코워크 항상 활성화 전환** — rules 강제주입이 유저 메시지로 취급되어 작업 압박 시 무시됨 → 코워크 항상 활성화로 첫 커밋에서 차단 필요
+2. **SessionStart hook 검증** — 오토컴팩트/clear 양쪽에서 knowledge 주입 정상 동작 검증 필요
+3. **WI-159 외부 API 연동** — 고용지원금 외부 API(고용24 등), hook에서 차단 확인됨
+4. **코워크 항상 활성화 전환** — rules 강제주입이 유저 메시지로 취급되어 작업 압박 시 무시됨 → 코워크 항상 활성화로 첫 커밋에서 차단 필요
 
 #### 중간
-6. **TaskCompleted hook build false positive** — Next.js dynamic route 메시지 오탐
-7. **다중 Implementer 병렬 테스트** — 파일 충돌 방지 미검증
-8. **SSOT 흐름 실검증** — Admin→Employee 데이터 흐름
+5. **TaskCompleted hook build false positive** — Next.js dynamic route 메시지 오탐
+6. **다중 Implementer 병렬 테스트** — 파일 충돌 방지 미검증
+7. **SSOT 흐름 실검증** — Admin→Employee 데이터 흐름
 
 #### 낮음
-9. console.error 정리 (프로덕션 배포 전)
-10. 다른 프로젝트 코워크 주입 템플릿
-11. mem 스킬 legacy 전환 반영
+8. console.error 정리 (프로덕션 배포 전)
+9. 다른 프로젝트 코워크 주입 템플릿
+10. mem 스킬 legacy 전환 반영
 
 ### 다음 작업 (우선순위: 시스템 → 기존 버그 → 신규 기능)
 
@@ -75,3 +72,6 @@
 - 작업 전 파일 숙지 검증 — Guardian이 리드의 파일 읽기 여부를 크로스체킹
 - 팀은 세션 단위 운영 — 태스크마다 생성/해체하지 않고 세션 내내 상시 가동
 - Tester 결과 파일은 verification/{task_id}-test.md에 작성 — hook이 자동 확인
+- 리드는 모든 파일 수정 불가 (delegate mode 확장) — 팀원에게 위임 필수
+- 팀원 역할별 권한 제한 — guardian/judge 읽기전용, verifier/tester verification만, docops src/ 차단
+- 팀원 워크플로우 위반 거부 시 사용자에게 즉시 보고 — 우회하거나 다른 팀원에게 재할당 금지

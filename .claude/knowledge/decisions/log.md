@@ -1,6 +1,6 @@
 ---
 name: key-decisions
-description: 프로젝트 주요 의사결정 로그 — 2026-03-22 S35 업데이트
+description: 프로젝트 주요 의사결정 로그 — 2026-03-22 S36 업데이트
 type: reference
 ---
 
@@ -166,3 +166,13 @@ type: reference
 | 세션 단위 팀 운영 | 팀을 태스크마다 생성/해체하지 않고 세션 내내 유지. Guardian+DocOps 상시 가동 | 매번 팀 생성/해체 오버헤드 제거, Guardian/DocOps는 모든 작업에 필수이므로 상시 가동이 자연스러움 |
 | Tester 결과 파일 표준화 | `.claude/verification/{task_id}-test.md`에 TEST-PASS/TEST-FAIL 작성 | TaskCompleted hook과 연동하기 위한 표준 포맷 필요 |
 | Tester completion gate | verify-task-completion.sh에 1.5단계 추가 — tester 결과 확인 후 태스크 완료 허용 | 기존에 tester 결과가 hook에 연결 안 되던 gap 해소 (미완료 항목 #2 해결) |
+
+## S36 의사결정 (2026-03-22)
+
+| 결정 | 내용 | 사유 |
+|------|------|------|
+| delegate mode 전면 확장 | 리드가 src/ 뿐만 아니라 모든 파일 수정 불가 (팀 활성 시) | 사용자: "src 외에도 팀생성없이 하면 금지인데 왜 커밋이된거지?" — 기존 src/ 제한은 구멍, 리드는 조율만 |
+| 팀원 역할별 권한 제한 | guardian/judge 읽기전용, verifier/tester verification만, docops src/ 차단, implementer 제한없음 | 각 역할의 책임 범위에 맞는 최소 권한 원칙 적용 |
+| 리드 완전 위임 모델 | requirements 작성도 DocOps에게 지시하도록 변경 | 사용자: "리드의 직접 커밋자체를 금지하고 요구사항 작성이나 설정변경하는건 독옵스에서 맡으면 되는거아닌가?" |
+| 팀원 거부 보고 의무 | 팀원이 워크플로우 위반을 이유로 작업 거부 시 리드는 사용자에게 즉시 보고 | 사용자: "오히려 니가 위반인데도 불구하고 독옵스의 만류를 내게 보고하지않은게 잘못이지" |
+| DocOps 작업도 WI+태스크 체계 준수 | DocOps의 knowledge 업데이트도 WI 번호 할당 + 태스크로 관리 | 사용자: "모든작업은 WI 할당해서 처리하는건데 이건 태스크로 잡혀야하는데?" |
