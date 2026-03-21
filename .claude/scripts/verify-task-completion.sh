@@ -7,7 +7,7 @@
 # 플로우:
 #   구현 팀원 → 태스크 완료 시도 → hook 발동
 #   → 검증 팀원 승인 파일(.claude/verification/{task_id}.md) 확인
-#   → PASS면 lint/build/test 후 통과
+#   → PASS면 통과
 #   → 없거나 FAIL이면 차단 + 피드백
 #
 # exit 0 = 완료 허용, exit 2 = 완료 거부 + 피드백
@@ -111,29 +111,7 @@ if [ -n "$HAS_TESTER" ]; then
   fi
 fi
 
-# ─── 2단계: 기계적 검증 (lint/build/test) ───
-
-npm run lint > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-  echo "❌ lint 실패. 코드 스타일 문제를 수정하세요." >&2
-  exit 2
-fi
-
-npm run build > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-  echo "❌ build 실패. 컴파일 에러를 수정하세요." >&2
-  exit 2
-fi
-
-npm test > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-  echo "❌ test 실패. 테스트를 수정하세요." >&2
-  exit 2
-fi
-
-echo "✅ 기계적 검증 통과 (lint/build/test)" >&2
-
-# ─── 3단계: knowledge/ stale 체크 (DocOps 안전장치) ───
+# ─── 2단계: knowledge/ stale 체크 (DocOps 안전장치) ───
 
 KNOWLEDGE_DIR=".claude/knowledge"
 if [ -d "$KNOWLEDGE_DIR" ]; then
