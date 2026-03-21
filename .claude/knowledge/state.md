@@ -3,7 +3,7 @@
 ## 마지막 업데이트: 2026-03-22 (S37)
 
 ### 진행 현황
-- PR #148~224 (77개 PR)
+- PR #148~225 (78개 PR)
 - S29~S30: 코워크 검증 시스템 완전 구축 (PR #185~204)
   - 7개 시스템 통합 아키텍처 확정 (Hook/코워크/CI/Rules/Auto memory/Knowledge/CLAUDE.md)
   - 코워크 실전 테스트 5회 (Guardian/Implementer/Verifier/Judge/Tester/DocOps 전원 확인)
@@ -43,8 +43,10 @@
   - verify-teammate-idle.sh: Guardian idle 차단 (상시 감시 역할이므로 idle 불가)
 - S37: WI-177 에이전트별 git user.name 설정 — 완료 (PR #224)
   - docops/spawn-template/tester/verifier 4개 에이전트에 역할별 git user.name 추가
-- S37: WI-178 머지 브랜치 커밋 차단 hook — PR 오픈
+- S37: WI-178 머지 브랜치 커밋 차단 hook — 완료 (PR #225)
   - verify-on-commit.sh: 머지된 PR 브랜치에서 추가 커밋 시 즉시 차단
+- S37: WI-179 DocOps만 커밋 가능 hook — PR 오픈
+  - verify-on-commit.sh: 팀 활성 시 DocOps 외 에이전트 커밋 차단
 
 ### 미완료 항목 (상세)
 
