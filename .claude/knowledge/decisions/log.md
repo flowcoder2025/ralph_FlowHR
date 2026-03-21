@@ -1,6 +1,6 @@
 ---
 name: key-decisions
-description: 프로젝트 주요 의사결정 로그 — 2026-03-21 S30 업데이트
+description: 프로젝트 주요 의사결정 로그 — 2026-03-21 S32 업데이트
 type: reference
 ---
 
