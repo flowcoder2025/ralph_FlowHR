@@ -3,7 +3,7 @@
 ## 마지막 업데이트: 2026-03-22 (S37)
 
 ### 진행 현황
-- PR #148~219 (72개 PR)
+- PR #148~220 (73개 PR)
 - S29~S30: 코워크 검증 시스템 완전 구축 (PR #185~204)
   - 7개 시스템 통합 아키텍처 확정 (Hook/코워크/CI/Rules/Auto memory/Knowledge/CLAUDE.md)
   - 코워크 실전 테스트 5회 (Guardian/Implementer/Verifier/Judge/Tester/DocOps 전원 확인)
@@ -33,9 +33,11 @@
 - S36: WI-173 Phase 5 DocOps 커밋 후 enqueue 순서 강제 — 완료 PR #219
   - lead-workflow.md Phase 5: DocOps 커밋+push → PR 생성 → enqueue 순서 명시
   - enqueue 전에 DocOps 커밋이 반드시 push되어야 함 (머지큐 진입 후 브랜치 수정 불가)
-- S37: WI-174 DocOps PR 상태 자동 갱신 + hook /dev/null Windows 호환 — PR 오픈
-  - docops-agent.md: PR 상태 자동 갱신 정책 추가 (세션 시작 시 state.md/unresolved.md에서 "PR 오픈" 항목을 git log 기준으로 갱신)
-  - verify-task-completion.sh + verify-teammate-idle.sh: /dev/null → mktemp 임시파일로 변경 (Windows build false positive 해결)
+- S37: WI-174 DocOps PR 상태 자동 갱신 — 완료 (PR #220)
+  - docops-agent.md: PR 상태 자동 갱신 정책 추가
+  - hook 스크립트 변경 시도 후 원복
+- S37: WI-175 프로젝트 permissions Write/Edit allow 추가 — PR 오픈
+  - .claude/settings.json: permissions.allow에 Write/Edit 추가 (팀원 도구 승인 자동화)
 
 ### 미완료 항목 (상세)
 
@@ -46,7 +48,7 @@
 4. **코워크 항상 활성화 전환** — rules 강제주입이 유저 메시지로 취급되어 작업 압박 시 무시됨 → 코워크 항상 활성화로 첫 커밋에서 차단 필요
 
 #### 중간
-5. ~~**TaskCompleted hook build false positive**~~ — WI-174에서 해결 (/dev/null → mktemp)
+5. **TaskCompleted hook build false positive** — Next.js dynamic route 메시지 오탐 (미해결)
 6. **다중 Implementer 병렬 테스트** — 파일 충돌 방지 미검증
 7. **SSOT 흐름 실검증** — Admin→Employee 데이터 흐름
 
@@ -63,7 +65,7 @@
 - end-to-end 전체 플로우 테스트 (5단계 처음부터 끝까지)
 
 #### 2순위: 기존 버그
-- ~~TaskCompleted hook build false positive 수정~~ — WI-174에서 해결
+- TaskCompleted hook build false positive 수정
 - console.error 정리
 
 #### 3순위: 신규 기능

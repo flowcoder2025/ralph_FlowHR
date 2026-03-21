@@ -186,4 +186,5 @@ type: reference
 | 결정 | 내용 | 사유 |
 |------|------|------|
 | DocOps PR 상태 자동 갱신 | 세션 시작 시 "PR 오픈" 항목을 git log 기준으로 실제 상태 갱신 | state.md/unresolved.md에 "PR 오픈"으로 남아있는 항목이 실제로는 머지 완료인 경우가 반복 발생 |
-| hook /dev/null → mktemp | verify-task-completion.sh + verify-teammate-idle.sh에서 /dev/null 대신 mktemp 사용 | Windows Git Bash에서 /dev/null 리디렉션 시 build 출력이 stderr로 누출되어 false positive 발생 |
+| hook 변경 시도 후 원복 | /dev/null→mktemp 시도 후 원복 | build false positive 원인이 /dev/null이 아닌 것으로 판명 |
+| 프로젝트 permissions allow | settings.json에 Write/Edit 도구 자동 허용 | 팀원이 파일 수정 시 매번 수동 승인 팝업 발생 → 작업 흐름 방해 |
