@@ -44,8 +44,8 @@ if [ -z "$ACTIVE_TEAM" ]; then
     echo "❌ src/ 파일을 변경하려면 full 코워크 팀을 구성해야 합니다." >&2
     echo "필수 팀원: Guardian + Implementer + Verifier + Tester + DocOps" >&2
   else
-    echo "❌ 코드 변경 시 최소 Guardian + DocOps 팀을 구성해야 합니다." >&2
-    echo "Guardian: WI 번호 + 요구사항 검증 / DocOps: knowledge/ 업데이트" >&2
+    echo "❌ 코드 변경 시 전원 (Guardian, DocOps, Implementer, Verifier, Tester, Judge) 팀을 구성해야 합니다." >&2
+    echo "Guardian: WI 번호 + 요구사항 검증 / DocOps: knowledge/ 업데이트 / Implementer: 구현 / Verifier: 검증 / Tester: 테스트 / Judge: 재평가" >&2
   fi
   echo "lead-workflow를 따라 팀을 구성한 후 작업하세요:" >&2
   echo "  1. 요구사항 확정 → 2. 설계 → 3. 팀 구성 → 4. 실행 → 5. 마무리" >&2
@@ -57,12 +57,20 @@ TEAM_CONFIG="$TEAM_DIR/$ACTIVE_TEAM/config.json"
 if [ -f "$TEAM_CONFIG" ]; then
   HAS_GUARDIAN=$(jq -r '.members[]?.name // empty' "$TEAM_CONFIG" 2>/dev/null | grep -i "guardian" | head -1)
   HAS_DOCOPS=$(jq -r '.members[]?.name // empty' "$TEAM_CONFIG" 2>/dev/null | grep -i "docops" | head -1)
+  HAS_IMPLEMENTER=$(jq -r '.members[]?.name // empty' "$TEAM_CONFIG" 2>/dev/null | grep -i "implementer" | head -1)
+  HAS_VERIFIER=$(jq -r '.members[]?.name // empty' "$TEAM_CONFIG" 2>/dev/null | grep -i "verifier" | head -1)
+  HAS_TESTER=$(jq -r '.members[]?.name // empty' "$TEAM_CONFIG" 2>/dev/null | grep -i "tester" | head -1)
+  HAS_JUDGE=$(jq -r '.members[]?.name // empty' "$TEAM_CONFIG" 2>/dev/null | grep -i "judge" | head -1)
 
-  if [ -z "$HAS_GUARDIAN" ] || [ -z "$HAS_DOCOPS" ]; then
-    echo "❌ 팀에 필수 멤버가 없습니다." >&2
+  if [ -z "$HAS_GUARDIAN" ] || [ -z "$HAS_DOCOPS" ] || [ -z "$HAS_IMPLEMENTER" ] || [ -z "$HAS_VERIFIER" ] || [ -z "$HAS_TESTER" ] || [ -z "$HAS_JUDGE" ]; then
+    echo "❌ 팀에 필수 멤버가 없습니다. 전원 (Guardian, DocOps, Implementer, Verifier, Tester, Judge) 필수." >&2
     [ -z "$HAS_GUARDIAN" ] && echo "  - Guardian 없음 (WI 번호 + 요구사항 검증)" >&2
     [ -z "$HAS_DOCOPS" ] && echo "  - DocOps 없음 (knowledge/ 업데이트)" >&2
-    echo "빈 팀으로 우회하지 마세요. 필수 멤버를 spawn하세요." >&2
+    [ -z "$HAS_IMPLEMENTER" ] && echo "  - Implementer 없음 (구현)" >&2
+    [ -z "$HAS_VERIFIER" ] && echo "  - Verifier 없음 (요구사항 대비 검증)" >&2
+    [ -z "$HAS_TESTER" ] && echo "  - Tester 없음 (Playwright MCP CRUD 테스트)" >&2
+    [ -z "$HAS_JUDGE" ] && echo "  - Judge 없음 (2차 재평가)" >&2
+    echo "빈 팀으로 우회하지 마세요. 필수 멤버를 전원 spawn하세요." >&2
     exit 2
   fi
 fi
