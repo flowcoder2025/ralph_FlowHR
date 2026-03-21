@@ -1,6 +1,6 @@
 ---
 name: session-timeline
-description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-22, S36 반영)
+description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-22, S37 반영)
 type: reference
 ---
 
@@ -247,3 +247,17 @@ type: reference
 - **lead-workflow.md Phase 5 순서 변경**: DocOps knowledge 커밋+push → PR 생성 → enqueue
 - enqueue 전에 DocOps 커밋이 반드시 push되어야 함 (머지큐 진입 후 브랜치 수정 불가)
 - WI-172에서 발생한 머지큐 push 차단 사고 재발 방지
+
+## S37 (03-22, WI-174 DocOps PR 상태 자동 갱신 + hook Windows 호환)
+
+### 브랜치: fix/WI-174-fix-docops-pr-status
+
+### PR 이력
+| PR | WI | 내용 |
+|----|-----|------|
+| TBD | WI-174 | DocOps PR 상태 자동 갱신 정책 + hook /dev/null Windows 호환 수정 |
+
+### 주요 변경
+- **docops-agent.md PR 상태 자동 갱신 정책 추가**: 세션 시작 시 state.md/unresolved.md에서 "PR 오픈" 항목을 git log 기준으로 실제 상태(완료/닫힘/유지) 갱신
+- **verify-task-completion.sh + verify-teammate-idle.sh Windows 호환 수정**: `/dev/null`을 `mktemp` 임시파일로 변경 — Windows(Git Bash)에서 /dev/null 리디렉션이 build false positive를 유발하던 문제 해결
+- **WI-173 PR 오픈 → 완료 PR #219 갱신**: state.md + issues/unresolved.md에서 WI-173 상태 갱신 (PR 상태 자동 갱신 정책의 첫 적용)
