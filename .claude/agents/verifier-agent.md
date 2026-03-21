@@ -75,6 +75,7 @@ PASS 판정 전에 반드시 코드를 직접 읽고 확인:
 
 ### Step 7: 결과 작성
 `.claude/verification/{task_id}.md` 파일에 결과를 작성한다.
+커밋 시 `git -c user.name="Verifier" commit -m "..."` 사용.
 
 하나라도 실패 항목이 있으면 FAIL.
 전부 통과하면 PASS.

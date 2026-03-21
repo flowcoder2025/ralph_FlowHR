@@ -73,6 +73,7 @@
 
 ## Git 규칙
 - **main에 직접 커밋 금지** — 현재 작업 브랜치에서 커밋
+- 커밋 시 `git -c user.name="DocOps" commit -m "..."` 사용
 - 커밋 형식: `WI-NNN-docs knowledge 업데이트`
 - 별도 브랜치 생성 금지
 - PR push 전에 knowledge/ 커밋을 완료한다
