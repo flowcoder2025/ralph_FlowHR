@@ -15,6 +15,7 @@ type: reference
 | S26 | 03-17 | PR #159~165 (다크모드, 복합기능, 접근제어, 테스트, 직급) |
 | S27 | 03-17~20 | PR #166~174 (정정신청, 문서발송, GPS지도, PWA, 모바일UI, 포괄임금) |
 | S29 | 03-21 | PR #185~198 (코워크 시스템 + knowledge 재설계 + 글로벌 통합 + hook 강제 + DocOps 강제 + discussions + 정리) |
+| S30 | 03-21 | 코워크 첫 실전 테스트 3회 + DocOps 자율화 정책 + 전 에이전트 Opus 통일 + discussions 작성 정책 |
 
 ## S26 PR 이력 (18개)
 | PR | 내용 |
@@ -97,3 +98,21 @@ type: reference
 - lead-workflow hook 강제: src/ 커밋 시 팀 필수
 - DocOps 자동 실행 강제 (PR #198)
 - discussions/ 카테고리 추가 (대화 맥락 보존)
+
+## S30 (03-21, 코워크 실전 테스트 + DocOps 자율화)
+
+### 코워크 테스트 이력
+| 테스트 | 팀원 동작 | 결과 |
+|--------|----------|------|
+| constants 추가 | Guardian→Implementer→Verifier | PASS (hook false positive으로 커밋 지연) |
+| fail-flow 불완전 구현 검출 | Verifier FAIL→Implementer 수정→Verifier PASS | PASS |
+| plan approval 테스트 | Implementer plan 제출→리드 승인→구현 | PASS |
+| DocOps main 커밋 차단 | DocOps main commit 시도→hook 차단 확인 | PASS |
+| Tester 브라우저 테스트 | 로그인+대시보드+메뉴 3건 | PASS |
+| Judge 2차 검증 | fail-flow 코드 품질 검증 | PASS |
+
+### 주요 변경
+- DocOps 에이전트 자율화 (리드 의존 제거, session JSONL 직접 읽기)
+- 전 에이전트 모델 Opus 통일
+- discussions/ 작성 정책: session JSONL이 원천, 리드 요약에 의존하지 않음
+- TaskCompleted hook build false positive 발견 (Next.js dynamic route 메시지를 실패로 오판)

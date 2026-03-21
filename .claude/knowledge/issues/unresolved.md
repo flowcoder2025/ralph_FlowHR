@@ -1,6 +1,6 @@
 ---
 name: unresolved-issues
-description: 남은 작업 — 2026-03-21 기준 (PR #198까지 반영, S29 완료)
+description: 남은 작업 — 2026-03-21 기준 (S30 반영, 코워크 테스트 완료)
 type: reference
 ---
 
@@ -41,7 +41,8 @@ type: reference
 - ✅ DocOps 자동 실행 강제 (PR #198)
 - ✅ discussions/ 카테고리 추가
 - ✅ 정리 완료 (구 RAG 삭제, 테스트 브랜치, 글로벌 MEMORY)
-- 미검증: 실전 코워크 워크플로우 (첫 실전 대기 중)
+- ✅ 실전 코워크 워크플로우 테스트 3회 완료 (S30)
+- ⚠️ TaskCompleted hook build false positive 미수정
 
 ## knowledge 시스템 — ✅ 재설계 완료 (PR #190, #198)
 - ✅ RAG 12파일 → knowledge/ 7카테고리 16파일 (discussions/ 추가)
@@ -54,5 +55,7 @@ type: reference
 
 ## 기타
 - console.error 정리 (프로덕션 배포 전)
-- 코워크 첫 실전 검증 필요 (WI-161+ 기능 작업에서)
+- 코워크 실전 테스트 3회 완료 (S30) — 실제 기능 작업(WI-161+)으로 추가 검증 필요
 - Tester → completion gate 연동 미구현
+- TaskCompleted hook build false positive (Next.js dynamic route 메시지를 실패로 오판)
+- DocOps Stop hook 간헐적 미동작 (사용자 지적: "docops가 계속 안도는거같은데")
