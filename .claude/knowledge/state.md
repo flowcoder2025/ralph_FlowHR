@@ -51,9 +51,9 @@
 ### 미완료 항목 (상세)
 
 #### 높음
-1. **WI-181 코워크 자동 활성화** — enforce-delegate-mode.sh에서 팀 없으면 Write/Edit 전면 차단 → 팀 생성 강제
-2. **WI-182 SessionStart hook 검증** — 오토컴팩트/clear 양쪽에서 knowledge 주입 정상 동작 검증 필요
-3. **WI-183 TaskCompleted hook build false positive 수정** — Next.js dynamic route 메시지 오탐 (미해결)
+1. ~~**WI-181 코워크 자동 활성화**~~ — 사용자 제외 결정 (커밋 게이트로 충분)
+2. ~~**WI-182 SessionStart hook 검증**~~ — S38 검증 완료 (스크립트 수동 실행으로 정상 동작 확인)
+3. ~~**WI-183 TaskCompleted hook build false positive 수정**~~ — S38 완료 (lint/build/test 블록 제거)
 4. **WI-184 외부 API 연동 — 고용지원금** — 기존 WI-159에서 재할당, 고용24 등 외부 API
 
 #### 중간
@@ -74,12 +74,7 @@
 
 #### 자동 정렬 작업 (시스템 → 기존 버그 → 신규 기능)
 
-##### 1순위: 시스템/인프라 (도구 완성)
-- WI-181 코워크 자동 활성화 (팀 없으면 Write/Edit 차단 → 팀 생성 강제)
-- WI-182 SessionStart hook 검증 (오토컴팩트+clear 양쪽 커버 확인)
-
-##### 2순위: 기존 버그
-- WI-183 TaskCompleted hook build false positive 수정
+##### 1순위: 기존 버그
 - WI-187 console.error 정리
 
 ##### 3순위: 신규 기능

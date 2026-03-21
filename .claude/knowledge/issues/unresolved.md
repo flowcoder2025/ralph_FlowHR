@@ -84,18 +84,16 @@ type: reference
 
 ## 미완료 — 시스템/인프라 (높음)
 
-### WI-181 코워크 자동 활성화
-- enforce-delegate-mode.sh에서 팀 없으면 Write/Edit 전면 차단 → 팀 생성 강제
-- rules 강제주입이 유저 메시지로 취급되어 작업 압박 시 무시될 수 있음 (S34 발견)
-- 사용자 확정: 코워크를 선택이 아닌 필수로, 첫 커밋에서 차단
+### ~~WI-181 코워크 자동 활성화~~ — 사용자 제외 결정
+- 커밋 게이트(verify-on-commit.sh)로 충분하다고 판단
+- 별도 구현 불필요
 
-### WI-182 SessionStart hook 검증
-- 오토컴팩트와 /clear 양쪽에서 knowledge 주입이 정상 동작하는지 검증 필요
-- S31 사용자 질문: "오토컴팩트든 그냥 컴팩트명령어 실행이든 다 커버되는거지?"
+### ~~WI-182 SessionStart hook 검증~~ — S38 검증 완료
+- 스크립트 수동 실행으로 오토컴팩트/clear 양쪽 정상 동작 확인
 
-### WI-183 TaskCompleted hook build false positive 수정
-- Next.js dynamic route 메시지를 실패로 오판
-- S30에서 발견, WI-174에서 /dev/null→mktemp 시도 후 원복 (미해결)
+### ~~WI-183 TaskCompleted hook build false positive 수정~~ — S38 완료
+- verify-task-completion.sh에서 lint/build/test 블록 제거
+- Next.js dynamic route 오탐 문제 해결
 
 ### WI-184 외부 API 연동 — 고용지원금
 - 기존 WI-159에서 재할당 (WI-159는 근로계약서+지원금으로 부분 완료 PR #184)
