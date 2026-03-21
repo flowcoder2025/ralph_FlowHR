@@ -51,20 +51,19 @@
 ### 미완료 항목 (상세)
 
 #### 높음
-1. **end-to-end 전체 플로우 테스트** — 5단계 워크플로우를 실제 기능으로 처음부터 끝까지 실행
-2. **SessionStart hook 검증** — 오토컴팩트/clear 양쪽에서 knowledge 주입 정상 동작 검증 필요
-3. **WI-159 외부 API 연동** — 고용지원금 외부 API(고용24 등), hook에서 차단 확인됨
-4. **코워크 항상 활성화 전환** — rules 강제주입이 유저 메시지로 취급되어 작업 압박 시 무시됨 → 코워크 항상 활성화로 첫 커밋에서 차단 필요
+1. **WI-181 코워크 자동 활성화** — enforce-delegate-mode.sh에서 팀 없으면 Write/Edit 전면 차단 → 팀 생성 강제
+2. **WI-182 SessionStart hook 검증** — 오토컴팩트/clear 양쪽에서 knowledge 주입 정상 동작 검증 필요
+3. **WI-183 TaskCompleted hook build false positive 수정** — Next.js dynamic route 메시지 오탐 (미해결)
+4. **WI-184 외부 API 연동 — 고용지원금** — 기존 WI-159에서 재할당, 고용24 등 외부 API
 
 #### 중간
-5. **TaskCompleted hook build false positive** — Next.js dynamic route 메시지 오탐 (미해결)
-6. **다중 Implementer 병렬 테스트** — 파일 충돌 방지 미검증
-7. **SSOT 흐름 실검증** — Admin→Employee 데이터 흐름
+5. **WI-185 다중 Implementer 병렬 테스트** — 파일 충돌 방지 미검증
+6. **WI-186 SSOT 흐름 실검증** — Admin→Employee 데이터 흐름
 
 #### 낮음
-8. console.error 정리 (프로덕션 배포 전)
-9. 다른 프로젝트 코워크 주입 템플릿
-10. mem 스킬 legacy 전환 반영
+7. **WI-187 console.error 정리** (프로덕션 배포 전)
+8. **WI-188 다른 프로젝트 코워크 주입 템플릿**
+9. **WI-189 mem 스킬 legacy 전환 반영**
 
 ### 다음 작업 (우선순위)
 
@@ -76,15 +75,15 @@
 #### 자동 정렬 작업 (시스템 → 기존 버그 → 신규 기능)
 
 ##### 1순위: 시스템/인프라 (도구 완성)
-- 코워크 항상 활성화 전환 (rules 무시 방지 — 첫 커밋에서 차단)
-- SessionStart hook 검증 (오토컴팩트+clear 양쪽 커버 확인)
+- WI-181 코워크 자동 활성화 (팀 없으면 Write/Edit 차단 → 팀 생성 강제)
+- WI-182 SessionStart hook 검증 (오토컴팩트+clear 양쪽 커버 확인)
 
 ##### 2순위: 기존 버그
-- TaskCompleted hook build false positive 수정
-- console.error 정리
+- WI-183 TaskCompleted hook build false positive 수정
+- WI-187 console.error 정리
 
 ##### 3순위: 신규 기능
-- WI-159 외부 API 연동 (고용지원금)
+- WI-184 외부 API 연동 — 고용지원금 (기존 WI-159 재할당)
 
 ### 핵심 원칙 (다음 세션 필독)
 - 7개 시스템 전부 강제 유지 — 하나도 풀면 안 됨

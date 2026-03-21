@@ -36,10 +36,10 @@ type: reference
 | WI-178 | 머지 브랜치 커밋 차단 hook | 완료 PR #225 |
 | WI-179 | DocOps만 커밋 가능 hook | 완료 PR #226 |
 
-## 외부 API 연동 미구현
+## 외부 API 연동 미구현 → WI-184로 재할당
+- 기존 WI-159 근로계약서+지원금 중 외부 API 부분을 WI-184로 분리
 - 고용지원금: 사용자 결정 "외부 API 연동(고용24 등)"
 - 현재: 내부 매칭 엔진만 구현, 실제 외부 API 호출 없음
-- hook 검증에서 차단 확인됨
 
 ## Hook 검증 시스템 — 완료
 - 요구사항 파일 수정 차단 (PreToolUse Write/Edit/MultiEdit)
@@ -84,47 +84,53 @@ type: reference
 
 ## 미완료 — 시스템/인프라 (높음)
 
-### 코워크 항상 활성화 전환
+### WI-181 코워크 자동 활성화
+- enforce-delegate-mode.sh에서 팀 없으면 Write/Edit 전면 차단 → 팀 생성 강제
 - rules 강제주입이 유저 메시지로 취급되어 작업 압박 시 무시될 수 있음 (S34 발견)
 - 사용자 확정: 코워크를 선택이 아닌 필수로, 첫 커밋에서 차단
-- 구현 방법 미결: settings.json 변경? hook 추가? 항상 활성화 시 docs 전용 커밋도 full 팀 필요?
+
+### WI-182 SessionStart hook 검증
+- 오토컴팩트와 /clear 양쪽에서 knowledge 주입이 정상 동작하는지 검증 필요
+- S31 사용자 질문: "오토컴팩트든 그냥 컴팩트명령어 실행이든 다 커버되는거지?"
+
+### WI-183 TaskCompleted hook build false positive 수정
+- Next.js dynamic route 메시지를 실패로 오판
+- S30에서 발견, WI-174에서 /dev/null→mktemp 시도 후 원복 (미해결)
+
+### WI-184 외부 API 연동 — 고용지원금
+- 기존 WI-159에서 재할당 (WI-159는 근로계약서+지원금으로 부분 완료 PR #184)
+- 고용24 등 외부 API 호출 구현
+- 현재: 내부 매칭 엔진만 구현, 실제 외부 API 호출 없음
+- hook 검증에서 차단 확인됨
 
 ### end-to-end 전체 플로우 테스트
 - 5단계 워크플로우를 실제 기능으로 처음부터 끝까지 실행
 - 코워크 실전 테스트 3회 완료(S30)했으나 전체 흐름 검증은 미완
 - S37 사용자 합의: 스크린샷 PRD 소재(custom-report.png, doc-send.png, gps-map.png)로 실전 테스트 예정
 
-### SessionStart hook 검증
-- 오토컴팩트와 /clear 양쪽에서 knowledge 주입이 정상 동작하는지 검증 필요
-- S31 사용자 질문: "오토컴팩트든 그냥 컴팩트명령어 실행이든 다 커버되는거지?"
-
-### TaskCompleted hook build false positive
-- Next.js dynamic route 메시지를 실패로 오판
-- S30에서 발견, WI-174에서 /dev/null→mktemp 시도 후 원복 (미해결)
-
 ## 미완료 — 중간
 
-### 다중 Implementer 병렬 테스트
+### WI-185 다중 Implementer 병렬 테스트
 - 여러 Implementer가 동시에 src/ 수정 시 파일 충돌 방지 미검증
 - 코워크 아키텍처에서 병렬 구현 시나리오 테스트 필요
 
-### SSOT 흐름 실검증
+### WI-186 SSOT 흐름 실검증
 - Admin→Employee 데이터 흐름이 SSOT 원칙대로 동작하는지 실검증 필요
 - 직원 상세 드로어(WI-151) SSOT 허브가 실제로 단일 출처 역할하는지 확인
 
 ## 미완료 — 낮음
 
-### console.error 정리
+### WI-187 console.error 정리
 - 프로덕션 배포 전 불필요한 console.error 제거
 
-### 다른 프로젝트 코워크 주입 템플릿
+### WI-188 다른 프로젝트 코워크 주입 템플릿
 - 현재 ralph_FlowHR 전용 → 범용 템플릿 필요
 - .claude/ 하위 구조를 다른 프로젝트에 적용할 수 있도록
 
-### mem 스킬 legacy 전환 반영
+### WI-189 mem 스킬 legacy 전환 반영
 - mem:save/mem:load 수동 스킬 → knowledge/ 자동 체계로 전환
 - S30 결정: DocOps 자동 관리로 일원화
 
 ## 기타
 - DocOps Stop hook 간헐적 미동작 (사용자 지적: "docops가 계속 안도는거같은데") — PR #198에서 강제화, WI-163에서 미커밋 파일 차단 추가
-- rules 강제주입 한계: .claude/rules/ 파일이 유저 메시지로 취급 → 작업 압박 시 무시 가능 (S34 발견, 코워크 항상 활성화로 대응 예정)
+- rules 강제주입 한계: .claude/rules/ 파일이 유저 메시지로 취급 → 작업 압박 시 무시 가능 (S34 발견, WI-181 코워크 자동 활성화로 대응 예정)
