@@ -191,3 +191,4 @@ type: reference
 | DocOps 유일 커밋 주체 | Implementer는 코드 수정만, git add/commit 하지 않음. DocOps가 전체 변경사항을 한 번에 커밋+push+PR 생성 | 커밋 주체를 일원화하여 knowledge/ 누락 방지 + 커밋 순서/타이밍 문제 원천 차단 |
 | Guardian idle 차단 | Guardian은 상시 감시 역할이므로 idle hook에서 즉시 차단 (exit 2) | Guardian이 idle 상태가 되면 리드 행동 감시가 중단됨 — 상시 가동 필수 |
 | 에이전트별 git user.name | 각 에이전트가 커밋 시 역할명(DocOps/Implementer/Verifier/Tester)을 author로 사용 | 커밋 히스토리에서 누가 커밋했는지 구분 가능 |
+| 머지 브랜치 커밋 차단 | verify-on-commit.sh에서 머지된 PR 브랜치 커밋 즉시 차단 (exit 2) | 머지 후 같은 브랜치에 커밋하면 squash merge에 포함 안 됨 — WI-170 사고 재발 방지를 hook으로 강제 |

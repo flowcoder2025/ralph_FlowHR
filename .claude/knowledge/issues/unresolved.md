@@ -1,6 +1,6 @@
 ---
 name: unresolved-issues
-description: 남은 작업 — 2026-03-22 기준 (S37 반영, WI-177 에이전트 git user.name)
+description: 남은 작업 — 2026-03-22 기준 (S37 반영, WI-178 머지 브랜치 커밋 차단)
 type: reference
 ---
 
@@ -32,7 +32,8 @@ type: reference
 | WI-174 | DocOps PR 상태 자동 갱신 | 완료 PR #220 |
 | WI-175 | 프로젝트 permissions Write/Edit allow 추가 | 완료 PR #221 |
 | WI-176 | 커밋 구조 변경 + Guardian 상시 감시 강제 | 완료 PR #223 |
-| WI-177 | 에이전트별 git user.name 설정 | PR 오픈 |
+| WI-177 | 에이전트별 git user.name 설정 | 완료 PR #224 |
+| WI-178 | 머지 브랜치 커밋 차단 hook | PR 오픈 |
 
 ## 외부 API 연동 미구현
 - 고용지원금: 사용자 결정 "외부 API 연동(고용24 등)"
