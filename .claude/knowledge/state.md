@@ -1,9 +1,9 @@
 # 프로젝트 현재 상태
 
-## 마지막 업데이트: 2026-03-22 (S37)
+## 마지막 업데이트: 2026-03-22 (S38)
 
 ### 진행 현황
-- PR #148~225 (78개 PR)
+- PR #148~226 (79개 PR)
 - S29~S30: 코워크 검증 시스템 완전 구축 (PR #185~204)
   - 7개 시스템 통합 아키텍처 확정 (Hook/코워크/CI/Rules/Auto memory/Knowledge/CLAUDE.md)
   - 코워크 실전 테스트 5회 (Guardian/Implementer/Verifier/Judge/Tester/DocOps 전원 확인)
@@ -45,7 +45,7 @@
   - docops/spawn-template/tester/verifier 4개 에이전트에 역할별 git user.name 추가
 - S37: WI-178 머지 브랜치 커밋 차단 hook — 완료 (PR #225)
   - verify-on-commit.sh: 머지된 PR 브랜치에서 추가 커밋 시 즉시 차단
-- S37: WI-179 DocOps만 커밋 가능 hook — PR 오픈
+- S37: WI-179 DocOps만 커밋 가능 hook — 완료 (PR #226)
   - verify-on-commit.sh: 팀 활성 시 DocOps 외 에이전트 커밋 차단
 
 ### 미완료 항목 (상세)
@@ -66,18 +66,24 @@
 9. 다른 프로젝트 코워크 주입 템플릿
 10. mem 스킬 legacy 전환 반영
 
-### 다음 작업 (우선순위: 시스템 → 기존 버그 → 신규 기능)
+### 다음 작업 (우선순위)
 
-#### 1순위: 시스템/인프라 (도구 완성)
+#### 사용자 합의 작업 (S37 확정)
+- **코워크 실전 테스트** — 사용자가 스크린샷 PRD 소재 준비 완료 (custom-report.png, doc-send.png, gps-map.png)
+  - S37 사용자 확인: "코워크 초기에 설계했던 prd 넣으면 그랜드오픈까지 되는걸 바로 테스트해볼수 있다는거지?"
+  - 5단계 워크플로우를 실제 기능 PRD로 end-to-end 실행
+
+#### 자동 정렬 작업 (시스템 → 기존 버그 → 신규 기능)
+
+##### 1순위: 시스템/인프라 (도구 완성)
 - 코워크 항상 활성화 전환 (rules 무시 방지 — 첫 커밋에서 차단)
 - SessionStart hook 검증 (오토컴팩트+clear 양쪽 커버 확인)
-- end-to-end 전체 플로우 테스트 (5단계 처음부터 끝까지)
 
-#### 2순위: 기존 버그
+##### 2순위: 기존 버그
 - TaskCompleted hook build false positive 수정
 - console.error 정리
 
-#### 3순위: 신규 기능
+##### 3순위: 신규 기능
 - WI-159 외부 API 연동 (고용지원금)
 
 ### 핵심 원칙 (다음 세션 필독)
@@ -102,3 +108,4 @@
 - DocOps가 유일한 커밋 주체 — Implementer는 코드 수정만, 커밋+push+PR은 DocOps가 처리
 - Guardian 상시 감시 — idle hook에서 즉시 차단, 세션 내내 리드 행동 감시
 - 머지된 브랜치 커밋 차단 — PR 머지 후 같은 브랜치에 커밋하면 hook이 즉시 차단
+- 세션 합의 작업 우선 — 사용자가 세션에서 명시적으로 합의한 다음 작업은 자동 정렬보다 우선

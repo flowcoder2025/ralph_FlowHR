@@ -1,6 +1,6 @@
 ---
 name: unresolved-issues
-description: 남은 작업 — 2026-03-22 기준 (S37 반영, WI-179 DocOps만 커밋 가능)
+description: 남은 작업 — 2026-03-22 기준 (S38 반영, WI-179 완료 PR #226)
 type: reference
 ---
 
@@ -34,7 +34,7 @@ type: reference
 | WI-176 | 커밋 구조 변경 + Guardian 상시 감시 강제 | 완료 PR #223 |
 | WI-177 | 에이전트별 git user.name 설정 | 완료 PR #224 |
 | WI-178 | 머지 브랜치 커밋 차단 hook | 완료 PR #225 |
-| WI-179 | DocOps만 커밋 가능 hook | PR 오픈 |
+| WI-179 | DocOps만 커밋 가능 hook | 완료 PR #226 |
 
 ## 외부 API 연동 미구현
 - 고용지원금: 사용자 결정 "외부 API 연동(고용24 등)"
@@ -92,11 +92,7 @@ type: reference
 ### end-to-end 전체 플로우 테스트
 - 5단계 워크플로우를 실제 기능으로 처음부터 끝까지 실행
 - 코워크 실전 테스트 3회 완료(S30)했으나 전체 흐름 검증은 미완
-
-### ~~Tester → completion gate 연동~~ — WI-167에서 해결 (PR #211)
-- ~~tester 결과가 TaskCompleted hook에 연결 안 됨~~
-- verify-task-completion.sh에 1.5단계 추가: tester 결과 파일(TEST-PASS/TEST-FAIL) 확인
-- tester-agent.md에 Step 5 추가: verification/{task_id}-test.md 결과 파일 작성
+- S37 사용자 합의: 스크린샷 PRD 소재(custom-report.png, doc-send.png, gps-map.png)로 실전 테스트 예정
 
 ### SessionStart hook 검증
 - 오토컴팩트와 /clear 양쪽에서 knowledge 주입이 정상 동작하는지 검증 필요
