@@ -73,6 +73,8 @@
 1. Guardian 결과 확인 — 누락 있으면 태스크 수정
 2. Implementer plan 승인 — `.claude/plans/{task_id}.md`에 APPROVED
 3. 구현 진행 감시 — 필요 시 팀원에게 메시지
+   - **Implementer는 코드 수정만 한다 (git add/commit 하지 않는다)**
+   - 커밋은 Phase 5에서 DocOps가 전체 변경사항을 한 번에 처리
 4. Verifier 결과 확인 — FAIL이면 Implementer에게 수정 지시
 5. Tester 결과 확인 — 실패하면 Implementer에게 수정 지시
 6. 전체 PASS까지 반복
@@ -82,15 +84,18 @@
    - [ ] 설계 대비 구현 대조표에 ❌가 없는가
    - [ ] 테스트 중 발견된 버그가 전부 수정됐는가
    - [ ] 정리 대상(테스트 파일, 임시 데이터)이 남아있지 않은가
+   - [ ] Implementer가 커밋하지 않고 코드 수정만 완료했는가
 
 ## Phase 5: 마무리
 
 **DocOps는 모든 작업에서 필수. src/ 변경 여부와 무관.**
 **수동으로 knowledge/ 파일을 직접 수정하지 않는다. 반드시 DocOps 에이전트를 spawn한다.**
 
-1. DocOps 팀원에게 태스크 할당 → knowledge/ 업데이트 + 커밋 + push (상시 가동 중이므로 spawn 불필요)
+1. DocOps 팀원에게 태스크 할당 → knowledge/ 업데이트 + **전체 변경사항 커밋** + push + PR 생성 (상시 가동 중이므로 spawn 불필요)
+   - DocOps가 Implementer의 코드 수정 + knowledge/ 업데이트를 한 번에 커밋한다
+   - Implementer는 커밋하지 않는다 — DocOps가 유일한 커밋 주체
 2. .claude/verification/, .claude/plans/ 정리
-3. PR 생성 + enqueue (DocOps 커밋이 포함된 후에)
+3. 리드가 enqueue 실행 (DocOps PR 생성 후)
    - **enqueue 전에 DocOps 커밋이 반드시 push되어야 한다. 머지큐에 들어간 후에는 브랜치 수정 불가.**
 4. **자체 점검 체크리스트**:
    - [ ] PR에 빠진 파일이 없는가 (`git status`로 확인)

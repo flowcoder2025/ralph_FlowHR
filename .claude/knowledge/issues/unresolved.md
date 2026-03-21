@@ -1,6 +1,6 @@
 ---
 name: unresolved-issues
-description: 남은 작업 — 2026-03-22 기준 (S37 반영, WI-175 프로젝트 permissions)
+description: 남은 작업 — 2026-03-22 기준 (S37 반영, WI-176 DocOps 유일 커밋 주체)
 type: reference
 ---
 
@@ -30,7 +30,8 @@ type: reference
 | WI-172 | knowledge 동기화 (S36 WI-170/171) | 완료 PR #218 |
 | WI-173 | Phase 5 DocOps 커밋 후 enqueue 순서 강제 | 완료 PR #219 |
 | WI-174 | DocOps PR 상태 자동 갱신 | 완료 PR #220 |
-| WI-175 | 프로젝트 permissions Write/Edit allow 추가 | PR 오픈 |
+| WI-175 | 프로젝트 permissions Write/Edit allow 추가 | 완료 PR #221 |
+| WI-176 | DocOps 유일 커밋 주체 + Guardian 상시 감시 | PR 오픈 |
 
 ## 외부 API 연동 미구현
 - 고용지원금: 사용자 결정 "외부 API 연동(고용24 등)"
