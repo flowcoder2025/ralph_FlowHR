@@ -1,6 +1,6 @@
 ---
 name: key-decisions
-description: 프로젝트 주요 의사결정 로그 — 2026-03-21 S32 업데이트
+description: 프로젝트 주요 의사결정 로그 — 2026-03-21 S33 업데이트
 type: reference
 ---
 
@@ -141,3 +141,11 @@ type: reference
 | WI 번호 중복 즉시 차단 | 임계값 10 → 0, 경고 → exit 2 차단 | 임계값이 느슨하면 규칙 우회 구멍 — 사용자 강력 지적 |
 | 빈 팀 우회 차단 | config.json에서 Guardian+DocOps 필수 멤버 확인 | 팀만 활성화하고 멤버 없이 커밋하는 우회 방지 |
 | hook 설계 무관용 원칙 | 임계값/조건을 느슨하게 두지 않음 | "설계할 때부터 구멍을 만들지 말 것" — 사용자 확정 |
+
+## S33 의사결정 (2026-03-21)
+
+| 결정 | 내용 | 사유 |
+|------|------|------|
+| Stop hook 미커밋 파일 차단 | .claude/ 하위 modified+untracked 파일이 있으면 세션 종료 차단 (exit 2) | 커밋 안 된 중요 설정/knowledge 파일이 다음 세션에서 유실되는 것 방지 |
+| 세션 시작 규칙 명문화 | process.md에 SessionStart hook 주입 활용 규칙 추가 | "이어서 진행해" 시 파일을 다시 읽으러 가지 않고 주입 내용 즉시 활용 |
+| Claude Code 버전 체크 자동화 | check-version.sh + last-known-version.txt로 버전 변경 감지 | 버전 업데이트 시 체인지로그 RAG 갱신 트리거 |
