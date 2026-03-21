@@ -19,6 +19,17 @@ if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
   exit 2
 fi
 
+# 1-1a. DocOps만 커밋 가능 (팀 활성 시)
+TEAM_DIR_CHECK="$HOME/.claude/teams"
+ACTIVE_TEAM_FOR_DOCOPS=$(ls "$TEAM_DIR_CHECK" 2>/dev/null | head -1)
+if [ -n "$ACTIVE_TEAM_FOR_DOCOPS" ]; then
+  AGENT_TYPE_COMMIT=$(echo "$INPUT" | jq -r '.agent_type // ""' 2>/dev/null | tr '[:upper:]' '[:lower:]')
+  if [ -n "$AGENT_TYPE_COMMIT" ] && ! echo "$AGENT_TYPE_COMMIT" | grep -qi "docops"; then
+    echo "❌ DocOps만 커밋할 수 있습니다. Implementer/Tester는 코드 수정만 하세요." >&2
+    exit 2
+  fi
+fi
+
 # 1-1b. 머지된 PR 브랜치에서 커밋 차단
 MERGED_PR=$(gh pr list --head "$CURRENT_BRANCH" --state merged --json number --jq '.[0].number' 2>/dev/null)
 if [ -n "$MERGED_PR" ] && [ "$MERGED_PR" != "null" ]; then

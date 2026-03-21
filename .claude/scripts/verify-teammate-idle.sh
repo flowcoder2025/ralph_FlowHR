@@ -15,11 +15,22 @@ TEAM=$(echo "$INPUT" | jq -r '.team_name // "unknown"')
 
 echo "=== 팀원 idle 검증: $TEAMMATE ===" >&2
 
-# ─── Guardian은 상시 감시 — idle 차단 ───
+# ─── Guardian은 상시 감시 — 새 대화 있으면 idle 차단 ───
 case "$TEAMMATE" in
   *guardian*)
-    echo "❌ Guardian은 상시 감시 중입니다. session JSONL을 다시 읽고 리드 행동을 감시하세요." >&2
-    exit 2
+    JSONL_DIR="$HOME/.claude/projects/C--Team-jane-wi-test"
+    LATEST_JSONL=$(ls -t "$JSONL_DIR"/*.jsonl 2>/dev/null | head -1)
+    if [ -n "$LATEST_JSONL" ]; then
+      JSONL_MOD=$(stat -c %Y "$LATEST_JSONL" 2>/dev/null || stat -f %m "$LATEST_JSONL" 2>/dev/null || echo 0)
+      NOW=$(date +%s)
+      DIFF=$((NOW - JSONL_MOD))
+      if [ "$DIFF" -lt 60 ]; then
+        echo "❌ Guardian 상시 감시: 새 대화 감지. session JSONL을 다시 읽고 리드 행동을 감시하세요." >&2
+        exit 2
+      fi
+    fi
+    echo "✅ Guardian idle 허용 (새 대화 없음)" >&2
+    exit 0
     ;;
 esac
 
