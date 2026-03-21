@@ -45,6 +45,7 @@
 ## Phase 3: 팀 구성
 
 **팀은 세션 단위로 운영한다. 태스크마다 생성/해체하지 않는다.**
+**전원 상시 구성이므로 src/ 변경 여부와 무관하게 모든 커밋에 6명 전원이 필수다.**
 
 1. 세션 시작 시 팀이 없으면 생성 (TeamCreate)
    - 전원 (Guardian, DocOps, Implementer, Verifier, Tester, Judge) 즉시 spawn (세션 내내 상시 가동)
