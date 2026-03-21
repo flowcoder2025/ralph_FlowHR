@@ -1,6 +1,6 @@
 ---
 name: session-timeline
-description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-21)
+description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-21, S32 반영)
 type: reference
 ---
 
@@ -117,7 +117,7 @@ type: reference
 - discussions/ 작성 정책: session JSONL이 원천, 리드 요약에 의존하지 않음
 - TaskCompleted hook build false positive 발견 (Next.js dynamic route 메시지를 실패로 오판)
 
-## S31 (03-21, WI-161 hook 강화)
+## S31 (03-21, WI-161 hook 강화 — PR #205)
 
 ### 브랜치: fix/WI-161-fix-empty-team-bypass
 
@@ -125,9 +125,20 @@ type: reference
 - verify-on-commit.sh hook 강화 2건:
   1. **WI 번호 중복 차단 강화**: 임계값 10개 → 0개 (이미 머지된 WI 번호 재사용 즉시 차단), 경고(echo) → 차단(exit 2)
   2. **빈 팀 우회 방지**: 팀 config.json에서 Guardian/DocOps 필수 멤버 존재 확인, 없으면 커밋 차단
+- CLAUDE.md 행동 가이드 추가 (개발 프로세스 + 행동 가이드라인 명시)
 - Guardian이 WI-161 요구사항 검증 완료 (WI 번호 적절성 + 요구사항 커버 확인)
 
 ### 사용자 피드백
 - WI 번호가 160으로 커밋되는 문제 지적 → WI 번호 분리 규칙 재강조
 - hook 임계값 10개 설정에 강한 불만 → "설계할 때부터 구멍을 만들지 말 것"
 - CLAUDE.md 내용 누락 여부 확인 요청 → 규칙 준수 강화
+- "코워크 마무리가 기능 작업보다 먼저" → 범용적 논리 설계 필요
+- "니가 규칙을 따를수밖에 없게 만드는게 최우선과제" → 기계적 강제 우선
+
+## S32 (03-21, knowledge 동기화)
+
+### 주요 변경
+- DocOps: state.md ↔ issues/unresolved.md 동기화
+  - WI-161 완료 반영 (PR #205 머지)
+  - 미완료 항목 전수 반영 (SessionStart hook 검증, 다중 Implementer 병렬, SSOT 흐름 등)
+  - CLAUDE.md 행동 가이드 추가 완료 반영
