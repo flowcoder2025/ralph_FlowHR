@@ -1,6 +1,6 @@
 ---
 name: unresolved-issues
-description: 남은 작업 — 2026-03-21 기준 (S33 반영, WI-163 Stop hook 미커밋 차단)
+description: 남은 작업 — 2026-03-22 기준 (S34 반영, WI-165 Guardian 크로스체킹)
 type: reference
 ---
 
@@ -18,7 +18,9 @@ type: reference
 | WI-160 | 코워크 시스템 구축 + 통합 검증 | 완료 PR #185~204 |
 | WI-161 | verify-on-commit.sh hook 강화 | 완료 PR #205 (빈 팀 우회 방지 + WI 중복 차단 + CLAUDE.md 행동 가이드) |
 | WI-162 | knowledge 동기화 | 완료 PR #206 |
-| WI-163 | Stop hook 미커밋 파일 차단 + 세션 규칙 | 진행 중 (브랜치: fix/WI-163-fix-uncommitted-check) |
+| WI-163 | Stop hook 미커밋 파일 차단 + 세션 규칙 | 완료 PR #207 |
+| WI-164 | knowledge 동기화 (S33) | 완료 PR #208 |
+| WI-165 | Guardian 파일 숙지 크로스체킹 Step 추가 | 완료 PR #209 |
 
 ## 외부 API 연동 미구현
 - 고용지원금: 사용자 결정 "외부 API 연동(고용24 등)"
@@ -37,8 +39,9 @@ type: reference
 - WI 번호 중복 즉시 차단 (PR #205)
 - 빈 팀 필수 멤버(Guardian/DocOps) 확인 (PR #205)
 - Claude Code 버전 변경 감지 (check-version.sh)
+- Guardian 파일 숙지 크로스체킹 (PR #209, Step 4 추가)
 
-## 코워크 검증 시스템 — 완료 (PR #185~205)
+## 코워크 검증 시스템 — 완료 (PR #185~209)
 - Agent Teams 활성화
 - 에이전트 7개 정의 (lead-workflow, spawn-template, guardian, verifier, judge, tester, docops)
 - Hook 8종 연결
@@ -60,6 +63,11 @@ type: reference
 - auto memory 인덱스 개편
 
 ## 미완료 — 시스템/인프라 (높음)
+
+### 코워크 항상 활성화 전환
+- rules 강제주입이 유저 메시지로 취급되어 작업 압박 시 무시될 수 있음 (S34 발견)
+- 사용자 확정: 코워크를 선택이 아닌 필수로, 첫 커밋에서 차단
+- 구현 방법 미결: settings.json 변경? hook 추가? 항상 활성화 시 docs 전용 커밋도 full 팀 필요?
 
 ### end-to-end 전체 플로우 테스트
 - 5단계 워크플로우를 실제 기능으로 처음부터 끝까지 실행
@@ -102,3 +110,4 @@ type: reference
 
 ## 기타
 - DocOps Stop hook 간헐적 미동작 (사용자 지적: "docops가 계속 안도는거같은데") — PR #198에서 강제화, WI-163에서 미커밋 파일 차단 추가
+- rules 강제주입 한계: .claude/rules/ 파일이 유저 메시지로 취급 → 작업 압박 시 무시 가능 (S34 발견, 코워크 항상 활성화로 대응 예정)

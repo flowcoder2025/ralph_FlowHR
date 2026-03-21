@@ -1,6 +1,6 @@
 ---
 name: session-timeline
-description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-21, S33 반영)
+description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-22, S34 반영)
 type: reference
 ---
 
@@ -152,3 +152,21 @@ type: reference
 - **process.md 세션 시작 규칙 추가**: SessionStart hook 주입 내용 활용 규칙, "이어서 진행해" 시 묻지 않고 바로 시작
 - **check-version.sh 신규**: Claude Code 버전 변경 감지 시 체인지로그 업데이트 알림
 - **last-known-version.txt 신규**: 현재 Claude Code 버전 기록 (2.1.80)
+
+## S34 (03-21~22, WI-164 knowledge 동기화 + WI-165 Guardian 크로스체킹)
+
+### PR 이력
+| PR | WI | 내용 |
+|----|-----|------|
+| #208 | WI-164 | S33 knowledge 동기화 (state.md + timeline + decisions + discussions + issues) |
+| #209 | WI-165 | Guardian 파일 숙지 크로스체킹 Step 추가 |
+
+### 주요 변경
+- **Guardian 파일 숙지 크로스체킹**: guardian-agent.md에 Step 4 추가 — 리드가 작업 전 관련 파일을 실제로 읽었는지 검증
+- **rules 강제주입 한계 발견**: rules 파일이 유저 메시지로 취급되어 작업 압박 시 무시될 수 있음
+- **코워크 항상 활성화 방향 확정**: 사용자 확정 — 코워크를 선택이 아닌 필수로, 첫 커밋에서 차단
+
+### 사용자 피드백
+- rules 강제주입의 구조적 한계를 인식 → 코워크+hook으로 보완 필수
+- 작업 전 파일 미숙지 상태에서 시작하는 문제 → Guardian 크로스체킹으로 해결
+- "코워크가 항상 강제되어야하는거네" → 항상 활성화 전환 필요
