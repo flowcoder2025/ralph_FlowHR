@@ -74,7 +74,10 @@
 
 ## Phase 5: 마무리
 
-1. DocOps 팀원에게 knowledge/ 업데이트 지시 (현재 작업 브랜치에서 커밋)
+**DocOps는 모든 작업에서 필수. src/ 변경 여부와 무관.**
+**수동으로 knowledge/ 파일을 직접 수정하지 않는다. 반드시 DocOps 에이전트를 spawn한다.**
+
+1. DocOps 팀원 spawn → knowledge/ 업데이트 (현재 작업 브랜치에서 커밋)
 2. .claude/verification/, .claude/plans/ 정리
 3. 커밋 + PR 생성 + enqueue
 4. **자체 점검 체크리스트**:
