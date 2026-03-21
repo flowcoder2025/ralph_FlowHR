@@ -44,23 +44,27 @@
 
 ## Phase 3: 팀 구성
 
-1. 태스크 분해 (의존성 포함)
-   - Guardian 태스크: 요구사항 vs 태스크 대조
-   - Implementer 태스크(들): 구현 단위별
-   - Verifier 태스크(들): 구현 태스크에 의존
-   - Tester 태스크: 전체 구현 완료 후
-   - DocOps 태스크: 모든 작업 완료 후 (필수 — 빠뜨리지 않는다)
-2. 팀 생성 (TeamCreate)
-3. `.claude/agents/spawn-template.md`에 따라 팀원 spawn
+**팀은 세션 단위로 운영한다. 태스크마다 생성/해체하지 않는다.**
+
+1. 세션 시작 시 팀이 없으면 생성 (TeamCreate)
+   - Guardian + DocOps 즉시 spawn (세션 내내 상시 가동)
+   - 이미 팀이 있으면 기존 팀 사용
+2. 태스크 분해 (의존성 포함)
+   - Guardian 태스크: 요구사항 vs 태스크 대조 + 파일 숙지 크로스체킹
+   - Implementer 태스크(들): 구현 단위별 (필요 시 추가 spawn)
+   - Verifier 태스크(들): 구현 태스크에 의존 (필요 시 추가 spawn)
+   - Tester 태스크: 전체 구현 완료 후 (필요 시 추가 spawn)
+   - DocOps 태스크: 모든 작업 완료 후 (상시 가동 중이므로 태스크만 할당)
+3. 추가 팀원은 `.claude/agents/spawn-template.md`에 따라 spawn
    - 각 팀원에게 역할별 knowledge 슬라이스 전달
    - 요구사항 파일 경로 전달
    - Implementer는 plan approval 포함
 4. **자체 점검 체크리스트**:
+   - [ ] Guardian + DocOps가 상시 가동 중인가
    - [ ] DocOps 태스크가 포함되었는가
    - [ ] 태스크 의존성이 올바른가 (구현→검증→테스트→DocOps 순서)
    - [ ] spawn 프롬프트에 spawn-template.md 필수 항목이 빠지지 않았는가
    - [ ] 각 팀원에게 requirements 파일 경로를 전달했는가
-   - [ ] 역할별 knowledge 슬라이스를 전달했는가
 
 ## Phase 4: 실행 + 감시
 
@@ -82,7 +86,7 @@
 **DocOps는 모든 작업에서 필수. src/ 변경 여부와 무관.**
 **수동으로 knowledge/ 파일을 직접 수정하지 않는다. 반드시 DocOps 에이전트를 spawn한다.**
 
-1. DocOps 팀원 spawn → knowledge/ 업데이트 (현재 작업 브랜치에서 커밋)
+1. DocOps 팀원에게 태스크 할당 → knowledge/ 업데이트 (상시 가동 중이므로 spawn 불필요)
 2. .claude/verification/, .claude/plans/ 정리
 3. 커밋 + PR 생성 + enqueue
 4. **자체 점검 체크리스트**:
@@ -97,4 +101,4 @@
    - 검증 결과 (Guardian/Verifier/Tester)
    - 발견된 gap이 있으면 함께 보고
    - 다음 작업 제안
-6. 팀 shutdown + cleanup
+6. 세션 종료 시에만 팀 shutdown + cleanup (작업 단위로 해체하지 않는다)

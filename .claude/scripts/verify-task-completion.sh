@@ -74,6 +74,43 @@ fi
 
 echo "✅ 검증 팀원 승인 확인 (PASS)" >&2
 
+# ─── 1.5단계: Tester 결과 확인 (테스트 태스크가 팀에 존재할 때만) ───
+
+TESTER_FILE="$VERIFICATION_DIR/$TASK_ID-test.md"
+TEAM_DIR_CHECK="$HOME/.claude/teams"
+ACTIVE_TEAM_CHECK=$(ls "$TEAM_DIR_CHECK" 2>/dev/null | head -1)
+
+# 팀에 tester가 있는지 확인
+HAS_TESTER=""
+if [ -n "$ACTIVE_TEAM_CHECK" ]; then
+  TEAM_CFG="$TEAM_DIR_CHECK/$ACTIVE_TEAM_CHECK/config.json"
+  if [ -f "$TEAM_CFG" ]; then
+    HAS_TESTER=$(jq -r '.members[]?.name // empty' "$TEAM_CFG" 2>/dev/null | grep -i "tester" | head -1)
+  fi
+fi
+
+if [ -n "$HAS_TESTER" ]; then
+  if [ ! -f "$TESTER_FILE" ]; then
+    echo "❌ Tester의 테스트 결과가 없습니다." >&2
+    echo "Tester가 다음 파일을 작성해야 합니다:" >&2
+    echo "  $TESTER_FILE" >&2
+    echo "  첫 줄: TEST-PASS 또는 TEST-FAIL" >&2
+    exit 2
+  fi
+
+  TESTER_RESULT=$(head -1 "$TESTER_FILE" | tr -d '[:space:]')
+  if [ "$TESTER_RESULT" = "TEST-FAIL" ]; then
+    TESTER_REASON=$(tail -n +2 "$TESTER_FILE")
+    echo "❌ Tester가 TEST-FAIL 판정했습니다:" >&2
+    echo "$TESTER_REASON" >&2
+    exit 2
+  fi
+
+  if [ "$TESTER_RESULT" = "TEST-PASS" ]; then
+    echo "✅ Tester 테스트 통과" >&2
+  fi
+fi
+
 # ─── 2단계: 기계적 검증 (lint/build/test) ───
 
 npm run lint > /dev/null 2>&1

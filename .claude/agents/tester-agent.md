@@ -36,7 +36,27 @@ Playwright MCP를 사용하여 실제 브라우저에서 테스트:
 - Employee에서 신청 → Admin에서 확인 가능한지
 - SSOT: 동일 데이터가 양쪽에서 일관되는지
 
-### Step 5: 결과 보고
+### Step 5: 결과 파일 작성
+`.claude/verification/{task_id}-test.md`에 결과를 작성한다.
+`{task_id}`는 구현 태스크의 숫자 ID (예: 태스크 #2 → `2-test.md`).
+
+통과 시:
+```
+TEST-PASS
+N건 테스트 전부 통과.
+```
+
+실패 시:
+```
+TEST-FAIL
+- 실패 시나리오: {내용}
+- 기대: {기대 동작}
+- 실제: {실제 동작}
+```
+
+TaskCompleted hook이 이 파일을 확인합니다.
+
+### Step 6: 결과 보고
 리드와 verifier에게 테스트 결과를 메시지로 전달한다.
 
 테스트 실패 시:
