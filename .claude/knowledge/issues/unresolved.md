@@ -1,6 +1,6 @@
 ---
 name: unresolved-issues
-description: 남은 작업 — 2026-03-21 기준 (PR #192까지 반영)
+description: 남은 작업 — 2026-03-21 기준 (PR #198까지 반영, S29 완료)
 type: reference
 ---
 
@@ -15,7 +15,7 @@ type: reference
 | WI-157 | Admin UI 7탭 | ✅ PR #182 |
 | WI-158 | Employee 급여명세서 | ✅ PR #183 |
 | WI-159 | 근로계약서 + 지원금 | ⚠️ PR #184 (외부 API 미구현) |
-| WI-160 | 테스트 + 통합 검증 | ❌ 미시작 |
+| WI-160 | 코워크 시스템 구축 + 통합 검증 | ✅ PR #185~198 (코워크 구축 완료, 실전 검증 미완) |
 
 ## 외부 API 연동 미구현
 - 고용지원금: 사용자 결정 "외부 API 연동(고용24 등)"
@@ -32,16 +32,19 @@ type: reference
 - ✅ Stop hook (knowledge 동기화 제안)
 - ✅ 글로벌 버전 체크 (check-version.sh)
 
-## 코워크 검증 시스템 — ✅ 구축 완료 (PR #185~189)
+## 코워크 검증 시스템 — ✅ 구축 완료 (PR #185~198)
 - ✅ Agent Teams 활성화
 - ✅ 에이전트 7개 정의 (lead-workflow, spawn-template, guardian, verifier, judge, tester, docops)
-- ✅ Hook 6종 연결
+- ✅ Hook 8종 연결
 - ✅ 스크립트 8개 구현
 - ✅ Windows 경로 호환 (delegate mode hook)
+- ✅ DocOps 자동 실행 강제 (PR #198)
+- ✅ discussions/ 카테고리 추가
+- ✅ 정리 완료 (구 RAG 삭제, 테스트 브랜치, 글로벌 MEMORY)
 - 미검증: 실전 코워크 워크플로우 (첫 실전 대기 중)
 
-## knowledge 시스템 — ✅ 재설계 완료 (PR #190)
-- ✅ RAG 12파일 → knowledge/ 7카테고리 15파일
+## knowledge 시스템 — ✅ 재설계 완료 (PR #190, #198)
+- ✅ RAG 12파일 → knowledge/ 7카테고리 16파일 (discussions/ 추가)
 - ✅ index.md 주제별 매핑 + 코워크 팀원별 기본 로드
 - ✅ rag-context.md 업데이트
 
@@ -51,4 +54,5 @@ type: reference
 
 ## 기타
 - console.error 정리 (프로덕션 배포 전)
-- 코워크 첫 실전 검증 필요 (WI-159 외부 API 연동 시)
+- 코워크 첫 실전 검증 필요 (WI-161+ 기능 작업에서)
+- Tester → completion gate 연동 미구현

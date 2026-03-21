@@ -14,7 +14,7 @@ type: reference
 | S25 | 03-16~17 | PR #148~158 (UTC, GPS, 보안, UX) |
 | S26 | 03-17 | PR #159~165 (다크모드, 복합기능, 접근제어, 테스트, 직급) |
 | S27 | 03-17~20 | PR #166~174 (정정신청, 문서발송, GPS지도, PWA, 모바일UI, 포괄임금) |
-| S29 | 03-21 | PR #185~197 (코워크 시스템 + knowledge 재설계 + 글로벌 통합 + hook 강제 + 정리) |
+| S29 | 03-21 | PR #185~198 (코워크 시스템 + knowledge 재설계 + 글로벌 통합 + hook 강제 + DocOps 강제 + discussions + 정리) |
 
 ## S26 PR 이력 (18개)
 | PR | 내용 |
@@ -69,7 +69,7 @@ type: reference
 - Claude Code 체인지로그 RAG 생성 (글로벌)
 - 코워크 검증 시스템 설계
 
-## S29 PR 이력 (03-21, PR #185~192)
+## S29 PR 이력 (03-21, PR #185~198, 14개)
 | PR | WI | 내용 |
 |----|-----|------|
 | #185 | WI-160 | 코워크 검증 시스템 구축 (Agent Teams + settings.json) |
@@ -80,21 +80,20 @@ type: reference
 | #190 | WI-160 | knowledge 시스템 전면 재설계 (RAG 12개 → 7카테고리) |
 | #191 | WI-160 | 리드 워크플로우 5단계 정의 |
 | #192 | WI-160 | 글로벌 시스템 통합 재편 (CLAUDE.md 슬림화, auto memory 개편) |
-
-### S29 PR 이력 추가 (PR #193~197)
-| PR | WI | 내용 |
-|----|-----|------|
 | #193 | WI-160 | DocOps gap 3건 수정 (main 커밋 금지, stale 체크, 자체 점검) |
 | #194 | WI-160 | main/master 브랜치 직접 커밋 차단 hook |
 | #195 | WI-160 | 누락 항목 일괄 수정 (체크리스트, spawn 예시, Judge 기준, requirements 범위) |
 | #196 | WI-160 | lead-workflow hook 강제 (src/ 팀 필수) + Stop hook 강화 |
 | #197 | WI-160 | 정리 (구 RAG 삭제, 테스트 브랜치, 글로벌 MEMORY Lessons) |
+| #198 | WI-160 | DocOps 자동 실행 강제 |
 
 ### S29 주요 성과
 - 7개 시스템 통합 아키텍처 (Hook/코워크/CI/Rules/Auto memory/Knowledge/CLAUDE.md)
 - Hook 8종: delegate mode, plan approval, TaskCompleted, TeammateIdle, 요구사항 보호, 커밋 검증(main 차단+팀 필수), Stop(knowledge stale), SessionStart/PostCompact(knowledge 주입)
 - 에이전트 7개: Guardian, Verifier, Judge, Tester, DocOps, lead-workflow, spawn-template
-- knowledge/ 체계: 7카테고리 15파일 (RAG 12개에서 마이그레이션)
+- knowledge/ 체계: 7카테고리 15파일 + discussions/ (RAG 12개에서 마이그레이션)
 - 글로벌 재편: CLAUDE.md 47줄, wi-global 강제 수단 명시, auto memory 역할 명확화
 - lead-workflow 5단계 + 구체적 자체 점검 체크리스트
 - lead-workflow hook 강제: src/ 커밋 시 팀 필수
+- DocOps 자동 실행 강제 (PR #198)
+- discussions/ 카테고리 추가 (대화 맥락 보존)

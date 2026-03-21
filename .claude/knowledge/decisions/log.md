@@ -1,6 +1,6 @@
 ---
 name: key-decisions
-description: 프로젝트 주요 의사결정 로그 — 2026-03-21 업데이트
+description: 프로젝트 주요 의사결정 로그 — 2026-03-21 S29 완료 업데이트
 type: reference
 ---
 
@@ -118,3 +118,8 @@ type: reference
 | 리드 워크플로우 5단계 | 요구사항분석→팀원배정→진행관리→결과검증→보고 | 코워크 실행 표준화 |
 | Stop hook으로 knowledge 동기화 | 3+ 소스파일 변경 시 DocOps 제안 | 문서 갱신 누락 방지 |
 | Windows 경로 호환 | delegate mode hook에서 `\` → `/` 변환 | Git Bash 환경 호환 |
+| DocOps 자동 실행 강제 | Stop hook에서 DocOps spawn 필수화 | DocOps가 안 돌아서 knowledge stale 반복 |
+| discussions/ 카테고리 추가 | decisions/와 분리 -- 결정(what) vs 과정(how) | 대화 맥락 보존 (방향 전환 이력, 사용자 피드백 패턴 등) |
+| 7개 시스템 전부 강제 유지 | 축소 아니라 통합 재편 -- 역할 경계 명확화하되 강제는 유지 | "강제되던 이유가 있다" -- 사용자 확정 원칙 |
+| main 직접 커밋 차단 hook | PreToolUse Bash에서 main/master push/commit 차단 | 브랜치 규칙 위반 방지 |
+| lead-workflow hook 강제 | src/ 커밋 시 팀 필수 (코워크 우회 방지) | 리드가 직접 구현하면 검증 누락 |
