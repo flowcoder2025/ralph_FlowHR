@@ -1,6 +1,6 @@
 ---
 name: unresolved-issues
-description: 남은 작업 — 2026-03-22 기준 (S34 반영, WI-165 Guardian 크로스체킹)
+description: 남은 작업 — 2026-03-22 기준 (S35 반영, WI-167 세션 단위 팀 + Tester gate)
 type: reference
 ---
 
@@ -21,6 +21,8 @@ type: reference
 | WI-163 | Stop hook 미커밋 파일 차단 + 세션 규칙 | 완료 PR #207 |
 | WI-164 | knowledge 동기화 (S33) | 완료 PR #208 |
 | WI-165 | Guardian 파일 숙지 크로스체킹 Step 추가 | 완료 PR #209 |
+| WI-166 | knowledge 동기화 (S34) | 완료 PR #210 |
+| WI-167 | 세션 단위 팀 운영 + Tester completion gate 연동 | PR #211 오픈 |
 
 ## 외부 API 연동 미구현
 - 고용지원금: 사용자 결정 "외부 API 연동(고용24 등)"
@@ -41,7 +43,7 @@ type: reference
 - Claude Code 버전 변경 감지 (check-version.sh)
 - Guardian 파일 숙지 크로스체킹 (PR #209, Step 4 추가)
 
-## 코워크 검증 시스템 — 완료 (PR #185~209)
+## 코워크 검증 시스템 — 완료 (PR #185~211)
 - Agent Teams 활성화
 - 에이전트 7개 정의 (lead-workflow, spawn-template, guardian, verifier, judge, tester, docops)
 - Hook 8종 연결
@@ -52,6 +54,8 @@ type: reference
 - 정리 완료 (구 RAG 삭제, 테스트 브랜치, 글로벌 MEMORY)
 - 실전 코워크 워크플로우 테스트 3회 완료 (S30)
 - CLAUDE.md 행동 가이드 추가 (PR #205)
+- 세션 단위 팀 운영 전환 (PR #211) — Guardian+DocOps 상시 가동
+- Tester completion gate 연동 (PR #211) — TEST-PASS/TEST-FAIL 파일로 hook 연결
 
 ## knowledge 시스템 — 완료 (PR #190, #198)
 - RAG 12파일 → knowledge/ 7카테고리 16파일 (discussions/ 추가)
@@ -73,9 +77,10 @@ type: reference
 - 5단계 워크플로우를 실제 기능으로 처음부터 끝까지 실행
 - 코워크 실전 테스트 3회 완료(S30)했으나 전체 흐름 검증은 미완
 
-### Tester → completion gate 연동
-- tester 결과가 TaskCompleted hook에 연결 안 됨
-- Tester PASS/FAIL이 태스크 완료 게이트에 반영되지 않음
+### ~~Tester → completion gate 연동~~ — WI-167에서 해결 (PR #211)
+- ~~tester 결과가 TaskCompleted hook에 연결 안 됨~~
+- verify-task-completion.sh에 1.5단계 추가: tester 결과 파일(TEST-PASS/TEST-FAIL) 확인
+- tester-agent.md에 Step 5 추가: verification/{task_id}-test.md 결과 파일 작성
 
 ### SessionStart hook 검증
 - 오토컴팩트와 /clear 양쪽에서 knowledge 주입이 정상 동작하는지 검증 필요

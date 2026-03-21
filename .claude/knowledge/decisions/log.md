@@ -1,6 +1,6 @@
 ---
 name: key-decisions
-description: 프로젝트 주요 의사결정 로그 — 2026-03-22 S34 업데이트
+description: 프로젝트 주요 의사결정 로그 — 2026-03-22 S35 업데이트
 type: reference
 ---
 
@@ -158,3 +158,11 @@ type: reference
 | 코워크 항상 활성화 방향 | 코워크를 선택이 아닌 필수로, 단독 모드 제거 | rules만으로 강제 불가 → 코워크+hook 기계적 강제 필수. 사용자: "항상활성화로 변경시키는게 정답이네" |
 | 첫 커밋 코워크 차단 | 코워크 없는 상태에서의 커밋을 hook으로 원천 차단 | 사용자: "첫 커밋에서 차단시키면된다는 거잖아" |
 | Guardian 파일 숙지 크로스체킹 | Guardian에 Step 4 추가 — 리드가 관련 파일을 실제로 읽었는지 검증 | 사용자: "작업전 파일을 다안읽고 시작한걸 검증하는 단계도있어야겠네" |
+
+## S35 의사결정 (2026-03-22)
+
+| 결정 | 내용 | 사유 |
+|------|------|------|
+| 세션 단위 팀 운영 | 팀을 태스크마다 생성/해체하지 않고 세션 내내 유지. Guardian+DocOps 상시 가동 | 매번 팀 생성/해체 오버헤드 제거, Guardian/DocOps는 모든 작업에 필수이므로 상시 가동이 자연스러움 |
+| Tester 결과 파일 표준화 | `.claude/verification/{task_id}-test.md`에 TEST-PASS/TEST-FAIL 작성 | TaskCompleted hook과 연동하기 위한 표준 포맷 필요 |
+| Tester completion gate | verify-task-completion.sh에 1.5단계 추가 — tester 결과 확인 후 태스크 완료 허용 | 기존에 tester 결과가 hook에 연결 안 되던 gap 해소 (미완료 항목 #2 해결) |
