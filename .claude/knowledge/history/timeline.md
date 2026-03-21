@@ -242,3 +242,8 @@ type: reference
 - **verify-on-commit.sh 강화**: 필수 멤버 Guardian+DocOps → 전원(Guardian, DocOps, Implementer, Verifier, Tester, Judge)
 - src/ 변경 여부와 무관하게 모든 커밋에 6명 전원 필수
 - 누락 시 커밋 차단 + 누가 없는지 개별 안내
+
+### WI-173 Phase 5 DocOps 커밋 후 enqueue 순서 강제
+- **lead-workflow.md Phase 5 순서 변경**: DocOps knowledge 커밋+push → PR 생성 → enqueue
+- enqueue 전에 DocOps 커밋이 반드시 push되어야 함 (머지큐 진입 후 브랜치 수정 불가)
+- WI-172에서 발생한 머지큐 push 차단 사고 재발 방지

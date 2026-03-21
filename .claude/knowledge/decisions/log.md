@@ -179,3 +179,4 @@ type: reference
 | DocOps 커밋 타이밍 규칙 | PR push 전에 커밋, 머지 후 같은 브랜치에 추가 커밋 금지 | DocOps가 PR 머지 후 브랜치에 커밋하여 knowledge 변경이 main에 반영 안 된 사고 발생 |
 | 팀 멤버 전원 상시 필수 | Guardian+DocOps만 상시 → 전원(6명) 상시 spawn, 모든 커밋에 전원 필수 | 부분 팀으로 커밋하면 검증 누락 발생 가능, src/ 변경 여부와 무관하게 전원 참여 |
 | DocOps requirements 쓰기 권한 | DocOps가 .claude/requirements/ 파일도 작성 가능 | 리드 완전 위임 모델에서 requirements 파일 작성도 DocOps 담당 |
+| Phase 5 DocOps 커밋 후 enqueue | DocOps 커밋+push → PR 생성 → enqueue 순서 강제 | 머지큐 진입 후 브랜치 수정 불가 — WI-172에서 push 차단 사고 발생하여 순서 명시 |

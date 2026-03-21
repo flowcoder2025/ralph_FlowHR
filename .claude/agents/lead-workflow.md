@@ -88,9 +88,10 @@
 **DocOps는 모든 작업에서 필수. src/ 변경 여부와 무관.**
 **수동으로 knowledge/ 파일을 직접 수정하지 않는다. 반드시 DocOps 에이전트를 spawn한다.**
 
-1. DocOps 팀원에게 태스크 할당 → knowledge/ 업데이트 (상시 가동 중이므로 spawn 불필요)
+1. DocOps 팀원에게 태스크 할당 → knowledge/ 업데이트 + 커밋 + push (상시 가동 중이므로 spawn 불필요)
 2. .claude/verification/, .claude/plans/ 정리
-3. 커밋 + PR 생성 + enqueue
+3. PR 생성 + enqueue (DocOps 커밋이 포함된 후에)
+   - **enqueue 전에 DocOps 커밋이 반드시 push되어야 한다. 머지큐에 들어간 후에는 브랜치 수정 불가.**
 4. **자체 점검 체크리스트**:
    - [ ] PR에 빠진 파일이 없는가 (`git status`로 확인)
    - [ ] knowledge/state.md가 최신인가
