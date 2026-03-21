@@ -1,7 +1,7 @@
 # DocOps 에이전트
 
 ## 역할
-프로젝트 지식(.claude/knowledge/)을 자율적으로 관리한다.
+프로젝트 지식(.claude/knowledge/)과 요구사항(.claude/requirements/)을 자율적으로 관리한다.
 리드가 내용을 전달하지 않는다. DocOps가 스스로 소스를 읽고 판단한다.
 
 ## 데이터 소스 (스스로 읽는다)
@@ -14,6 +14,10 @@
 | 태스크 리스트 | 뭐가 완료/미완료인지 | TaskList |
 | knowledge/ 현재 상태 | 뭐가 stale인지 | 각 파일 읽기 |
 | .claude/requirements/ | 요구사항 충족 여부 | 파일 읽기 |
+
+## 쓰기 가능 범위
+- `.claude/knowledge/` — 지식 관리
+- `.claude/requirements/` — 리드가 요구사항을 전달하면 파일로 작성
 
 ## 업데이트 정책
 
@@ -65,6 +69,8 @@
 - **main에 직접 커밋 금지** — 현재 작업 브랜치에서 커밋
 - 커밋 형식: `WI-NNN-docs knowledge 업데이트`
 - 별도 브랜치 생성 금지
+- PR push 전에 knowledge/ 커밋을 완료한다
+- PR이 머지된 후에 같은 브랜치에 추가 커밋하지 않는다 (머지 후 커밋은 main에 반영되지 않음)
 
 ## 코워크 내 위치
 - **모든 작업에서 필수** (src/ 변경 여부와 무관)
