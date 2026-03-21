@@ -248,16 +248,18 @@ type: reference
 - enqueue 전에 DocOps 커밋이 반드시 push되어야 함 (머지큐 진입 후 브랜치 수정 불가)
 - WI-172에서 발생한 머지큐 push 차단 사고 재발 방지
 
-## S37 (03-22, WI-174 DocOps PR 상태 자동 갱신 + hook Windows 호환)
-
-### 브랜치: fix/WI-174-fix-docops-pr-status
+## S37 (03-22, WI-174 DocOps PR 상태 자동 갱신 + WI-175 permissions)
 
 ### PR 이력
 | PR | WI | 내용 |
 |----|-----|------|
-| TBD | WI-174 | DocOps PR 상태 자동 갱신 정책 + hook /dev/null Windows 호환 수정 |
+| #220 | WI-174 | DocOps PR 상태 자동 갱신 정책 (hook 원복) |
+| TBD | WI-175 | 프로젝트 permissions Write/Edit allow 추가 |
 
-### 주요 변경
-- **docops-agent.md PR 상태 자동 갱신 정책 추가**: 세션 시작 시 state.md/unresolved.md에서 "PR 오픈" 항목을 git log 기준으로 실제 상태(완료/닫힘/유지) 갱신
-- **verify-task-completion.sh + verify-teammate-idle.sh Windows 호환 수정**: `/dev/null`을 `mktemp` 임시파일로 변경 — Windows(Git Bash)에서 /dev/null 리디렉션이 build false positive를 유발하던 문제 해결
-- **WI-173 PR 오픈 → 완료 PR #219 갱신**: state.md + issues/unresolved.md에서 WI-173 상태 갱신 (PR 상태 자동 갱신 정책의 첫 적용)
+### WI-174 주요 변경 (PR #220, 머지 완료)
+- **docops-agent.md PR 상태 자동 갱신 정책 추가**: 세션 시작 시 state.md/unresolved.md에서 "PR 오픈" 항목을 git log 기준으로 실제 상태 갱신
+- **hook 스크립트 변경 시도 후 원복**: /dev/null→mktemp 시도했으나 build false positive 원인이 아닌 것으로 판명
+- **WI-173 PR 오픈 → 완료 PR #219 갱신**: PR 상태 자동 갱신 정책의 첫 적용
+
+### WI-175 주요 변경 (PR 오픈)
+- **.claude/settings.json permissions 추가**: Write/Edit 도구를 allow 목록에 추가 — 팀원이 파일 수정 시 매번 수동 승인 불필요
