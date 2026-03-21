@@ -15,9 +15,17 @@ TEAM=$(echo "$INPUT" | jq -r '.team_name // "unknown"')
 
 echo "=== 팀원 idle 검증: $TEAMMATE ===" >&2
 
+# ─── Guardian은 상시 감시 — idle 차단 ───
+case "$TEAMMATE" in
+  *guardian*)
+    echo "❌ Guardian은 상시 감시 중입니다. session JSONL을 다시 읽고 리드 행동을 감시하세요." >&2
+    exit 2
+    ;;
+esac
+
 # ─── 읽기 전용 팀원은 코드 수정/커밋 권한이 없으므로 스킵 ───
 case "$TEAMMATE" in
-  *guardian*|*감시*|*verifier*|*검증*|*judge*|*심사*)
+  *verifier*|*검증*|*judge*|*심사*)
     echo "✅ 읽기 전용 팀원 — idle 허용" >&2
     exit 0
     ;;

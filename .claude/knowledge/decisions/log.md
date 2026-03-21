@@ -188,3 +188,5 @@ type: reference
 | DocOps PR 상태 자동 갱신 | 세션 시작 시 "PR 오픈" 항목을 git log 기준으로 실제 상태 갱신 | state.md/unresolved.md에 "PR 오픈"으로 남아있는 항목이 실제로는 머지 완료인 경우가 반복 발생 |
 | hook 변경 시도 후 원복 | /dev/null→mktemp 시도 후 원복 | build false positive 원인이 /dev/null이 아닌 것으로 판명 |
 | 프로젝트 permissions allow | settings.json에 Write/Edit 도구 자동 허용 | 팀원이 파일 수정 시 매번 수동 승인 팝업 발생 → 작업 흐름 방해 |
+| DocOps 유일 커밋 주체 | Implementer는 코드 수정만, git add/commit 하지 않음. DocOps가 전체 변경사항을 한 번에 커밋+push+PR 생성 | 커밋 주체를 일원화하여 knowledge/ 누락 방지 + 커밋 순서/타이밍 문제 원천 차단 |
+| Guardian idle 차단 | Guardian은 상시 감시 역할이므로 idle hook에서 즉시 차단 (exit 2) | Guardian이 idle 상태가 되면 리드 행동 감시가 중단됨 — 상시 가동 필수 |
