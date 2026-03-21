@@ -256,7 +256,8 @@ type: reference
 | #220 | WI-174 | DocOps PR 상태 자동 갱신 정책 (hook 원복) |
 | #221 | WI-175 | 프로젝트 permissions Write/Edit allow 추가 |
 | #223 | WI-176 | 커밋 구조 변경 + Guardian 상시 감시 강제 |
-| TBD | WI-177 | 에이전트별 git user.name 설정 |
+| #224 | WI-177 | 에이전트별 git user.name 설정 |
+| TBD | WI-178 | 머지 브랜치 커밋 차단 hook |
 
 ### WI-174 주요 변경 (PR #220, 머지 완료)
 - **docops-agent.md PR 상태 자동 갱신 정책 추가**: 세션 시작 시 state.md/unresolved.md에서 "PR 오픈" 항목을 git log 기준으로 실제 상태 갱신
@@ -270,5 +271,8 @@ type: reference
 - **lead-workflow.md 커밋 구조 변경**: Implementer는 코드 수정만, DocOps가 유일한 커밋 주체로 전체 변경사항을 한 번에 커밋+push+PR 생성
 - **verify-teammate-idle.sh Guardian idle 차단**: Guardian은 상시 감시 역할이므로 idle 불가 (exit 2)
 
-### WI-177 주요 변경 (PR 오픈)
+### WI-177 주요 변경 (PR #224, 머지 완료)
 - **에이전트별 git user.name 설정**: docops("DocOps"), spawn-template/Implementer("Implementer"), tester("Tester"), verifier("Verifier") — 커밋 author로 역할 구분
+
+### WI-178 주요 변경 (PR 오픈)
+- **verify-on-commit.sh 머지 브랜치 커밋 차단**: `gh pr list --head` 로 머지된 PR 확인 → 커밋 즉시 차단

@@ -19,6 +19,13 @@ if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
   exit 2
 fi
 
+# 1-1b. 머지된 PR 브랜치에서 커밋 차단
+MERGED_PR=$(gh pr list --head "$CURRENT_BRANCH" --state merged --json number --jq '.[0].number' 2>/dev/null)
+if [ -n "$MERGED_PR" ] && [ "$MERGED_PR" != "null" ]; then
+  echo "❌ 이 브랜치의 PR #$MERGED_PR이 이미 머지됐습니다. 새 브랜치를 만드세요." >&2
+  exit 2
+fi
+
 # 1-2. WI 번호 중복 차단 — 같은 WI로 머지된 PR이 이미 있으면 차단
 BRANCH_WI=$(echo "$CURRENT_BRANCH" | grep -oE 'WI-[0-9]+' | head -1)
 if [ -n "$BRANCH_WI" ]; then
