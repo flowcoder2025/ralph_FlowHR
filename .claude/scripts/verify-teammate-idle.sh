@@ -42,14 +42,7 @@ if [ $? -ne 0 ]; then
   exit 2
 fi
 
-# 3. build 확인 (exit code만 체크, Next.js dynamic route 메시지 오탐 방지)
-npm run build > "$TMPOUT" 2>&1
-if [ $? -ne 0 ]; then
-  echo "❌ build 실패. 컴파일 에러를 수정하세요." >&2
-  exit 2
-fi
-
-# 4. test 확인
+# 3. test 확인 (build는 CI가 검증)
 npm test > "$TMPOUT" 2>&1
 if [ $? -ne 0 ]; then
   echo "❌ test 실패. 테스트를 수정하세요." >&2

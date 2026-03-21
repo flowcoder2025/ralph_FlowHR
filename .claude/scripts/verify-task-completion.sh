@@ -111,7 +111,7 @@ if [ -n "$HAS_TESTER" ]; then
   fi
 fi
 
-# ─── 2단계: 기계적 검증 (lint/build/test) ───
+# ─── 2단계: 기계적 검증 (lint/test — build는 CI가 검증) ───
 
 TMPOUT=$(mktemp)
 trap "rm -f '$TMPOUT'" EXIT
@@ -122,19 +122,13 @@ if [ $? -ne 0 ]; then
   exit 2
 fi
 
-npm run build > "$TMPOUT" 2>&1
-if [ $? -ne 0 ]; then
-  echo "❌ build 실패. 컴파일 에러를 수정하세요." >&2
-  exit 2
-fi
-
 npm test > "$TMPOUT" 2>&1
 if [ $? -ne 0 ]; then
   echo "❌ test 실패. 테스트를 수정하세요." >&2
   exit 2
 fi
 
-echo "✅ 기계적 검증 통과 (lint/build/test)" >&2
+echo "✅ 기계적 검증 통과 (lint/test)" >&2
 
 # ─── 3단계: knowledge/ stale 체크 (DocOps 안전장치) ───
 
