@@ -45,22 +45,24 @@
 ## Phase 3: 팀 구성
 
 **팀은 세션 단위로 운영한다. 태스크마다 생성/해체하지 않는다.**
+**전원 상시 구성이므로 src/ 변경 여부와 무관하게 모든 커밋에 6명 전원이 필수다.**
 
 1. 세션 시작 시 팀이 없으면 생성 (TeamCreate)
-   - Guardian + DocOps 즉시 spawn (세션 내내 상시 가동)
+   - 전원 (Guardian, DocOps, Implementer, Verifier, Tester, Judge) 즉시 spawn (세션 내내 상시 가동)
    - 이미 팀이 있으면 기존 팀 사용
 2. 태스크 분해 (의존성 포함)
    - Guardian 태스크: 요구사항 vs 태스크 대조 + 파일 숙지 크로스체킹
-   - Implementer 태스크(들): 구현 단위별 (필요 시 추가 spawn)
-   - Verifier 태스크(들): 구현 태스크에 의존 (필요 시 추가 spawn)
-   - Tester 태스크: 전체 구현 완료 후 (필요 시 추가 spawn)
+   - Implementer 태스크(들): 구현 단위별
+   - Verifier 태스크(들): 구현 태스크에 의존
+   - Tester 태스크: 전체 구현 완료 후
+   - Judge 태스크: Verifier/Tester 완료 후 2차 재평가
    - DocOps 태스크: 모든 작업 완료 후 (상시 가동 중이므로 태스크만 할당)
-3. 추가 팀원은 `.claude/agents/spawn-template.md`에 따라 spawn
+3. 팀원은 `.claude/agents/spawn-template.md`에 따라 spawn
    - 각 팀원에게 역할별 knowledge 슬라이스 전달
    - 요구사항 파일 경로 전달
    - Implementer는 plan approval 포함
 4. **자체 점검 체크리스트**:
-   - [ ] Guardian + DocOps가 상시 가동 중인가
+   - [ ] 전원 (Guardian, DocOps, Implementer, Verifier, Tester, Judge)이 상시 가동 중인가
    - [ ] DocOps 태스크가 포함되었는가
    - [ ] 태스크 의존성이 올바른가 (구현→검증→테스트→DocOps 순서)
    - [ ] spawn 프롬프트에 spawn-template.md 필수 항목이 빠지지 않았는가
