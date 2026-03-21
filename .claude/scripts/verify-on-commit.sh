@@ -19,13 +19,18 @@ if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
   exit 2
 fi
 
-# 1-2. WI 번호 일관성 체크 — 같은 WI로 PR 5개 이상이면 경고
+# 1-2. WI 번호 중복 차단 — 같은 WI로 머지된 PR이 이미 있으면 차단
 BRANCH_WI=$(echo "$CURRENT_BRANCH" | grep -oE 'WI-[0-9]+' | head -1)
 if [ -n "$BRANCH_WI" ]; then
-  WI_PR_COUNT=$(git log --oneline origin/main --grep="$BRANCH_WI" 2>/dev/null | wc -l)
-  WI_PR_COUNT=${WI_PR_COUNT:-0}
-  if [ "$WI_PR_COUNT" -gt 10 ]; then
-    echo "⚠️ $BRANCH_WI 로 이미 ${WI_PR_COUNT}개 커밋이 있습니다. 다른 작업이면 새 WI 번호를 사용하세요." >&2
+  # 머지된 커밋 중 같은 WI 번호가 있는지 확인
+  WI_MERGED=$(git log --oneline --merges origin/main --grep="$BRANCH_WI" 2>/dev/null | wc -l)
+  WI_DIRECT=$(git log --oneline --no-merges origin/main --grep="$BRANCH_WI" 2>/dev/null | wc -l)
+  WI_TOTAL=$((WI_MERGED + WI_DIRECT))
+  WI_TOTAL=${WI_TOTAL:-0}
+  if [ "$WI_TOTAL" -gt 0 ]; then
+    echo "❌ $BRANCH_WI 로 이미 ${WI_TOTAL}개 커밋이 머지되어 있습니다." >&2
+    echo "다른 작업이면 새 WI 번호로 브랜치를 생성하세요." >&2
+    exit 2
   fi
 fi
 
@@ -45,6 +50,21 @@ if [ -z "$ACTIVE_TEAM" ]; then
   echo "lead-workflow를 따라 팀을 구성한 후 작업하세요:" >&2
   echo "  1. 요구사항 확정 → 2. 설계 → 3. 팀 구성 → 4. 실행 → 5. 마무리" >&2
   exit 2
+fi
+
+# 1-4. 팀 구성원 확인 — 빈 팀 또는 필수 멤버 누락 차단
+TEAM_CONFIG="$TEAM_DIR/$ACTIVE_TEAM/config.json"
+if [ -f "$TEAM_CONFIG" ]; then
+  HAS_GUARDIAN=$(jq -r '.members[]?.name // empty' "$TEAM_CONFIG" 2>/dev/null | grep -i "guardian" | head -1)
+  HAS_DOCOPS=$(jq -r '.members[]?.name // empty' "$TEAM_CONFIG" 2>/dev/null | grep -i "docops" | head -1)
+
+  if [ -z "$HAS_GUARDIAN" ] || [ -z "$HAS_DOCOPS" ]; then
+    echo "❌ 팀에 필수 멤버가 없습니다." >&2
+    [ -z "$HAS_GUARDIAN" ] && echo "  - Guardian 없음 (WI 번호 + 요구사항 검증)" >&2
+    [ -z "$HAS_DOCOPS" ] && echo "  - DocOps 없음 (knowledge/ 업데이트)" >&2
+    echo "빈 팀으로 우회하지 마세요. 필수 멤버를 spawn하세요." >&2
+    exit 2
+  fi
 fi
 
 # 2. 요구사항 파일 확인
