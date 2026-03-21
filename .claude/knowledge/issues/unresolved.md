@@ -27,6 +27,8 @@ type: reference
 | WI-169 | 리드 전체 파일 수정 차단 + 역할별 권한 제한 | 완료 PR #214 |
 | WI-170 | DocOps 커밋 타이밍 규칙 + knowledge 동기화 (S36) | 완료 PR #216 |
 | WI-171 | 팀 멤버 전원 상시 필수 | 완료 PR #217 |
+| WI-172 | knowledge 동기화 (S36 WI-170/171) | 완료 PR #218 |
+| WI-173 | Phase 5 DocOps 커밋 후 enqueue 순서 강제 | PR 오픈 |
 
 ## 외부 API 연동 미구현
 - 고용지원금: 사용자 결정 "외부 API 연동(고용24 등)"

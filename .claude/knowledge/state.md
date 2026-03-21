@@ -3,7 +3,7 @@
 ## 마지막 업데이트: 2026-03-22 (S36)
 
 ### 진행 현황
-- PR #148~217 (70개 PR)
+- PR #148~218 (71개 PR)
 - S29~S30: 코워크 검증 시스템 완전 구축 (PR #185~204)
   - 7개 시스템 통합 아키텍처 확정 (Hook/코워크/CI/Rules/Auto memory/Knowledge/CLAUDE.md)
   - 코워크 실전 테스트 5회 (Guardian/Implementer/Verifier/Judge/Tester/DocOps 전원 확인)
@@ -30,6 +30,9 @@
   - lead-workflow.md Phase 3: Guardian+DocOps만 즉시 spawn → 전원(6명) 즉시 spawn
   - verify-on-commit.sh: Guardian+DocOps 필수 → 전원(Guardian, DocOps, Implementer, Verifier, Tester, Judge) 필수
   - src/ 변경 여부와 무관하게 모든 커밋에 6명 전원이 있어야 함
+- S36: WI-173 Phase 5 DocOps 커밋 후 enqueue 순서 강제 — PR 오픈
+  - lead-workflow.md Phase 5: DocOps 커밋+push → PR 생성 → enqueue 순서 명시
+  - enqueue 전에 DocOps 커밋이 반드시 push되어야 함 (머지큐 진입 후 브랜치 수정 불가)
 
 ### 미완료 항목 (상세)
 
