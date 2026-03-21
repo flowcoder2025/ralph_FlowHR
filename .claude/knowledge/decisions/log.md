@@ -1,6 +1,6 @@
 ---
 name: key-decisions
-description: 프로젝트 주요 의사결정 로그 — 2026-03-22 S36 업데이트
+description: 프로젝트 주요 의사결정 로그 — 2026-03-22 S37 업데이트
 type: reference
 ---
 
@@ -180,3 +180,10 @@ type: reference
 | 팀 멤버 전원 상시 필수 | Guardian+DocOps만 상시 → 전원(6명) 상시 spawn, 모든 커밋에 전원 필수 | 부분 팀으로 커밋하면 검증 누락 발생 가능, src/ 변경 여부와 무관하게 전원 참여 |
 | DocOps requirements 쓰기 권한 | DocOps가 .claude/requirements/ 파일도 작성 가능 | 리드 완전 위임 모델에서 requirements 파일 작성도 DocOps 담당 |
 | Phase 5 DocOps 커밋 후 enqueue | DocOps 커밋+push → PR 생성 → enqueue 순서 강제 | 머지큐 진입 후 브랜치 수정 불가 — WI-172에서 push 차단 사고 발생하여 순서 명시 |
+
+## S37 의사결정 (2026-03-22)
+
+| 결정 | 내용 | 사유 |
+|------|------|------|
+| DocOps PR 상태 자동 갱신 | 세션 시작 시 "PR 오픈" 항목을 git log 기준으로 실제 상태 갱신 | state.md/unresolved.md에 "PR 오픈"으로 남아있는 항목이 실제로는 머지 완료인 경우가 반복 발생 |
+| hook /dev/null → mktemp | verify-task-completion.sh + verify-teammate-idle.sh에서 /dev/null 대신 mktemp 사용 | Windows Git Bash에서 /dev/null 리디렉션 시 build 출력이 stderr로 누출되어 false positive 발생 |
