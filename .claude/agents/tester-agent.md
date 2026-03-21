@@ -39,6 +39,7 @@ Playwright MCP를 사용하여 실제 브라우저에서 테스트:
 ### Step 5: 결과 파일 작성
 `.claude/verification/{task_id}-test.md`에 결과를 작성한다.
 `{task_id}`는 구현 태스크의 숫자 ID (예: 태스크 #2 → `2-test.md`).
+커밋 시 `git -c user.name="Tester" commit -m "..."` 사용.
 
 통과 시:
 ```
