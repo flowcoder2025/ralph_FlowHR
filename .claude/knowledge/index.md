@@ -17,6 +17,7 @@
 | 파일 분할/리팩토링 | `lessons/tab-refactor.md` |
 | 페이지/라우트 추가 | `reference/pages-map.md` |
 | 설계 판단/전략 변경 | `decisions/log.md` |
+| 논의 과정/방향 전환 | `discussions/` (날짜별) |
 | Claude Code 기능/hook | `reference/claude-code-changelog.md` |
 | 전체 맥락 파악 | `history/timeline.md` |
 | 현재 상태 확인 | `state.md` |
@@ -32,7 +33,7 @@
 | Verifier | `issues/ssot.md`, `issues/unresolved.md`, `decisions/log.md` |
 | Tester | `testing/e2e-history.md`, `reference/pages-map.md` |
 | Judge | `issues/ssot.md`, `decisions/log.md`, `lessons/tab-refactor.md` |
-| DocOps | `state.md`, `history/timeline.md` |
+| DocOps | `state.md`, `history/timeline.md`, `discussions/` |
 
 ## 업데이트 트리거
 
@@ -44,4 +45,4 @@
 | 아키텍처/전략 결정 | `decisions/log.md` |
 | 성능 개선 | `patterns/performance.md` |
 | 인프라 변경 | `reference/infra.md` |
-| 세션/작업 완료 | `state.md`, `history/timeline.md` |
+| 세션/작업 완료 | `state.md`, `history/timeline.md`, `discussions/` |
