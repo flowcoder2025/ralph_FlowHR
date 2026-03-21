@@ -29,13 +29,19 @@ if [ -n "$BRANCH_WI" ]; then
   fi
 fi
 
-# 1-3. src/ 변경 시 활성 팀 필수 (lead-workflow 강제)
+# 1-3. 활성 팀 필수 (Guardian + DocOps는 모든 작업에서 필수)
 SRC_IN_COMMIT=$(git diff --cached --name-only 2>/dev/null | grep "^src/" | head -1)
 TEAM_DIR="$HOME/.claude/teams"
 ACTIVE_TEAM=$(ls "$TEAM_DIR" 2>/dev/null | head -1)
 
-if [ -n "$SRC_IN_COMMIT" ] && [ -z "$ACTIVE_TEAM" ]; then
-  echo "❌ src/ 파일을 변경하려면 코워크 팀을 구성해야 합니다." >&2
+if [ -z "$ACTIVE_TEAM" ]; then
+  if [ -n "$SRC_IN_COMMIT" ]; then
+    echo "❌ src/ 파일을 변경하려면 full 코워크 팀을 구성해야 합니다." >&2
+    echo "필수 팀원: Guardian + Implementer + Verifier + Tester + DocOps" >&2
+  else
+    echo "❌ 코드 변경 시 최소 Guardian + DocOps 팀을 구성해야 합니다." >&2
+    echo "Guardian: WI 번호 + 요구사항 검증 / DocOps: knowledge/ 업데이트" >&2
+  fi
   echo "lead-workflow를 따라 팀을 구성한 후 작업하세요:" >&2
   echo "  1. 요구사항 확정 → 2. 설계 → 3. 팀 구성 → 4. 실행 → 5. 마무리" >&2
   exit 2
