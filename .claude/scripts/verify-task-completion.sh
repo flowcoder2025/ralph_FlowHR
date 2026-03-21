@@ -113,19 +113,22 @@ fi
 
 # ─── 2단계: 기계적 검증 (lint/build/test) ───
 
-npm run lint > /dev/null 2>&1
+TMPOUT=$(mktemp)
+trap "rm -f '$TMPOUT'" EXIT
+
+npm run lint > "$TMPOUT" 2>&1
 if [ $? -ne 0 ]; then
   echo "❌ lint 실패. 코드 스타일 문제를 수정하세요." >&2
   exit 2
 fi
 
-npm run build > /dev/null 2>&1
+npm run build > "$TMPOUT" 2>&1
 if [ $? -ne 0 ]; then
   echo "❌ build 실패. 컴파일 에러를 수정하세요." >&2
   exit 2
 fi
 
-npm test > /dev/null 2>&1
+npm test > "$TMPOUT" 2>&1
 if [ $? -ne 0 ]; then
   echo "❌ test 실패. 테스트를 수정하세요." >&2
   exit 2
