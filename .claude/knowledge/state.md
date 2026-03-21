@@ -30,15 +30,28 @@
 9. 다른 프로젝트 코워크 주입 템플릿
 10. mem 스킬 legacy 전환 반영
 
-### 다음 작업
-1. SessionStart hook 검증 (새 세션 시작 시)
-2. end-to-end 테스트 (WI-159 외부 API로)
-3. Tester → completion gate 연동
+### 다음 작업 (우선순위: 시스템 → 기존 버그 → 신규 기능)
+
+#### 1순위: 시스템/인프라 (도구 완성)
+- SessionStart hook 검증 (새 세션에서 knowledge/ 주입 확인)
+- Tester → completion gate 연동 (tester 결과가 hook에 연결)
+- end-to-end 전체 플로우 테스트 (5단계 처음부터 끝까지)
+
+#### 2순위: 기존 버그
+- TaskCompleted hook build false positive 수정
+- console.error 정리
+
+#### 3순위: 신규 기능
+- WI-159 외부 API 연동 (고용지원금)
+- WI-160 테스트 + 통합 검증
 
 ### 핵심 원칙 (다음 세션 필독)
 - 7개 시스템 전부 강제 유지 — 하나도 풀면 안 됨
 - 코워크+훅 조합으로 해결 — 코워크만으로 해결 X
 - DocOps는 매 작업마다 자동 실행 — 수동 knowledge/ 수정 금지
 - 사용자가 묻기 전에 gap을 스스로 찾아서 보고
+- 형식적 테스트 금지 — 실질적 동작 확인 필수
+- discussions/ 파일 참조 — 이전 세션 논의 맥락 확인
+- WI 번호 분리 — 다른 작업은 다른 번호
 - 형식적 테스트 금지 — 실질적 동작 확인 필수
 - discussions/ 파일 참조 — 이전 세션 논의 맥락 확인
