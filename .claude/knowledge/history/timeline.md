@@ -232,3 +232,13 @@ type: reference
 - "src 외에도 팀생성없이 하면 금지인데 왜 커밋이된거지?" — delegate mode 구멍 발견
 - "리드의 직접 커밋자체를 금지하고 요구사항 작성이나 설정변경하는건 독옵스에서 맡으면 되는거아닌가?" — 리드 완전 위임 방향
 - "모든작업은 WI 할당해서 처리하는건데 이건 태스크로 잡혀야하는데?" — DocOps 작업도 WI+태스크 체계 준수
+
+### WI-170 DocOps 커밋 타이밍 규칙 (PR #216)
+- docops-agent.md: 커밋 타이밍 규칙 + requirements 쓰기 권한 추가
+- knowledge/ S36 동기화
+
+### WI-171 팀 멤버 전원 상시 필수 (PR #217)
+- **lead-workflow.md Phase 3 전환**: Guardian+DocOps만 상시 → 전원(6명) 상시 spawn
+- **verify-on-commit.sh 강화**: 필수 멤버 Guardian+DocOps → 전원(Guardian, DocOps, Implementer, Verifier, Tester, Judge)
+- src/ 변경 여부와 무관하게 모든 커밋에 6명 전원 필수
+- 누락 시 커밋 차단 + 누가 없는지 개별 안내

@@ -25,7 +25,8 @@ type: reference
 | WI-167 | 세션 단위 팀 운영 + Tester completion gate 연동 | 완료 PR #211 |
 | WI-167 | knowledge 동기화 (S35) | 완료 PR #212 |
 | WI-169 | 리드 전체 파일 수정 차단 + 역할별 권한 제한 | 완료 PR #214 |
-| WI-170 | DocOps 커밋 타이밍 규칙 + knowledge 동기화 (S36) | 진행중 |
+| WI-170 | DocOps 커밋 타이밍 규칙 + knowledge 동기화 (S36) | 완료 PR #216 |
+| WI-171 | 팀 멤버 전원 상시 필수 | 완료 PR #217 |
 
 ## 외부 API 연동 미구현
 - 고용지원금: 사용자 결정 "외부 API 연동(고용24 등)"
@@ -62,6 +63,7 @@ type: reference
 - delegate mode 전면 확장 (PR #214) — 리드 모든 파일 수정 차단 + 팀원 역할별 권한 제한
 - 리드 완전 위임 모델 — requirements 작성도 DocOps에게 지시
 - DocOps 커밋 타이밍 규칙 (WI-170) — PR 머지 후 같은 브랜치 추가 커밋 금지
+- 팀 멤버 전원 상시 필수 (WI-171) — 전원(6명) 상시 spawn + 모든 커밋에 전원 필수
 
 ## knowledge 시스템 — 완료 (PR #190, #198)
 - RAG 12파일 → knowledge/ 7카테고리 16파일 (discussions/ 추가)

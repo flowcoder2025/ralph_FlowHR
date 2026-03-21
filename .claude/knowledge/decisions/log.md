@@ -177,3 +177,5 @@ type: reference
 | 팀원 거부 보고 의무 | 팀원이 워크플로우 위반을 이유로 작업 거부 시 리드는 사용자에게 즉시 보고 | 사용자: "오히려 니가 위반인데도 불구하고 독옵스의 만류를 내게 보고하지않은게 잘못이지" |
 | DocOps 작업도 WI+태스크 체계 준수 | DocOps의 knowledge 업데이트도 WI 번호 할당 + 태스크로 관리 | 사용자: "모든작업은 WI 할당해서 처리하는건데 이건 태스크로 잡혀야하는데?" |
 | DocOps 커밋 타이밍 규칙 | PR push 전에 커밋, 머지 후 같은 브랜치에 추가 커밋 금지 | DocOps가 PR 머지 후 브랜치에 커밋하여 knowledge 변경이 main에 반영 안 된 사고 발생 |
+| 팀 멤버 전원 상시 필수 | Guardian+DocOps만 상시 → 전원(6명) 상시 spawn, 모든 커밋에 전원 필수 | 부분 팀으로 커밋하면 검증 누락 발생 가능, src/ 변경 여부와 무관하게 전원 참여 |
+| DocOps requirements 쓰기 권한 | DocOps가 .claude/requirements/ 파일도 작성 가능 | 리드 완전 위임 모델에서 requirements 파일 작성도 DocOps 담당 |
