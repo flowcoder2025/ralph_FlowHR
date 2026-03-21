@@ -39,6 +39,12 @@
 | discussions/YYYY-MM-DD-{주제}.md | 매 세션 | session JSONL에서 추출 |
 | issues/unresolved.md | 변경 발생 시 | 해결/신규 이슈 반영 |
 
+### PR 상태 자동 갱신
+세션 시작 시 state.md와 issues/unresolved.md에서 "PR 오픈" 또는 "진행 중"으로 기록된 항목을 git log 기준으로 확인한다.
+- 실제로 머지됐으면 → "완료" + PR 번호로 갱신
+- 실제로 닫혔으면 → "닫힘"으로 갱신
+- 아직 오픈이면 → 유지
+
 ### 조건부 업데이트
 | 파일 | 조건 |
 |------|------|

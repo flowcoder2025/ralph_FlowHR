@@ -30,7 +30,7 @@
   - lead-workflow.md Phase 3: Guardian+DocOps만 즉시 spawn → 전원(6명) 즉시 spawn
   - verify-on-commit.sh: Guardian+DocOps 필수 → 전원(Guardian, DocOps, Implementer, Verifier, Tester, Judge) 필수
   - src/ 변경 여부와 무관하게 모든 커밋에 6명 전원이 있어야 함
-- S36: WI-173 Phase 5 DocOps 커밋 후 enqueue 순서 강제 — PR 오픈
+- S36: WI-173 Phase 5 DocOps 커밋 후 enqueue 순서 강제 — 완료 PR #219
   - lead-workflow.md Phase 5: DocOps 커밋+push → PR 생성 → enqueue 순서 명시
   - enqueue 전에 DocOps 커밋이 반드시 push되어야 함 (머지큐 진입 후 브랜치 수정 불가)
 
