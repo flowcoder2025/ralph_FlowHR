@@ -1,5 +1,13 @@
 # 개발 프로세스
 
+## 세션 시작 시
+- SessionStart hook이 knowledge/state.md + discussions/ + issues/를 자동 주입한다
+- **주입된 내용을 무시하고 파일을 다시 읽으러 가지 않는다**
+- "이어서 진행해" 요청 시:
+  1. 주입된 핵심 원칙을 먼저 확인
+  2. 다음 작업 1순위부터 **묻지 않고 바로 시작**
+  3. discussions/를 참조하여 이전 논의 맥락 반영
+
 ## 리드 워크플로우 (필수)
 사용자가 작업을 요청하면 `.claude/agents/lead-workflow.md`의 5단계를 반드시 순서대로 밟는다:
 1. 요구사항 확정 → requirements 저장 → **사용자 승인**
