@@ -1,9 +1,9 @@
 # 프로젝트 현재 상태
 
-## 마지막 업데이트: 2026-03-22 (S34)
+## 마지막 업데이트: 2026-03-22 (S35)
 
 ### 진행 현황
-- PR #148~209 (62개 PR)
+- PR #148~211 (64개 PR)
 - S29~S30: 코워크 검증 시스템 완전 구축 (PR #185~204)
   - 7개 시스템 통합 아키텍처 확정 (Hook/코워크/CI/Rules/Auto memory/Knowledge/CLAUDE.md)
   - 코워크 실전 테스트 5회 (Guardian/Implementer/Verifier/Judge/Tester/DocOps 전원 확인)
@@ -22,12 +22,17 @@
   - guardian-agent.md에 Step 4 "리드 파일 숙지 크로스체킹" 추가
   - 리드가 작업 전 관련 파일을 실제로 읽었는지 검증
   - rules 강제주입이 유저 메시지 취급되어 무시될 수 있는 문제 대응
+- S34: WI-166 knowledge 동기화 — 완료 (PR #210)
+- S35: WI-167 세션 단위 팀 운영 + Tester completion gate 연동 — PR #211 오픈
+  - lead-workflow.md: 세션 단위 팀 운영으로 전환 (태스크마다 생성/해체 → 세션 내내 상시 가동)
+  - tester-agent.md: Tester 결과 파일 작성 Step 추가 (TEST-PASS/TEST-FAIL → verification/)
+  - verify-task-completion.sh: Tester completion gate 연동 (tester 결과 파일을 hook에서 확인)
 
 ### 미완료 항목 (상세)
 
 #### 높음
 1. **end-to-end 전체 플로우 테스트** — 5단계 워크플로우를 실제 기능으로 처음부터 끝까지 실행
-2. **Tester → completion gate 연동** — tester 결과가 TaskCompleted hook에 연결 안 됨
+2. ~~**Tester → completion gate 연동**~~ — **WI-167에서 구현 완료** (PR #211)
 3. **SessionStart hook 검증** — 오토컴팩트/clear 양쪽에서 knowledge 주입 정상 동작 검증 필요
 4. **WI-159 외부 API 연동** — 고용지원금 외부 API(고용24 등), hook에서 차단 확인됨
 5. **코워크 항상 활성화 전환** — rules 강제주입이 유저 메시지로 취급되어 작업 압박 시 무시됨 → 코워크 항상 활성화로 첫 커밋에서 차단 필요
@@ -46,7 +51,6 @@
 
 #### 1순위: 시스템/인프라 (도구 완성)
 - 코워크 항상 활성화 전환 (rules 무시 방지 — 첫 커밋에서 차단)
-- Tester → completion gate 연동 (tester 결과가 hook에 연결)
 - SessionStart hook 검증 (오토컴팩트+clear 양쪽 커버 확인)
 - end-to-end 전체 플로우 테스트 (5단계 처음부터 끝까지)
 
@@ -69,3 +73,5 @@
 - 코워크 마무리 우선 — 기능 작업보다 코워크(인프라) 완성이 먼저
 - rules 강제주입은 유저 메시지 취급 — 작업 압박 시 무시될 수 있으므로 코워크+hook으로 보완 필수
 - 작업 전 파일 숙지 검증 — Guardian이 리드의 파일 읽기 여부를 크로스체킹
+- 팀은 세션 단위 운영 — 태스크마다 생성/해체하지 않고 세션 내내 상시 가동
+- Tester 결과 파일은 verification/{task_id}-test.md에 작성 — hook이 자동 확인

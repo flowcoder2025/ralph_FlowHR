@@ -1,6 +1,6 @@
 ---
 name: session-timeline
-description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-22, S34 반영)
+description: 전체 세션 타임라인 (2026-03-13 ~ 2026-03-22, S35 반영)
 type: reference
 ---
 
@@ -170,3 +170,32 @@ type: reference
 - rules 강제주입의 구조적 한계를 인식 → 코워크+hook으로 보완 필수
 - 작업 전 파일 미숙지 상태에서 시작하는 문제 → Guardian 크로스체킹으로 해결
 - "코워크가 항상 강제되어야하는거네" → 항상 활성화 전환 필요
+
+## S35 (03-22, WI-167 세션 단위 팀 운영 + Tester gate 연동)
+
+### 브랜치: feat/WI-167-feat-session-team-mode
+
+### PR 이력
+| PR | WI | 내용 |
+|----|-----|------|
+| #211 | WI-167 | 세션 단위 팀 운영 + Tester completion gate 연동 |
+
+### 주요 변경
+- **lead-workflow.md 세션 단위 팀 운영 전환**:
+  - 기존: 태스크마다 팀 생성/해체
+  - 변경: 세션 시작 시 팀 생성, Guardian + DocOps 즉시 spawn하여 상시 가동
+  - 추가 팀원(Implementer/Verifier/Tester)은 필요 시 spawn
+  - 세션 종료 시에만 팀 shutdown
+- **tester-agent.md Tester 결과 파일 작성 Step 추가**:
+  - Step 5 신규: `.claude/verification/{task_id}-test.md`에 TEST-PASS/TEST-FAIL 작성
+  - TaskCompleted hook이 이 파일을 확인
+- **verify-task-completion.sh Tester completion gate 연동**:
+  - 1.5단계 추가: 팀에 tester가 있을 때 `{task_id}-test.md` 파일 확인
+  - TEST-FAIL이면 태스크 완료 차단 (exit 2)
+  - 파일 없으면 차단 (Tester가 작성해야 함)
+
+### 사용자 피드백
+- "니가 규칙을 따를수밖에 없게 만드는게 최우선과제" — 기계적 강제 우선
+- "첫 커밋에서 차단시키면된다는 거잖아" — 코워크 항상 활성화 방향
+- "작업전 파일을 다안읽고 시작한걸 검증하는 단계도있어야겠네" — Guardian 크로스체킹 (WI-165에서 구현)
+- rules 강제주입이 유저 메시지 취급 → 코워크+hook으로 보완 필수 확정
