@@ -19,7 +19,17 @@ if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
   exit 2
 fi
 
-# 1-2. src/ 변경 시 활성 팀 필수 (lead-workflow 강제)
+# 1-2. WI 번호 일관성 체크 — 같은 WI로 PR 5개 이상이면 경고
+BRANCH_WI=$(echo "$CURRENT_BRANCH" | grep -oE 'WI-[0-9]+' | head -1)
+if [ -n "$BRANCH_WI" ]; then
+  WI_PR_COUNT=$(git log --oneline origin/main --grep="$BRANCH_WI" 2>/dev/null | wc -l)
+  WI_PR_COUNT=${WI_PR_COUNT:-0}
+  if [ "$WI_PR_COUNT" -gt 10 ]; then
+    echo "⚠️ $BRANCH_WI 로 이미 ${WI_PR_COUNT}개 커밋이 있습니다. 다른 작업이면 새 WI 번호를 사용하세요." >&2
+  fi
+fi
+
+# 1-3. src/ 변경 시 활성 팀 필수 (lead-workflow 강제)
 SRC_IN_COMMIT=$(git diff --cached --name-only 2>/dev/null | grep "^src/" | head -1)
 TEAM_DIR="$HOME/.claude/teams"
 ACTIVE_TEAM=$(ls "$TEAM_DIR" 2>/dev/null | head -1)
