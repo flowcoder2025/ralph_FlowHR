@@ -33,6 +33,20 @@ LATEST_COMMIT=$(git log -1 --format=%ct 2>/dev/null || echo 0)
 
 DIFF_SEC=$((LATEST_COMMIT - STATE_MOD))
 
+# 커밋 안 된 .claude/ 파일 확인
+UNCOMMITTED_CLAUDE=$(git diff --name-only 2>/dev/null | grep "^\.claude/" | wc -l)
+UNTRACKED_CLAUDE=$(git ls-files --others --exclude-standard 2>/dev/null | grep "^\.claude/" | wc -l)
+TOTAL_UNCOMMITTED=$((UNCOMMITTED_CLAUDE + UNTRACKED_CLAUDE))
+
+if [ "$TOTAL_UNCOMMITTED" -gt 0 ]; then
+  echo "❌ [DocOps] .claude/ 하위에 커밋 안 된 파일이 ${TOTAL_UNCOMMITTED}개 있습니다." >&2
+  git diff --name-only 2>/dev/null | grep "^\.claude/" >&2
+  git ls-files --others --exclude-standard 2>/dev/null | grep "^\.claude/" >&2
+  echo "" >&2
+  echo "세션을 종료하기 전에 커밋하세요." >&2
+  exit 2
+fi
+
 # 최근 커밋이 state.md보다 새로우면 → knowledge/ 미업데이트
 if [ "$DIFF_SEC" -gt 300 ]; then
   echo "❌ [DocOps] knowledge/가 최신 커밋보다 오래됐습니다 (${DIFF_SEC}초 차이)." >&2
