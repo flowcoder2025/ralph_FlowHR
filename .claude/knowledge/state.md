@@ -60,6 +60,10 @@
 - S38: WI-192 API 응답 필드명 일관성 통일 — 완료
   - 4개 API 엔드포인트 응답 형식을 {data: ...} 구조로 통일
   - leave/policies, payroll/payslips, payroll/rules, recruiting/applications
+- S38: WI-193 PDF 다운로드 + 문서 뷰어 구현 — 완료
+  - employee/documents: PDF 다운로드 + 인라인 뷰어
+  - employee/payslips: PDF 다운로드 + 인라인 뷰어
+  - employee/documents API: Content-Disposition 헤더 추가
 
 ### 미완료 항목 (상세)
 
