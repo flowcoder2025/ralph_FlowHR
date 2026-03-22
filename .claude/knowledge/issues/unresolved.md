@@ -1,6 +1,6 @@
 ---
 name: unresolved-issues
-description: 남은 작업 — 2026-03-22 기준 (S38 반영, WI-190 완료)
+description: 남은 작업 — 2026-03-22 기준 (S38 반영, WI-191 완료)
 type: reference
 ---
 
@@ -107,6 +107,11 @@ type: reference
 
 ### ~~end-to-end 전체 플로우 테스트~~ — S38 완료
 - 5단계 워크플로우를 실제 기능 PRD로 end-to-end 실행 완료 (WI-184 + WI-190)
+
+### ~~WI-191 기본급 SSOT 트랜잭션 통합~~ — S38 완료
+- 기본급 저장 시 employees + wage_configs 단일 트랜잭션 통합
+- TeammateIdle hook lint/build 블록 제거 (Node 24 호환, test만 유지)
+- verify-task-completion.sh build 스크립트 수정
 
 ## 보류 항목
 

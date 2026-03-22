@@ -53,6 +53,10 @@
   - 조직도: 부서 클릭→직원 목록, 매니저 설정, 하위부서 생성
   - 직원관리: 부서→조직도 링크, 직책 라벨 수정
   - Guardian 데이터 흐름 추적 체크리스트 추가
+- S38: WI-191 기본급 SSOT 트랜잭션 통합 — 완료
+  - 기본급 저장 시 단일 트랜잭션으로 통합 (employees + wage_configs 동시 업데이트)
+  - TeammateIdle hook에서 lint/build 블록 제거 (Node 24 호환 문제 대응, test만 유지)
+  - verify-task-completion.sh build 스크립트 수정
 
 ### 미완료 항목 (상세)
 

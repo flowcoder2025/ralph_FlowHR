@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
 
   const tenantId = token.tenantId as string;
   const body = await request.json();
-  const { name, email, phone, departmentId, positionId, employeeNumber, hireDate, type, birthDate, gender, disabilityStatus } = body;
+  const { name, email, phone, departmentId, positionId, employeeNumber, hireDate, type, birthDate, gender, disabilityStatus, baseSalary } = body;
 
   if (!name || !email || !employeeNumber || !hireDate) {
     return NextResponse.json(
@@ -177,6 +177,19 @@ export async function POST(request: NextRequest) {
         position: { select: { id: true, name: true, level: true } },
       },
     });
+
+    // 6. 기본급이 있으면 SalaryHistory 생성 (트랜잭션 내)
+    if (baseSalary && Number(baseSalary) > 0) {
+      await tx.salaryHistory.create({
+        data: {
+          tenantId,
+          employeeId: created.id,
+          baseSalary: Number(baseSalary),
+          effectiveDate: new Date(hireDate),
+          reason: "입사 시 기본급 설정",
+        },
+      });
+    }
 
     return created;
   });
