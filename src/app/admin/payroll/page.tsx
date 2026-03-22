@@ -17,10 +17,10 @@ import { SubsidyTab } from "./tabs/SubsidyTab";
 const TABS = [
   { key: "dashboard", label: "대시보드" },
   { key: "wage-config", label: "임금 설정" },
-  { key: "calculation", label: "급여 계산" },
   { key: "rules", label: "급여 규칙" },
-  { key: "closing", label: "마감" },
+  { key: "calculation", label: "급여 계산" },
   { key: "payslips", label: "명세서" },
+  { key: "closing", label: "마감" },
   { key: "severance", label: "퇴직금" },
   { key: "subsidies", label: "지원금" },
 ] as const;

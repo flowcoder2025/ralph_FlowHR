@@ -325,7 +325,7 @@ function BasicInfoTab({ profile }: { profile: ProfileData }) {
           </div>
           <div className="mt-sp-6 pt-sp-4 border-t border-border-subtle">
             <p className="text-xs text-text-tertiary mb-sp-3">
-              연락처 정보 변경은 HR 담당자에게 요청해 주세요.
+              전화번호, 이메일 변경이 필요하면 아래 버튼으로 HR 담당자에게 요청해 주세요.
             </p>
             <Button size="sm" variant="secondary" onClick={async () => {
               try {
@@ -339,12 +339,12 @@ function BasicInfoTab({ profile }: { profile: ProfileData }) {
                   }),
                 });
                 if (!res.ok) throw new Error("요청 실패");
-                addToast({ message: "정보 수정 요청이 성공적으로 제출되었습니다.", variant: "success" });
+                addToast({ message: "연락처 수정 요청이 성공적으로 제출되었습니다.", variant: "success" });
               } catch {
-                addToast({ message: "정보 수정 요청에 실패했습니다. 다시 시도해 주세요.", variant: "danger" });
+                addToast({ message: "연락처 수정 요청에 실패했습니다. 다시 시도해 주세요.", variant: "danger" });
               }
             }}>
-              정보 수정 요청
+              연락처 수정 요청
             </Button>
           </div>
         </CardBody>
