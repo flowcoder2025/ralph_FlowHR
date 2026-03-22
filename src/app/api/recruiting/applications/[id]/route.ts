@@ -79,7 +79,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     data: updateData,
   });
 
-  return NextResponse.json({ application: updated });
+  return NextResponse.json({ data: updated });
   } catch (error) {
     console.error("[recruiting/applications/[id] PATCH] Error:", error);
     return NextResponse.json(

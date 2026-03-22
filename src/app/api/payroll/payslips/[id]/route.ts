@@ -31,7 +31,7 @@ export async function PATCH(
       where: { id },
       data: { status: "SENT", sentAt: new Date() },
     });
-    return NextResponse.json({ payslip: updated });
+    return NextResponse.json({ data: updated });
   }
 
   if (action === "reissue") {
@@ -39,7 +39,7 @@ export async function PATCH(
       where: { id },
       data: { status: "SENT", sentAt: new Date() },
     });
-    return NextResponse.json({ payslip: updated });
+    return NextResponse.json({ data: updated });
   }
 
   return NextResponse.json({ error: "Invalid action" }, { status: 400 });

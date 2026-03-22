@@ -45,7 +45,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     data: updateData,
   });
 
-  return NextResponse.json({ policy: updated });
+  return NextResponse.json({ data: updated });
   } catch (error) {
     console.error("[leave/policies/[id] PATCH] Error:", error);
     return NextResponse.json(
@@ -83,7 +83,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     data: { isActive: false },
   });
 
-  return NextResponse.json({ policy: updated });
+  return NextResponse.json({ data: updated });
   } catch (error) {
     console.error("[leave/policies/[id] DELETE] Error:", error);
     return NextResponse.json(
