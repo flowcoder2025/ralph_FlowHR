@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Drawer } from "@/components/layout/Drawer";
 import { Badge, Button } from "@/components/ui";
 import type { BadgeVariant } from "@/components/ui";
@@ -592,7 +593,11 @@ export function EmployeeDetailDrawer({ employeeId, onClose, onRefresh }: Employe
                   )}
                 </div>
                 <div className="text-sm text-text-secondary">
-                  {employee.department?.name ?? "—"} · {employee.position?.name ?? "—"}
+                  {employee.department ? (
+                    <Link href="/admin/org-chart" className="text-brand hover:underline">
+                      {employee.department.name}
+                    </Link>
+                  ) : "—"} · {employee.position?.name ?? "—"}
                 </div>
                 <div className="text-sm text-text-tertiary">
                   사번: {employee.employeeNumber} · 입사일:{" "}
