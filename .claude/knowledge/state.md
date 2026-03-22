@@ -74,6 +74,9 @@
 - S38: WI-196 급여 탭 재구성 + 프로필 수정 UX 명확화 — 완료
   - 급여 관리 탭 순서/라벨 재구성
   - 직원 프로필 수정 UX 개선 (버튼/라벨 명확화)
+- S38: WI-197 CRUD 불완전 API 보완 — 완료
+  - positions API: CRUD 전체 구현 (GET/POST/PUT/DELETE)
+  - performance/goals API: POST 핸들러 추가
 
 ### 미완료 항목 (상세)
 
