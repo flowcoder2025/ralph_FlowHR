@@ -387,6 +387,9 @@ export default function OrgChartPage() {
                     addToast({ message: "부서가 수정되었습니다.", variant: "success" });
                     setEditDept(null);
                     reloadTree();
+                    if (selectedDept) {
+                      selectDepartment({ id: selectedDept.id, name: editName || selectedDept.name });
+                    }
                   } else {
                     addToast({ message: "수정에 실패했습니다.", variant: "danger" });
                   }
