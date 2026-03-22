@@ -66,6 +66,36 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// ─── DELETE: 지원금 프로그램 전체 삭제 ────────────────────
+export async function DELETE(request: NextRequest) {
+  try {
+    const token = await getToken({ req: request });
+    if (!token || !token.tenantId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const tenantId = token.tenantId as string;
+
+    await prisma.subsidyMatch.deleteMany({
+      where: { program: { tenantId } },
+    });
+
+    const result = await prisma.subsidyProgram.deleteMany({
+      where: { tenantId },
+    });
+
+    return NextResponse.json({
+      data: { deleted: result.count },
+    });
+  } catch (error) {
+    console.error("[subsidies/programs DELETE] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 },
+    );
+  }
+}
+
 // ─── POST: 지원금 프로그램 생성 ──────────────────────────
 export async function POST(request: NextRequest) {
   try {

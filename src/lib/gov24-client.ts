@@ -57,6 +57,7 @@ interface SyncResult {
   synced: number;
   created: number;
   updated: number;
+  failed: number;
 }
 
 // ─── Helpers ────────────────────────────────────────────
@@ -184,56 +185,62 @@ export async function syncSubsidyPrograms(tenantId: string): Promise<SyncResult>
 
   let created = 0;
   let updated = 0;
+  let failed = 0;
 
   for (const service of services) {
-    const [detail, conditions] = await Promise.all([
-      fetchServiceDetail(service.서비스ID),
-      fetchSupportConditions(service.서비스ID),
-    ]);
+    try {
+      const [detail, conditions] = await Promise.all([
+        fetchServiceDetail(service.서비스ID),
+        fetchSupportConditions(service.서비스ID),
+      ]);
 
-    const eligibilityCriteria = mapEligibilityCriteria(conditions) as Prisma.InputJsonValue;
-    const category = mapCategory(service.서비스분야);
-    const name = service.서비스명;
-    const provider = detail?.소관기관명 ?? service.소관기관명;
-    const description = detail?.서비스목적 ?? service.서비스목적요약;
+      const eligibilityCriteria = mapEligibilityCriteria(conditions) as Prisma.InputJsonValue;
+      const category = mapCategory(service.서비스분야);
+      const name = service.서비스명;
+      const provider = detail?.소관기관명 ?? service.소관기관명;
+      const description = detail?.서비스목적 ?? service.서비스목적요약;
 
-    const existing = await prisma.subsidyProgram.findFirst({
-      where: { tenantId, externalProgramId: service.서비스ID },
-    });
-
-    if (existing) {
-      await prisma.subsidyProgram.update({
-        where: { id: existing.id },
-        data: {
-          name,
-          provider,
-          category,
-          description,
-          eligibilityCriteria,
-          isActive: true,
-          externalApiUrl: service.상세조회URL || null,
-        },
+      const existing = await prisma.subsidyProgram.findFirst({
+        where: { tenantId, externalProgramId: service.서비스ID },
       });
-      updated++;
-    } else {
-      await prisma.subsidyProgram.create({
-        data: {
-          tenantId,
-          name,
-          provider,
-          category,
-          description,
-          eligibilityCriteria,
-          monthlyAmount: 0,
-          maxDurationMonths: 12,
-          isActive: true,
-          externalProgramId: service.서비스ID,
-          externalApiUrl: service.상세조회URL || null,
-        },
-      });
-      created++;
+
+      if (existing) {
+        await prisma.subsidyProgram.update({
+          where: { id: existing.id },
+          data: {
+            name,
+            provider,
+            category,
+            description,
+            eligibilityCriteria,
+            isActive: true,
+            externalApiUrl: service.상세조회URL || null,
+          },
+        });
+        updated++;
+      } else {
+        await prisma.subsidyProgram.create({
+          data: {
+            tenantId,
+            name,
+            provider,
+            category,
+            description,
+            eligibilityCriteria,
+            monthlyAmount: 0,
+            maxDurationMonths: 12,
+            isActive: true,
+            externalProgramId: service.서비스ID,
+            externalApiUrl: service.상세조회URL || null,
+          },
+        });
+        created++;
+      }
+    } catch (error) {
+      console.error(`[syncSubsidyPrograms] 프로그램 처리 실패 (${service.서비스ID}):`, error);
+      failed++;
     }
   }
 
-  return { synced: created + updated, created, updated };
+  return { synced: created + updated, created, updated, failed };
 }
