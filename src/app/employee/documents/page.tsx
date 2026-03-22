@@ -28,6 +28,7 @@ interface SignatureDoc {
   deadline: string;
   priority: QueuePriority;
   priorityLabel: string;
+  templateContent: Record<string, unknown> | null;
 }
 
 type DocCategory = "all" | "contract" | "certificate" | "notice" | "pledge" | "statement";
@@ -40,6 +41,7 @@ interface ArchivedDoc {
   sender: string;
   receivedAt: string;
   signStatus: "signed" | "not_required";
+  templateContent: Record<string, unknown> | null;
 }
 
 type ViewMode = "list" | "viewer";
@@ -60,6 +62,7 @@ interface ApiDocument {
   viewedAt: string | null;
   completedAt: string | null;
   memo: string | null;
+  templateContent: Record<string, unknown> | null;
   createdAt: string;
 }
 
@@ -128,6 +131,7 @@ function mapToPendingDoc(doc: ApiDocument): SignatureDoc {
     deadline: formatDeadline(doc.deadline),
     priority,
     priorityLabel: label,
+    templateContent: doc.templateContent ?? null,
   };
 }
 
@@ -142,7 +146,24 @@ function mapToArchivedDoc(doc: ApiDocument): ArchivedDoc {
     sender: doc.senderName,
     receivedAt: doc.sentAt ? doc.sentAt.split("T")[0] : doc.createdAt.split("T")[0],
     signStatus: doc.status === "SIGNED" ? "signed" : "not_required",
+    templateContent: doc.templateContent ?? null,
   };
+}
+
+function renderTemplateContent(content: Record<string, unknown> | null): string {
+  if (!content || Object.keys(content).length === 0) return "문서 내용이 없습니다.";
+  if (typeof content.body === "string") return content.body;
+  if (typeof content.text === "string") return content.text;
+  if (typeof content.html === "string") return content.html;
+  const lines: string[] = [];
+  for (const [key, value] of Object.entries(content)) {
+    if (typeof value === "string" && value.trim()) {
+      lines.push(`${key}: ${value}`);
+    } else if (typeof value === "number" || typeof value === "boolean") {
+      lines.push(`${key}: ${String(value)}`);
+    }
+  }
+  return lines.length > 0 ? lines.join("\n") : "문서 내용이 없습니다.";
 }
 
 /* ────────────────────────────────────────────
@@ -206,18 +227,19 @@ const ARCHIVE_COLUMNS: Column<ArchivedDoc>[] = [
     align: "right" as const,
     render: (row) => (
       <Button variant="ghost" size="sm" onClick={() => {
-        const content = `%PDF-1.4\n${row.name}\nPlaceholder document`;
-        const blob = new Blob([content], { type: "application/pdf" });
+        const text = renderTemplateContent(row.templateContent);
+        const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${row.name}</title><style>body{font-family:sans-serif;padding:40px;color:#333;white-space:pre-wrap}</style></head><body><h1>${row.name}</h1><p>${text}</p></body></html>`;
+        const blob = new Blob([html], { type: "text/html;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${row.name}.pdf`;
+        a.download = `${row.name}.html`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }}>
-        {"\uD83D\uDCE5 PDF"}
+        {"\uD83D\uDCE5 다운로드"}
       </Button>
     ),
   },
@@ -344,17 +366,18 @@ export default function EmployeeDocumentsPage() {
             <div>
               <CardTitle>{selectedDoc.title}</CardTitle>
               <div className="text-sm text-text-tertiary mt-sp-1">
-                {selectedDoc.sender} {"발송"} {"\u00b7"} {"PDF"}
+                {selectedDoc.sender} {"발송"} {"\u00b7"} {"문서"}
               </div>
             </div>
             <div className="flex gap-sp-2">
               <Button variant="ghost" size="sm" onClick={() => {
-                const content = `%PDF-1.4\n${selectedDoc.title}\nPlaceholder document`;
-                const blob = new Blob([content], { type: "application/pdf" });
+                const text = renderTemplateContent(selectedDoc.templateContent);
+                const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${selectedDoc.title}</title><style>body{font-family:sans-serif;padding:40px;color:#333;white-space:pre-wrap}</style></head><body><h1>${selectedDoc.title}</h1><p>${text}</p></body></html>`;
+                const blob = new Blob([html], { type: "text/html;charset=utf-8" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = `${selectedDoc.title}.pdf`;
+                a.download = `${selectedDoc.title}.html`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -374,8 +397,8 @@ export default function EmployeeDocumentsPage() {
                 <div className="text-center mb-sp-6">
                   <div className="text-xl font-bold">{selectedDoc.title}</div>
                 </div>
-                <div className="text-sm text-text-secondary leading-8">
-                  <p className="text-text-tertiary">{"문서 내용이 여기에 표시됩니다."}</p>
+                <div className="text-sm text-text-secondary leading-8 whitespace-pre-wrap">
+                  {renderTemplateContent(selectedDoc.templateContent)}
                 </div>
               </div>
             </div>
