@@ -166,7 +166,56 @@ export default function PayslipsPage() {
   };
 
   const handleDownloadPdf = () => {
-    addToast({ message: "PDF 다운로드 기능은 준비 중입니다.", variant: "info" });
+    if (!payslip) return;
+    const breakdown = payslip.breakdown;
+    const fixedItems = (breakdown.fixedAllowances ?? [])
+      .map((a) => `<tr><td style="padding-left:20px">${a.name}</td><td style="text-align:right">${a.amount.toLocaleString("ko-KR")}원</td></tr>`)
+      .join("");
+    const nonTaxItems = (breakdown.nonTaxableAllowances ?? [])
+      .map((a) => `<tr><td style="padding-left:20px">${a.name}</td><td style="text-align:right">${a.amount.toLocaleString("ko-KR")}원</td></tr>`)
+      .join("");
+
+    const fmt = (v: number) => v.toLocaleString("ko-KR") + "원";
+    const html = [
+      "<!DOCTYPE html><html><head><meta charset=\"utf-8\">",
+      `<title>${payslip.year}년 ${payslip.month}월 급여명세서</title>`,
+      "<style>body{font-family:sans-serif;padding:40px;color:#333}h1{text-align:center;font-size:22px;margin-bottom:8px}",
+      ".sub{text-align:center;color:#666;margin-bottom:24px;font-size:14px}",
+      "table{width:100%;border-collapse:collapse;margin-bottom:24px}th,td{padding:8px 12px;border-bottom:1px solid #eee;font-size:14px}",
+      "th{text-align:left;background:#f8f9fa;font-weight:600}td:last-child{text-align:right}",
+      ".section{font-weight:600;background:#f0f4ff;padding:10px 12px;margin-top:16px}",
+      ".total{font-weight:700;border-top:2px solid #333;font-size:15px}",
+      ".net{text-align:center;margin-top:32px;padding:20px;background:#f0f4ff;border-radius:8px}",
+      ".net .amount{font-size:28px;font-weight:700;color:#4f46e5}",
+      "@media print{body{padding:20px}}</style></head><body>",
+      `<h1>${payslip.year}년 ${payslip.month}월 급여명세서</h1>`,
+      `<div class="sub">발급일: ${new Date().toLocaleDateString("ko-KR")}</div>`,
+      '<div class="section">지급 내역</div>',
+      `<table><tr><td>기본급</td><td>${fmt(breakdown.baseSalary ?? payslip.baseSalary)}</td></tr>`,
+      (breakdown.overtimePay ?? 0) > 0 ? `<tr><td>연장수당</td><td>${fmt(breakdown.overtimePay!)}</td></tr>` : "",
+      (breakdown.nightShiftPay ?? 0) > 0 ? `<tr><td>야간수당</td><td>${fmt(breakdown.nightShiftPay!)}</td></tr>` : "",
+      (breakdown.holidayPay ?? 0) > 0 ? `<tr><td>휴일수당</td><td>${fmt(breakdown.holidayPay!)}</td></tr>` : "",
+      fixedItems, nonTaxItems,
+      `<tr class="total"><td>총 지급액</td><td>${fmt(payslip.baseSalary + payslip.allowances)}</td></tr></table>`,
+      '<div class="section">공제 내역</div><table>',
+      (breakdown.incomeTax ?? 0) > 0 ? `<tr><td>소득세</td><td>${fmt(breakdown.incomeTax!)}</td></tr>` : "",
+      (breakdown.localTax ?? 0) > 0 ? `<tr><td>지방소득세</td><td>${fmt(breakdown.localTax!)}</td></tr>` : "",
+      (breakdown.nationalPension ?? 0) > 0 ? `<tr><td>국민연금</td><td>${fmt(breakdown.nationalPension!)}</td></tr>` : "",
+      (breakdown.healthInsurance ?? 0) > 0 ? `<tr><td>건강보험</td><td>${fmt(breakdown.healthInsurance!)}</td></tr>` : "",
+      (breakdown.longTermCare ?? 0) > 0 ? `<tr><td>장기요양</td><td>${fmt(breakdown.longTermCare!)}</td></tr>` : "",
+      (breakdown.employmentInsurance ?? 0) > 0 ? `<tr><td>고용보험</td><td>${fmt(breakdown.employmentInsurance!)}</td></tr>` : "",
+      `<tr class="total"><td>총 공제액</td><td>-${fmt(payslip.deductions)}</td></tr></table>`,
+      '<div class="net"><div style="font-size:14px;color:#666;margin-bottom:8px">실수령액</div>',
+      `<div class="amount">${fmt(payslip.netAmount)}</div></div>`,
+      "</body></html>",
+    ].join("\n");
+
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.onload = () => printWindow.print();
+    }
   };
 
   const payslip = payslips.length > 0 ? payslips[0] : null;

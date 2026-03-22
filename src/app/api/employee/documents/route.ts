@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       prisma.document.findMany({
         where,
         include: {
-          template: { select: { name: true, category: true } },
+          template: { select: { name: true, category: true, content: true } },
           sender: { select: { name: true } },
         },
         orderBy: { createdAt: "desc" },
@@ -72,6 +72,7 @@ export async function GET(request: NextRequest) {
       status: doc.status,
       templateName: doc.template.name,
       templateCategory: doc.template.category,
+      templateContent: doc.template.content,
       senderName: doc.sender.name,
       deadline: doc.deadline?.toISOString() ?? null,
       sentAt: doc.sentAt?.toISOString() ?? null,
