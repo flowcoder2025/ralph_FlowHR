@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui";
 import { useToast } from "@/components/layout/Toast";
 
@@ -47,6 +48,7 @@ function flattenDepts(nodes: DepartmentNode[]): { id: string; name: string }[] {
 // ─── Component ──────────────────────────────────────────────
 
 export default function OrgChartPage() {
+  const router = useRouter();
   const { addToast } = useToast();
   const [tree, setTree] = useState<DepartmentNode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -225,17 +227,20 @@ export default function OrgChartPage() {
                 ) : (
                   <ul className="space-y-sp-2">
                     {deptEmployees.map((emp) => (
-                      <li
-                        key={emp.id}
-                        className="flex items-center justify-between rounded-md border border-border-subtle bg-surface-primary px-sp-3 py-sp-2"
-                      >
-                        <div>
-                          <span className="text-sm font-medium text-text-primary">{emp.name}</span>
-                          <span className="ml-sp-2 text-xs text-text-tertiary">{emp.employeeNumber}</span>
-                        </div>
-                        {emp.position && (
-                          <span className="text-xs text-text-secondary">{emp.position.name}</span>
-                        )}
+                      <li key={emp.id}>
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/admin/people?employee=${emp.id}`)}
+                          className="flex w-full items-center justify-between rounded-md border border-border-subtle bg-surface-primary px-sp-3 py-sp-2 cursor-pointer hover:bg-surface-secondary transition-colors text-left"
+                        >
+                          <div>
+                            <span className="text-sm font-medium text-text-primary hover:underline">{emp.name}</span>
+                            <span className="ml-sp-2 text-xs text-text-tertiary">{emp.employeeNumber}</span>
+                          </div>
+                          {emp.position && (
+                            <span className="text-xs text-text-secondary">{emp.position.name}</span>
+                          )}
+                        </button>
                       </li>
                     ))}
                   </ul>

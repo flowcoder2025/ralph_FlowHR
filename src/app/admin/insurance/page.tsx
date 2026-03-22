@@ -180,6 +180,7 @@ function InsuranceContent() {
 // ─── Dashboard Tab ──────────────────────────────────────────
 
 function DashboardTab() {
+  const router = useRouter();
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(
     `${now.getFullYear()}-${now.getMonth() + 1}`,
@@ -227,10 +228,11 @@ function DashboardTab() {
       if (res.ok) {
         const json = await res.json();
         addToast({
-          message: `${json.data.processed}명 보험료 산출 완료`,
+          message: `${json.data.processed}명 보험료 산출 완료 — 월별상세 탭에서 확인하세요`,
           variant: "success",
         });
         await fetchSummary();
+        router.push("/admin/insurance?tab=detail");
       } else {
         const errJson = await res.json();
         addToast({

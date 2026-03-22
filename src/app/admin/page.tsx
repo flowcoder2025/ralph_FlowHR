@@ -227,6 +227,7 @@ function AdminDashboardContent() {
                 : "neutral"
           }
           emphasis
+          onClick={() => router.push("/admin/workflow")}
         />
         <KPICard
           eyebrow="근태 이상"
@@ -245,11 +246,13 @@ function AdminDashboardContent() {
                 ? "down"
                 : "neutral"
           }
+          onClick={() => router.push("/admin/attendance?tab=exceptions")}
         />
         <KPICard
           eyebrow="근로 시간"
           value={data.kpi.overtimeNear.value}
           label="초과근무 임박"
+          onClick={() => router.push("/admin/attendance")}
         />
         <KPICard
           eyebrow="문서"
@@ -268,11 +271,13 @@ function AdminDashboardContent() {
                 ? "down"
                 : "neutral"
           }
+          onClick={() => router.push("/admin/documents")}
         />
         <KPICard
           eyebrow="마감"
           value={data.kpi.closingBottleneck.value}
           label="마감 병목"
+          onClick={() => router.push("/admin/payroll")}
         />
       </KPIGrid>
 
@@ -339,7 +344,9 @@ function AdminDashboardContent() {
         <Card>
           <CardHeader>
             <CardTitle>조직 스냅샷</CardTitle>
-            <span className="text-sm text-text-tertiary">부서별 현황</span>
+            <Button variant="ghost" size="sm" onClick={() => router.push("/admin/org-chart")}>
+              조직도 →
+            </Button>
           </CardHeader>
           <CardBody>
             {data.orgSnapshot.departments.length > 0 ? (
