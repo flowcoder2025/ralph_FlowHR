@@ -105,33 +105,29 @@ type: reference
 - SubsidyTab에 "정부 프로그램 동기화" 버튼 추가
 - 기존 매칭 엔진 연동 유지
 
-### end-to-end 전체 플로우 테스트
-- 5단계 워크플로우를 실제 기능으로 처음부터 끝까지 실행
-- 코워크 실전 테스트 3회 완료(S30)했으나 전체 흐름 검증은 미완
-- S37 사용자 합의: 스크린샷 PRD 소재(custom-report.png, doc-send.png, gps-map.png)로 실전 테스트 예정
+### ~~end-to-end 전체 플로우 테스트~~ — S38 완료
+- 5단계 워크플로우를 실제 기능 PRD로 end-to-end 실행 완료 (WI-184 + WI-190)
 
-## 미완료 — 중간
+## 보류 항목
 
-### WI-185 다중 Implementer 병렬 테스트
+### 다중 Implementer 병렬 테스트 — 보류
 - 여러 Implementer가 동시에 src/ 수정 시 파일 충돌 방지 미검증
-- 코워크 아키텍처에서 병렬 구현 시나리오 테스트 필요
 
-### WI-186 SSOT 흐름 실검증
-- Admin→Employee 데이터 흐름이 SSOT 원칙대로 동작하는지 실검증 필요
-- 직원 상세 드로어(WI-151) SSOT 허브가 실제로 단일 출처 역할하는지 확인
+### SSOT 흐름 실검증 — 보류
+- S38 사용자 지적으로 부분 해결 (리드 선제 검증 실패)
+- 직원 상세 드로어 SSOT 허브 단일 출처 확인 미완
 
-## 미완료 — 낮음
-
-### WI-187 console.error 정리
+### console.error 정리 — 보류
 - 프로덕션 배포 전 불필요한 console.error 제거
 
-### WI-188 다른 프로젝트 코워크 주입 템플릿
+### 다른 프로젝트 코워크 주입 템플릿 — 보류
 - 현재 ralph_FlowHR 전용 → 범용 템플릿 필요
-- .claude/ 하위 구조를 다른 프로젝트에 적용할 수 있도록
 
-### WI-189 mem 스킬 legacy 전환 반영
-- mem:save/mem:load 수동 스킬 → knowledge/ 자동 체계로 전환
-- S30 결정: DocOps 자동 관리로 일원화
+### mem 스킬 legacy 전환 반영 — 보류
+- mem:save/mem:load → knowledge/ 자동 체계로 전환 완료, 정리만 남음
+
+## 인프라 변경 (S38)
+- merge queue: SQUASH → MERGE 방식으로 변경
 
 ## 기타
 - DocOps Stop hook 간헐적 미동작 (사용자 지적: "docops가 계속 안도는거같은데") — PR #198에서 강제화, WI-163에서 미커밋 파일 차단 추가

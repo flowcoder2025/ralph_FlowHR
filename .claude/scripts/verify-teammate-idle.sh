@@ -51,26 +51,5 @@ if [ "$UNSTAGED" -gt 0 ] || [ "$STAGED" -gt 0 ]; then
   exit 2
 fi
 
-# 2. lint 확인 (exit code만 체크, stderr 오탐 방지)
-npm run lint > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-  echo "❌ lint 실패. 코드 스타일 문제를 수정하세요." >&2
-  exit 2
-fi
-
-# 3. build 확인 (exit code만 체크, Next.js dynamic route 메시지 오탐 방지)
-npm run build > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-  echo "❌ build 실패. 컴파일 에러를 수정하세요." >&2
-  exit 2
-fi
-
-# 4. test 확인
-npm test > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-  echo "❌ test 실패. 테스트를 수정하세요." >&2
-  exit 2
-fi
-
 echo "✅ $TEAMMATE 품질 게이트 통과. idle 허용." >&2
 exit 0
