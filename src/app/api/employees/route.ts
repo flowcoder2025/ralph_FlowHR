@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const search = searchParams.get("search") ?? "";
   const status = searchParams.get("status") ?? "";
+  const departmentId = searchParams.get("departmentId") ?? "";
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
   const pageSize = Math.min(
     100,
@@ -42,6 +43,11 @@ export async function GET(request: NextRequest) {
       { department: { name: { contains: search, mode: "insensitive" } } },
       { position: { name: { contains: search, mode: "insensitive" } } },
     ];
+  }
+
+  // Filter by departmentId
+  if (departmentId) {
+    where.departmentId = departmentId;
   }
 
   // Filter by status

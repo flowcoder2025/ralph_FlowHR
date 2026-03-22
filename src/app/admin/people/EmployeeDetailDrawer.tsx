@@ -813,7 +813,7 @@ function InfoTab({
         <StatRow label="이메일" value={employee.email} />
         <StatRow label="전화번호" value={employee.phone ?? "—"} />
         <StatRow label="직위" value={employee.position?.name ?? "—"} />
-        <StatRow label="팀장" value={employee.department?.manager?.name ?? "—"} />
+        <StatRow label="직책" value={employee.department?.manager?.name ?? "—"} />
         <StatRow label="고용 형태" value={TYPE_LABEL_MAP[employee.type] ?? employee.type} />
         <StatRow label="생년월일" value={employee.birthDate ? new Date(employee.birthDate).toLocaleDateString("ko-KR") : "—"} />
         <StatRow label="성별" value={employee.gender === "MALE" ? "남성" : employee.gender === "FEMALE" ? "여성" : "—"} />
