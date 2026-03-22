@@ -57,6 +57,9 @@
   - 기본급 저장 시 단일 트랜잭션으로 통합 (employees + wage_configs 동시 업데이트)
   - TeammateIdle hook에서 lint/build 블록 제거 (Node 24 호환 문제 대응, test만 유지)
   - verify-task-completion.sh build 스크립트 수정
+- S38: WI-192 API 응답 필드명 일관성 통일 — 완료
+  - 4개 API 엔드포인트 응답 형식을 {data: ...} 구조로 통일
+  - leave/policies, payroll/payslips, payroll/rules, recruiting/applications
 
 ### 미완료 항목 (상세)
 
