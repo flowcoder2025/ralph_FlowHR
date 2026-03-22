@@ -72,13 +72,13 @@ export async function PATCH(
   const body = await request.json();
   const allowedFields = [
     "name", "email", "phone", "departmentId", "positionId",
-    "employeeNumber", "hireDate", "resignDate", "status", "type",
+    "employeeNumber", "hireDate", "resignDate", "birthDate", "gender", "disabilityStatus", "status", "type",
   ];
   const data: Record<string, unknown> = {};
 
   for (const field of allowedFields) {
     if (body[field] !== undefined) {
-      if (field === "hireDate" || field === "resignDate") {
+      if (field === "hireDate" || field === "resignDate" || field === "birthDate") {
         data[field] = body[field] ? new Date(body[field]) : null;
       } else {
         data[field] = body[field];

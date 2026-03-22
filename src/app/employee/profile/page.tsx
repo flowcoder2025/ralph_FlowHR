@@ -25,6 +25,8 @@ interface ProfileData {
   department: string;
   position: string;
   hireDate: string;
+  birthDate: string | null;
+  gender: string | null;
   status: string;
   type: string;
   avatar: string;
@@ -301,6 +303,8 @@ function BasicInfoTab({ profile }: { profile: ProfileData }) {
             <InfoRow label="입사일" value={formatDate(profile.hireDate)} />
             <InfoRow label="근속 기간" value={getTenure(profile.hireDate)} />
             <InfoRow label="고용 형태" value={TYPE_MAP[profile.type] ?? profile.type} />
+            <InfoRow label="생년월일" value={profile.birthDate ? new Date(profile.birthDate).toLocaleDateString("ko-KR") : "—"} />
+            <InfoRow label="성별" value={profile.gender === "MALE" ? "남성" : profile.gender === "FEMALE" ? "여성" : "—"} />
             <InfoRow
               label="재직 상태"
               value={STATUS_MAP[profile.status]?.label ?? profile.status}

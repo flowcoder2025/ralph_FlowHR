@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
 
   const tenantId = token.tenantId as string;
   const body = await request.json();
-  const { name, email, phone, departmentId, positionId, employeeNumber, hireDate, type } = body;
+  const { name, email, phone, departmentId, positionId, employeeNumber, hireDate, type, birthDate, gender, disabilityStatus } = body;
 
   if (!name || !email || !employeeNumber || !hireDate) {
     return NextResponse.json(
@@ -160,6 +160,9 @@ export async function POST(request: NextRequest) {
         positionId: positionId || null,
         employeeNumber,
         hireDate: new Date(hireDate),
+        birthDate: birthDate ? new Date(birthDate) : null,
+        gender: gender || null,
+        disabilityStatus: disabilityStatus ?? false,
         type: empType,
         userId,
       },

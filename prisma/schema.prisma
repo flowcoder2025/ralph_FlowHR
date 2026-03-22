@@ -520,7 +520,8 @@ model Employee {
   resignDate     DateTime?
   status         EmployeeStatus  @default(ACTIVE)
   type           EmploymentType  @default(FULL_TIME)
-  birthDate      DateTime?
+  birthDate        DateTime?
+  gender           String?
   disabilityStatus Boolean       @default(false)
 
   createdAt DateTime @default(now())
