@@ -77,6 +77,22 @@
 - S38: WI-197 CRUD 불완전 API 보완 — 완료
   - positions API: CRUD 전체 구현 (GET/POST/PUT/DELETE)
   - performance/goals API: POST 핸들러 추가
+- S38: WI-198 모달 버튼 스타일 통일 + console.error 확인 — 완료
+  - org-chart 모달 버튼 스타일 통일 (취소/확인 버튼 일관성)
+
+### S38 전체 작업 요약
+- WI-183: TaskCompleted hook build false positive 제거
+- WI-184: 보조금24 API 연동 (gov24-client + sync API + 직원 기본정보)
+- WI-190: 조직도 ↔ 직원관리 양방향 CRUD
+- WI-191: 기본급 SSOT 트랜잭션 통합 + idle hook 정리
+- WI-192: API 응답 필드명 {data:...} 통일
+- WI-193: PDF 다운로드 + 문서 뷰어
+- WI-194: 네비게이션 연결 (KPI→상세, 조직도→직원, 보험→월별상세)
+- WI-195: 부서장 ↔ 직책 동기화
+- WI-196: 급여 탭 재구성 + 프로필 수정 UX
+- WI-197: CRUD 불완전 API 보완 (positions, goals)
+- WI-198: 모달 버튼 스타일 통일
+- 인프라: merge queue SQUASH→MERGE, Node 24 호환 대응
 
 ### 미완료 항목 (상세)
 
