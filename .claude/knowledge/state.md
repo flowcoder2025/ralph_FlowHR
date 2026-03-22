@@ -47,6 +47,12 @@
   - verify-on-commit.sh: 머지된 PR 브랜치에서 추가 커밋 시 즉시 차단
 - S37: WI-179 DocOps만 커밋 가능 hook — 완료 (PR #226)
   - verify-on-commit.sh: 팀 활성 시 DocOps 외 에이전트 커밋 차단
+- S38: WI-183 TaskCompleted hook build false positive 제거 — 완료
+- S38: WI-184 보조금24 API 연동 — 완료 (gov24-client + sync API + 직원 기본정보 수집)
+- S38: WI-190 조직도 ↔ 직원관리 양방향 CRUD — 완료
+  - 조직도: 부서 클릭→직원 목록, 매니저 설정, 하위부서 생성
+  - 직원관리: 부서→조직도 링크, 직책 라벨 수정
+  - Guardian 데이터 흐름 추적 체크리스트 추가
 
 ### 미완료 항목 (상세)
 

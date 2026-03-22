@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
         totalMaxAmount: p.totalMaxAmount,
         applicationStart: p.applicationStart?.toISOString() ?? null,
         applicationEnd: p.applicationEnd?.toISOString() ?? null,
+        externalApiUrl: p.externalApiUrl ?? null,
         isActive: p.isActive,
         createdAt: p.createdAt.toISOString(),
         updatedAt: p.updatedAt.toISOString(),
@@ -58,6 +59,36 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("[subsidies/programs GET] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 },
+    );
+  }
+}
+
+// ─── DELETE: 지원금 프로그램 전체 삭제 ────────────────────
+export async function DELETE(request: NextRequest) {
+  try {
+    const token = await getToken({ req: request });
+    if (!token || !token.tenantId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const tenantId = token.tenantId as string;
+
+    await prisma.subsidyMatch.deleteMany({
+      where: { program: { tenantId } },
+    });
+
+    const result = await prisma.subsidyProgram.deleteMany({
+      where: { tenantId },
+    });
+
+    return NextResponse.json({
+      data: { deleted: result.count },
+    });
+  } catch (error) {
+    console.error("[subsidies/programs DELETE] Error:", error);
     return NextResponse.json(
       { error: "서버 오류가 발생했습니다" },
       { status: 500 },

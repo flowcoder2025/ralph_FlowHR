@@ -31,6 +31,7 @@ interface ProgramRow {
   totalMaxAmount: number | null;
   applicationStart: string | null;
   applicationEnd: string | null;
+  externalApiUrl: string | null;
   isActive: boolean;
   createdAt: string;
 }
@@ -313,7 +314,7 @@ export function SubsidyTab() {
       if (res.ok) {
         const json = await res.json();
         addToast({
-          message: `동기화 완료: ${json.data.synced}건 (신규 ${json.data.created}, 갱신 ${json.data.updated})`,
+          message: `동기화 완료: ${json.data.synced}건 (신규 ${json.data.created}, 갱신 ${json.data.updated}${json.data.failed ? `, 실패 ${json.data.failed}` : ""})`,
           variant: "success",
         });
         fetchPrograms();
@@ -323,6 +324,26 @@ export function SubsidyTab() {
       }
     } finally {
       setSyncing(false);
+    }
+  }
+
+  async function handleDeleteAll() {
+    if (!confirm("모든 프로그램과 매칭 결과가 삭제됩니다. 계속하시겠습니까?")) return;
+    try {
+      const res = await fetch("/api/subsidies/programs", { method: "DELETE" });
+      if (res.ok) {
+        const json = await res.json();
+        addToast({
+          message: `${json.data.deleted}건의 프로그램이 삭제되었습니다.`,
+          variant: "success",
+        });
+        fetchPrograms();
+      } else {
+        const errJson = await res.json();
+        addToast({ message: errJson.error || "삭제에 실패했습니다.", variant: "danger" });
+      }
+    } catch {
+      addToast({ message: "삭제 중 오류가 발생했습니다.", variant: "danger" });
     }
   }
 
@@ -385,7 +406,19 @@ export function SubsidyTab() {
     {
       key: "name",
       header: "프로그램명",
-      render: (row) => <span className="font-medium">{row.name}</span>,
+      render: (row) =>
+        row.externalApiUrl ? (
+          <a
+            href={row.externalApiUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-primary hover:underline"
+          >
+            {row.name}
+          </a>
+        ) : (
+          <span className="font-medium">{row.name}</span>
+        ),
     },
     {
       key: "provider",
@@ -553,6 +586,9 @@ export function SubsidyTab() {
           <CardHeader>
             <CardTitle>지원금 프로그램</CardTitle>
             <div className="flex gap-sp-2">
+              <Button variant="danger" size="sm" onClick={handleDeleteAll}>
+                전체 삭제
+              </Button>
               <Button variant="secondary" size="sm" onClick={handleSync} disabled={syncing}>
                 {syncing ? "동기화 중..." : "정부 프로그램 동기화"}
               </Button>

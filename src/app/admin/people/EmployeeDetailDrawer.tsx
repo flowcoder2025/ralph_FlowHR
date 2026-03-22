@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Drawer } from "@/components/layout/Drawer";
 import { Badge, Button } from "@/components/ui";
 import type { BadgeVariant } from "@/components/ui";
@@ -42,6 +43,9 @@ interface EmployeeDetail {
   type: string;
   hireDate: string;
   resignDate: string | null;
+  birthDate: string | null;
+  gender: string | null;
+  disabilityStatus: boolean;
   department: DepartmentInfo | null;
   position: PositionInfo | null;
   changes: ChangeRecord[];
@@ -110,6 +114,9 @@ interface EditFormState {
   departmentId: string;
   positionId: string;
   type: string;
+  birthDate: string;
+  gender: string;
+  disabilityStatus: boolean;
   baseSalary: string;
 }
 
@@ -234,7 +241,7 @@ export function EmployeeDetailDrawer({ employeeId, onClose, onRefresh }: Employe
   // Edit mode
   const [editMode, setEditMode] = useState(false);
   const [editForm, setEditForm] = useState<EditFormState>({
-    name: "", email: "", phone: "", departmentId: "", positionId: "", type: "FULL_TIME", baseSalary: "",
+    name: "", email: "", phone: "", departmentId: "", positionId: "", type: "FULL_TIME", birthDate: "", gender: "", disabilityStatus: false, baseSalary: "",
   });
   const [editSaving, setEditSaving] = useState(false);
   const [departments, setDepartments] = useState<DeptOption[]>([]);
@@ -332,6 +339,9 @@ export function EmployeeDetailDrawer({ employeeId, onClose, onRefresh }: Employe
       departmentId: employee.department?.id ?? "",
       positionId: employee.position?.id ?? "",
       type: employee.type,
+      birthDate: employee.birthDate ? employee.birthDate.slice(0, 10) : "",
+      gender: employee.gender ?? "",
+      disabilityStatus: employee.disabilityStatus ?? false,
       baseSalary: "",
     });
     setEditMode(true);
@@ -354,6 +364,15 @@ export function EmployeeDetailDrawer({ employeeId, onClose, onRefresh }: Employe
         patchBody.positionId = editForm.positionId || null;
       }
       if (editForm.type !== employee.type) patchBody.type = editForm.type;
+      if (editForm.birthDate !== (employee.birthDate?.slice(0, 10) ?? "")) {
+        patchBody.birthDate = editForm.birthDate || null;
+      }
+      if (editForm.gender !== (employee.gender ?? "")) {
+        patchBody.gender = editForm.gender || null;
+      }
+      if (editForm.disabilityStatus !== (employee.disabilityStatus ?? false)) {
+        patchBody.disabilityStatus = editForm.disabilityStatus;
+      }
 
       const newBaseSalary = editForm.baseSalary ? Number(editForm.baseSalary) : null;
       const salaryChanged = newBaseSalary !== null && newBaseSalary !== currentBaseSalary;
@@ -574,7 +593,11 @@ export function EmployeeDetailDrawer({ employeeId, onClose, onRefresh }: Employe
                   )}
                 </div>
                 <div className="text-sm text-text-secondary">
-                  {employee.department?.name ?? "—"} · {employee.position?.name ?? "—"}
+                  {employee.department ? (
+                    <Link href="/admin/org-chart" className="text-brand hover:underline">
+                      {employee.department.name}
+                    </Link>
+                  ) : "—"} · {employee.position?.name ?? "—"}
                 </div>
                 <div className="text-sm text-text-tertiary">
                   사번: {employee.employeeNumber} · 입사일:{" "}
@@ -720,6 +743,30 @@ function InfoTab({
               ))}
             </select>
           </div>
+          <EditField label="생년월일" value={editForm.birthDate} onChange={(v) => onEditFormChange({ ...editForm, birthDate: v })} type="date" />
+          <div>
+            <label className="block text-xs font-medium text-text-secondary mb-sp-1">성별</label>
+            <select
+              value={editForm.gender}
+              onChange={(e) => onEditFormChange({ ...editForm, gender: e.target.value })}
+              className="w-full rounded-md border border-border bg-surface-primary px-sp-3 py-sp-2 text-sm text-text-primary"
+            >
+              <option value="">선택 안 함</option>
+              <option value="MALE">남성</option>
+              <option value="FEMALE">여성</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-text-secondary mb-sp-1">장애 여부</label>
+            <select
+              value={editForm.disabilityStatus ? "true" : "false"}
+              onChange={(e) => onEditFormChange({ ...editForm, disabilityStatus: e.target.value === "true" })}
+              className="w-full rounded-md border border-border bg-surface-primary px-sp-3 py-sp-2 text-sm text-text-primary"
+            >
+              <option value="false">비해당</option>
+              <option value="true">해당</option>
+            </select>
+          </div>
           <div>
             <label className="block text-xs font-medium text-text-secondary mb-sp-1">고용형태</label>
             <select
@@ -771,8 +818,11 @@ function InfoTab({
         <StatRow label="이메일" value={employee.email} />
         <StatRow label="전화번호" value={employee.phone ?? "—"} />
         <StatRow label="직위" value={employee.position?.name ?? "—"} />
-        <StatRow label="팀장" value={employee.department?.manager?.name ?? "—"} />
+        <StatRow label="직책" value={employee.department?.manager?.name ?? "—"} />
         <StatRow label="고용 형태" value={TYPE_LABEL_MAP[employee.type] ?? employee.type} />
+        <StatRow label="생년월일" value={employee.birthDate ? new Date(employee.birthDate).toLocaleDateString("ko-KR") : "—"} />
+        <StatRow label="성별" value={employee.gender === "MALE" ? "남성" : employee.gender === "FEMALE" ? "여성" : "—"} />
+        <StatRow label="장애 여부" value={employee.disabilityStatus ? "해당" : "비해당"} />
       </div>
 
       {/* Signals */}

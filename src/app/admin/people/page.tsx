@@ -237,6 +237,9 @@ export default function PeoplePage() {
                     phone: fd.get("phone") || undefined,
                     employeeNumber: fd.get("employeeNumber"),
                     hireDate: fd.get("hireDate"),
+                    birthDate: fd.get("birthDate") || undefined,
+                    gender: fd.get("gender") || undefined,
+                    disabilityStatus: fd.get("disabilityStatus") === "true",
                     type: fd.get("type") || "FULL_TIME",
                     departmentId: fd.get("departmentId") || undefined,
                     positionId: fd.get("positionId") || undefined,
@@ -287,6 +290,25 @@ export default function PeoplePage() {
                 <div>
                   <label className="block text-xs font-medium text-text-secondary mb-sp-1">입사일 *</label>
                   <input name="hireDate" type="date" required className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-sp-1">생년월일</label>
+                  <input name="birthDate" type="date" className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-sp-1">성별</label>
+                  <select name="gender" className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm">
+                    <option value="">선택 안 함</option>
+                    <option value="MALE">남성</option>
+                    <option value="FEMALE">여성</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-sp-1">장애 여부</label>
+                  <select name="disabilityStatus" className="w-full rounded-md border border-border px-sp-3 py-sp-2 text-sm">
+                    <option value="false">비해당</option>
+                    <option value="true">해당</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-text-secondary mb-sp-1">부서</label>

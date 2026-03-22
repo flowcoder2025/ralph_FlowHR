@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const search = searchParams.get("search") ?? "";
   const status = searchParams.get("status") ?? "";
+  const departmentId = searchParams.get("departmentId") ?? "";
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
   const pageSize = Math.min(
     100,
@@ -42,6 +43,11 @@ export async function GET(request: NextRequest) {
       { department: { name: { contains: search, mode: "insensitive" } } },
       { position: { name: { contains: search, mode: "insensitive" } } },
     ];
+  }
+
+  // Filter by departmentId
+  if (departmentId) {
+    where.departmentId = departmentId;
   }
 
   // Filter by status
@@ -91,7 +97,7 @@ export async function POST(request: NextRequest) {
 
   const tenantId = token.tenantId as string;
   const body = await request.json();
-  const { name, email, phone, departmentId, positionId, employeeNumber, hireDate, type } = body;
+  const { name, email, phone, departmentId, positionId, employeeNumber, hireDate, type, birthDate, gender, disabilityStatus } = body;
 
   if (!name || !email || !employeeNumber || !hireDate) {
     return NextResponse.json(
@@ -160,6 +166,9 @@ export async function POST(request: NextRequest) {
         positionId: positionId || null,
         employeeNumber,
         hireDate: new Date(hireDate),
+        birthDate: birthDate ? new Date(birthDate) : null,
+        gender: gender || null,
+        disabilityStatus: disabilityStatus ?? false,
         type: empType,
         userId,
       },

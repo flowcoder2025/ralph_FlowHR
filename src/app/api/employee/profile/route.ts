@@ -74,6 +74,8 @@ export async function GET(request: NextRequest) {
         department: employee.department?.name ?? "",
         position: employee.position?.name ?? "",
         hireDate: employee.hireDate.toISOString(),
+        birthDate: employee.birthDate?.toISOString() ?? null,
+        gender: employee.gender ?? null,
         status: employee.status,
         type: employee.type,
         avatar: employee.name.slice(0, 1),

@@ -1,6 +1,6 @@
 ---
 name: unresolved-issues
-description: 남은 작업 — 2026-03-22 기준 (S38 반영, WI-179 완료 PR #226)
+description: 남은 작업 — 2026-03-22 기준 (S38 반영, WI-190 완료)
 type: reference
 ---
 
@@ -39,6 +39,12 @@ type: reference
 ## ~~외부 API 연동~~ → WI-184 S38 완료
 - 보조금24 API(api.odcloud.kr) 연동 구현 완료
 - gov24-client.ts + /api/subsidies/sync + SubsidyTab UI 버튼
+
+## ~~WI-190 조직도 ↔ 직원관리 양방향 CRUD~~ — S38 완료
+- 조직도: 부서 클릭→직원 목록, 매니저 설정, 하위부서 생성
+- 직원관리: 부서→조직도 링크, 직책 라벨 수정
+- Guardian 데이터 흐름 추적 체크리스트 추가
+- 직원 기본정보 수집(생년월일/성별/장애여부) 추가
 
 ## Hook 검증 시스템 — 완료
 - 요구사항 파일 수정 차단 (PreToolUse Write/Edit/MultiEdit)
