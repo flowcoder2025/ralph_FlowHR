@@ -96,7 +96,7 @@ async function fetchJson<T>(url: string): Promise<Gov24Response<T>> {
 
 export async function fetchServiceList(): Promise<ServiceListItem[]> {
   const url = buildUrl("/gov24/v3/serviceList", {
-    "cond[서비스분야::LIKE]": "고용",
+    "cond[소관기관명::LIKE]": "고용노동부",
   });
   const response = await fetchJson<ServiceListItem>(url);
   return response.data;
