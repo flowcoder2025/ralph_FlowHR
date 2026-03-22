@@ -243,23 +243,10 @@ export default function PeoplePage() {
                     type: fd.get("type") || "FULL_TIME",
                     departmentId: fd.get("departmentId") || undefined,
                     positionId: fd.get("positionId") || undefined,
+                    baseSalary: fd.get("baseSalary") ? Number(fd.get("baseSalary")) : undefined,
                   }),
                 });
                 if (res.ok) {
-                  const created = await res.json();
-                  const baseSalaryValue = fd.get("baseSalary");
-                  if (baseSalaryValue && Number(baseSalaryValue) > 0 && created?.data?.id) {
-                    await fetch("/api/payroll/salary-history", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        employeeId: created.data.id,
-                        baseSalary: Number(baseSalaryValue),
-                        effectiveDate: fd.get("hireDate"),
-                        reason: "입사 시 기본급 설정",
-                      }),
-                    });
-                  }
                   setShowCreateModal(false);
                   fetchEmployees();
                 } else {
