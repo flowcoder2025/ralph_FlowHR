@@ -70,13 +70,13 @@ function getApiKey(): string {
 
 function buildUrl(path: string, params: Record<string, string>): string {
   const url = new URL(`${BASE_URL}${path}`);
-  url.searchParams.set("serviceKey", getApiKey());
   url.searchParams.set("page", String(DEFAULT_PAGE));
   url.searchParams.set("perPage", String(DEFAULT_PER_PAGE));
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value);
   }
-  return url.toString();
+  const base = url.toString();
+  return base + (base.includes("?") ? "&" : "?") + `serviceKey=${getApiKey()}`;
 }
 
 async function fetchJson<T>(url: string): Promise<Gov24Response<T>> {
