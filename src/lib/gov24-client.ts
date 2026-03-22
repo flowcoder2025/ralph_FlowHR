@@ -100,7 +100,9 @@ export async function fetchServiceList(): Promise<ServiceListItem[]> {
     "cond[소관기관명::LIKE]": "고용노동부",
   });
   const response = await fetchJson<ServiceListItem>(url);
-  return response.data;
+  return response.data.filter(
+    (s) => s.서비스명.includes("장려금") || s.서비스명.includes("지원금"),
+  );
 }
 
 export async function fetchServiceDetail(serviceId: string): Promise<ServiceDetailItem | null> {
