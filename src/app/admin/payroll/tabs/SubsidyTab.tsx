@@ -31,6 +31,7 @@ interface ProgramRow {
   totalMaxAmount: number | null;
   applicationStart: string | null;
   applicationEnd: string | null;
+  externalApiUrl: string | null;
   isActive: boolean;
   createdAt: string;
 }
@@ -385,7 +386,19 @@ export function SubsidyTab() {
     {
       key: "name",
       header: "프로그램명",
-      render: (row) => <span className="font-medium">{row.name}</span>,
+      render: (row) =>
+        row.externalApiUrl ? (
+          <a
+            href={row.externalApiUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-primary hover:underline"
+          >
+            {row.name}
+          </a>
+        ) : (
+          <span className="font-medium">{row.name}</span>
+        ),
     },
     {
       key: "provider",

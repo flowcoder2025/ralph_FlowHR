@@ -31,6 +31,7 @@ interface ServiceListItem {
   서비스분야: string;
   소관기관명: string;
   서비스목적요약: string;
+  상세조회URL: string;
 }
 
 interface ServiceDetailItem {
@@ -210,7 +211,7 @@ export async function syncSubsidyPrograms(tenantId: string): Promise<SyncResult>
           description,
           eligibilityCriteria,
           isActive: true,
-          externalApiUrl: `${BASE_URL}/gov24/v3/serviceDetail?cond[서비스ID::EQ]=${service.서비스ID}`,
+          externalApiUrl: service.상세조회URL || null,
         },
       });
       updated++;
@@ -227,7 +228,7 @@ export async function syncSubsidyPrograms(tenantId: string): Promise<SyncResult>
           maxDurationMonths: 12,
           isActive: true,
           externalProgramId: service.서비스ID,
-          externalApiUrl: `${BASE_URL}/gov24/v3/serviceDetail?cond[서비스ID::EQ]=${service.서비스ID}`,
+          externalApiUrl: service.상세조회URL || null,
         },
       });
       created++;

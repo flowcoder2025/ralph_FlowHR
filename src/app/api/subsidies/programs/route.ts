@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
         totalMaxAmount: p.totalMaxAmount,
         applicationStart: p.applicationStart?.toISOString() ?? null,
         applicationEnd: p.applicationEnd?.toISOString() ?? null,
+        externalApiUrl: p.externalApiUrl ?? null,
         isActive: p.isActive,
         createdAt: p.createdAt.toISOString(),
         updatedAt: p.updatedAt.toISOString(),
