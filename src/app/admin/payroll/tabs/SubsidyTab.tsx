@@ -148,6 +148,7 @@ export function SubsidyTab() {
   const [editingProgramId, setEditingProgramId] = useState<string | null>(null);
   const [programSaving, setProgramSaving] = useState(false);
   const [programError, setProgramError] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   // Matches
   const [matches, setMatches] = useState<MatchRow[]>([]);
@@ -296,6 +297,32 @@ export function SubsidyTab() {
       }
     } catch {
       addToast({ message: "삭제에 실패했습니다.", variant: "danger" });
+    }
+  }
+
+  // ─── Sync ─────────────────────────────────────────────
+
+  async function handleSync() {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/subsidies/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        addToast({
+          message: `동기화 완료: ${json.data.synced}건 (신규 ${json.data.created}, 갱신 ${json.data.updated})`,
+          variant: "success",
+        });
+        fetchPrograms();
+      } else {
+        const errJson = await res.json();
+        addToast({ message: errJson.error || "동기화에 실패했습니다.", variant: "danger" });
+      }
+    } finally {
+      setSyncing(false);
     }
   }
 
@@ -525,9 +552,14 @@ export function SubsidyTab() {
         <Card>
           <CardHeader>
             <CardTitle>지원금 프로그램</CardTitle>
-            <Button variant="primary" size="sm" onClick={openCreateProgramModal}>
-              프로그램 추가
-            </Button>
+            <div className="flex gap-sp-2">
+              <Button variant="secondary" size="sm" onClick={handleSync} disabled={syncing}>
+                {syncing ? "동기화 중..." : "정부 프로그램 동기화"}
+              </Button>
+              <Button variant="primary" size="sm" onClick={openCreateProgramModal}>
+                프로그램 추가
+              </Button>
+            </div>
           </CardHeader>
           <CardBody>
             {programsLoading ? (

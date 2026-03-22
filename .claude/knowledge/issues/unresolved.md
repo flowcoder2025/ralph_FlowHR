@@ -36,10 +36,9 @@ type: reference
 | WI-178 | 머지 브랜치 커밋 차단 hook | 완료 PR #225 |
 | WI-179 | DocOps만 커밋 가능 hook | 완료 PR #226 |
 
-## 외부 API 연동 미구현 → WI-184로 재할당
-- 기존 WI-159 근로계약서+지원금 중 외부 API 부분을 WI-184로 분리
-- 고용지원금: 사용자 결정 "외부 API 연동(고용24 등)"
-- 현재: 내부 매칭 엔진만 구현, 실제 외부 API 호출 없음
+## ~~외부 API 연동~~ → WI-184 S38 완료
+- 보조금24 API(api.odcloud.kr) 연동 구현 완료
+- gov24-client.ts + /api/subsidies/sync + SubsidyTab UI 버튼
 
 ## Hook 검증 시스템 — 완료
 - 요구사항 파일 수정 차단 (PreToolUse Write/Edit/MultiEdit)
@@ -95,11 +94,10 @@ type: reference
 - verify-task-completion.sh에서 lint/build/test 블록 제거
 - Next.js dynamic route 오탐 문제 해결
 
-### WI-184 외부 API 연동 — 고용지원금
-- 기존 WI-159에서 재할당 (WI-159는 근로계약서+지원금으로 부분 완료 PR #184)
-- 고용24 등 외부 API 호출 구현
-- 현재: 내부 매칭 엔진만 구현, 실제 외부 API 호출 없음
-- hook 검증에서 차단 확인됨
+### ~~WI-184 외부 API 연동 — 고용지원금~~ — S38 완료
+- 보조금24 API 연동 구현 (gov24-client.ts + /api/subsidies/sync)
+- SubsidyTab에 "정부 프로그램 동기화" 버튼 추가
+- 기존 매칭 엔진 연동 유지
 
 ### end-to-end 전체 플로우 테스트
 - 5단계 워크플로우를 실제 기능으로 처음부터 끝까지 실행
