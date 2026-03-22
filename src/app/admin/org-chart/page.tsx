@@ -295,7 +295,7 @@ export default function OrgChartPage() {
               <button
                 type="button"
                 onClick={() => { setShowAddDept(false); setAddName(""); setAddCode(""); setAddParentId(""); }}
-                className="rounded-md border border-border px-sp-3 py-sp-2 text-sm text-text-secondary hover:bg-surface-secondary"
+                className="rounded-md border border-border px-sp-4 py-sp-2 text-sm text-text-secondary hover:bg-surface-secondary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 취소
               </button>
@@ -319,7 +319,7 @@ export default function OrgChartPage() {
                     addToast({ message: err.error || "부서 추가에 실패했습니다.", variant: "danger" });
                   }
                 }}
-                className="rounded-md bg-brand px-sp-3 py-sp-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-50"
+                className="rounded-md bg-brand px-sp-4 py-sp-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {addSaving ? "저장 중..." : "추가"}
               </button>
@@ -363,7 +363,7 @@ export default function OrgChartPage() {
               <button
                 type="button"
                 onClick={() => setEditDept(null)}
-                className="rounded-md border border-border px-sp-3 py-sp-2 text-sm text-text-secondary hover:bg-surface-secondary"
+                className="rounded-md border border-border px-sp-4 py-sp-2 text-sm text-text-secondary hover:bg-surface-secondary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 취소
               </button>
@@ -394,7 +394,7 @@ export default function OrgChartPage() {
                     addToast({ message: "수정에 실패했습니다.", variant: "danger" });
                   }
                 }}
-                className="rounded-md bg-brand px-sp-3 py-sp-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-50"
+                className="rounded-md bg-brand px-sp-4 py-sp-2 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {editSaving ? "저장 중..." : "저장"}
               </button>
