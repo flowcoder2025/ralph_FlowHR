@@ -64,6 +64,10 @@
   - employee/documents: PDF 다운로드 + 인라인 뷰어
   - employee/payslips: PDF 다운로드 + 인라인 뷰어
   - employee/documents API: Content-Disposition 헤더 추가
+- S38: WI-194 네비게이션 연결 — 완료
+  - KPI 카드 클릭→상세 페이지 이동 (admin 대시보드)
+  - 조직도 직원 클릭→직원관리 페이지 이동
+  - 보험 탭 월별 상세 링크 추가
 
 ### 미완료 항목 (상세)
 
