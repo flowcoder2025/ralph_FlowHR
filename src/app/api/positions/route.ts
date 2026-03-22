@@ -87,3 +87,92 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// ─── PATCH: 직급 수정 ──────────────────────────────────
+export async function PATCH(request: NextRequest) {
+  try {
+  const token = await getToken({ req: request });
+  if (!token || !token.tenantId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const tenantId = token.tenantId as string;
+  const body = await request.json();
+  const { id, name, level, description, sortOrder } = body;
+
+  if (!id) {
+    return NextResponse.json({ error: "id는 필수입니다" }, { status: 400 });
+  }
+
+  const existing = await prisma.position.findFirst({
+    where: { id, tenantId },
+  });
+  if (!existing) {
+    return NextResponse.json({ error: "직급을 찾을 수 없습니다" }, { status: 404 });
+  }
+
+  const updateData: Record<string, unknown> = {};
+  if (name !== undefined) updateData.name = name;
+  if (level !== undefined) updateData.level = Number(level);
+  if (description !== undefined) updateData.description = description || null;
+  if (sortOrder !== undefined) updateData.sortOrder = Number(sortOrder);
+
+  const updated = await prisma.position.update({
+    where: { id },
+    data: updateData,
+  });
+
+  return NextResponse.json({ data: updated });
+  } catch (error) {
+    console.error("[positions PATCH] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
+}
+
+// ─── DELETE: 직급 삭제 ──────────────────────────────────
+export async function DELETE(request: NextRequest) {
+  try {
+  const token = await getToken({ req: request });
+  if (!token || !token.tenantId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const tenantId = token.tenantId as string;
+  const { searchParams } = request.nextUrl;
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json({ error: "id는 필수입니다" }, { status: 400 });
+  }
+
+  const existing = await prisma.position.findFirst({
+    where: { id, tenantId },
+  });
+  if (!existing) {
+    return NextResponse.json({ error: "직급을 찾을 수 없습니다" }, { status: 404 });
+  }
+
+  const employeeCount = await prisma.employee.count({
+    where: { positionId: id, tenantId },
+  });
+  if (employeeCount > 0) {
+    return NextResponse.json(
+      { error: `해당 직급에 ${employeeCount}명의 직원이 있어 삭제할 수 없습니다` },
+      { status: 409 },
+    );
+  }
+
+  await prisma.position.delete({ where: { id } });
+
+  return NextResponse.json({ data: { id } });
+  } catch (error) {
+    console.error("[positions DELETE] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
+}

@@ -229,3 +229,45 @@ export async function PATCH(request: NextRequest) {
     );
   }
 }
+
+// ─── DELETE: 목표 삭제 ──────────────────────────────────
+export async function DELETE(request: NextRequest) {
+  try {
+  const token = await getToken({ req: request });
+  if (!token || !token.tenantId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const tenantId = token.tenantId as string;
+  const { searchParams } = request.nextUrl;
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json(
+      { error: "id는 필수입니다" },
+      { status: 400 },
+    );
+  }
+
+  const goal = await prisma.goal.findFirst({
+    where: { id, tenantId },
+  });
+
+  if (!goal) {
+    return NextResponse.json(
+      { error: "해당 목표를 찾을 수 없습니다" },
+      { status: 404 },
+    );
+  }
+
+  await prisma.goal.delete({ where: { id } });
+
+  return NextResponse.json({ data: { id } });
+  } catch (error) {
+    console.error("[performance/goals DELETE] Error:", error);
+    return NextResponse.json(
+      { error: "서버 오류가 발생했습니다" },
+      { status: 500 }
+    );
+  }
+}
