@@ -44,7 +44,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     data: updateData,
   });
 
-  return NextResponse.json({ rule: updated });
+  return NextResponse.json({ data: updated });
   } catch (error) {
     console.error("[payroll/rules/[id] PATCH] Error:", error);
     return NextResponse.json(
